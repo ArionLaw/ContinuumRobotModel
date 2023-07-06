@@ -4,6 +4,12 @@ from plotting import *
 '''
 Python file for coding wrist model. Assuming a 2DOF (notches at 120 degrees).
 
+Assumptions: 
+- Square and unrestricted notches
+- Constant Curvature Bending
+- Equal contribution to bending at each segment
+- Only a maximum of 2 cables are necessary to be "actuated" to achieve any pose 
+
 Key parameters:
 - n: number of notches for one bending plane; total number of notches is 3*n
 - c: distance between notches
