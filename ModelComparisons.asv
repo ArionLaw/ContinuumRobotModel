@@ -34,7 +34,7 @@ shaft_length = 200; %mm
 % end effector orientation
 vec_x = [1;0;0];
 vec_z = [0;0;1];
-vec_des = [1;1;0];%[1;1;2.44949]; %[2.991;9.521;0.644];
+vec_des = [1;1;0];%[1,1,2.44949]; %[2.991;9.521;0.644];
 
 
 angle = acos(dot(vec_des,vec_z)/norm(vec_z)/norm(vec_des));
@@ -54,7 +54,9 @@ theta_degrees = theta*180/pi
 %theta = acos(dot(vec_des([1,3]),vec_z([1,3]))/norm(vec_z([1,3]))/norm(vec_des([1,3])))
 %need to implement signed consideration (asin?)
 %}
-R_desired = RotMtx('z',phi)*RotMtx('y',theta)
+RotMtx('z',phi)
+RotMtx('y',theta)
+R_desired = RotMtx('z',phi)*RotMtx('y',theta);
 
 %{
 % disproof of "simplified" assumption
@@ -105,10 +107,10 @@ psm_joints = [psm_yaw;psm_pitch;psm_insertion]
 % EE_orientation IK
 R_wrist_desired = inv(R_shaft)*R_desired
 joint_angles = [roll;gamma;beta;alpha]
-joint_angles = IK_update(R_wrist_desired,joint_angles(1),joint_angles(2),joint_angles(3),joint_angles(4));
-R_wrist_IK = get_R_fullwristmodel(joint_angles(1),joint_angles(2),joint_angles(3),joint_angles(4));
-R_updated = R_shaft*R_wrist_IK;
-R_desired;
+joint_angles = IK_update(R_wrist_desired,joint_angles(1),joint_angles(2),joint_angles(3),joint_angles(4))
+R_wrist_IK = get_R_fullwristmodel(joint_angles(1),joint_angles(2),joint_angles(3),joint_angles(4))
+R_updated = R_shaft*R_wrist_IK
+R_desired
 %}
 
 %% Cable Displacement Calculation per segment
@@ -132,13 +134,27 @@ displacementL3 = h - L3;
 %% functions
 
 function joint_angles = IK_update(R_desired,roll,gamma,beta,alpha)
+    delta = 0.2;
     i=0;
     orientation_error = 1;
-    while (i<20)&&(orientation_error>0.001)
-        i=i+1
-        orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
-        delta = 0.5*orientation_error;
-
+    while (i<50)&&(orientation_error>0.001)
+        i=i+1;
+        orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha);
+        if (orientation_error<0.5)
+            delta = 0.05;
+        end
+        if (orientation_error<0.1)
+            delta = 0.02;
+        end
+        if (orientation_error<0.05)
+            delta = 0.005;
+        end
+        if (orientation_error<0.01)
+            delta = 0.002;
+        end
+        if (orientation_error<0.005)
+            delta = 0.0005;
+        end
         d_roll = [get_O_error(R_desired,roll+delta,gamma,beta,alpha),get_O_error(R_desired,roll-delta,gamma,beta,alpha)];
         d_gamma = [get_O_error(R_desired,roll,gamma+delta,beta,alpha),get_O_error(R_desired,roll,gamma-delta,beta,alpha)];
         d_beta = [get_O_error(R_desired,roll,gamma,beta+delta,alpha),get_O_error(R_desired,roll,gamma,beta-delta,alpha)];
@@ -163,16 +179,12 @@ function angle = d_angle(d_theta,orientation_error,theta,delta)
 end
 
 function E = get_O_error(R_desired,roll,gamma,beta,alpha)
-    % self constructed function
-    angles_error = getEulerAngles(get_R_error(R_desired,roll,gamma,beta,alpha))';
-    
-    % inbuilt function
-    %angles = rotm2eul(get_R_error(R_desired,roll,gamma,beta,alpha))';
-    E = sqrt(abs(angles_error(1))^2 + abs(angles_error(2))^2 + abs(angles_error(3))^2);
+    angles = rotm2eul(get_R_error(R_desired,roll,gamma,beta,alpha))';
+    E = sqrt(abs(angles(1))^2 + abs(angles(2))^2 + abs(angles(3))^2);
 end
 
-function R_error = get_R_error(R_desired,roll,gamma,beta,alpha)
-    R_error = R_desired*transpose(get_R_fullwristmodel(roll,gamma,beta,alpha));
+function R = get_R_error(R_desired,roll,gamma,beta,alpha)
+    R = R_desired*transpose(get_R_fullwristmodel(roll,gamma,beta,alpha));
     % if there is no orientation error, matrix should be identity
 end
 
@@ -217,21 +229,20 @@ end
 function angles = getEulerAngles(R)
     if abs(R(3,1)) ~= 1
         y_angle_theta = [-asin(R(3,1)) , pi - (-asin(R(3,1)))];
-        x_angle_psi = [atan2(R(3,2)/cos(y_angle_theta(1)),R(3,3)/cos(y_angle_theta(1))) , atan2(R(3,2)/cos(y_angle_theta(2)),R(3,3)/cos(y_angle_theta(2)))];
-        z_angle_phi = [atan2(R(2,1)/cos(y_angle_theta(1)),R(1,1)/cos(y_angle_theta(1))) , atan2(R(2,1)/cos(y_angle_theta(2)),R(1,1)/cos(y_angle_theta(2)))];
-        angle_set1 = [x_angle_psi(1),y_angle_theta(1),z_angle_phi(1)];
-        angle_set2 = [x_angle_psi(2),y_angle_theta(2),z_angle_phi(2)];
-        angles = angle_set1;
+        x_angle_psi = [atan2(R(3,2)/cos(y_angle_theta[1]),R(3,3)/cos(y_angle_theta[1])) , atan2(R(3,2)/cos(y_angle_theta[2]),R(3,3)/cos(y_angle[2]))];
+        z_angle_phi = [atan2(R(2,1)/cos(y_angle[1]),R(1,1)/cos(y_angle[1])) , atan2(R(2,1)/cos(y_angle[2]),R(1,1)/cos(y_angle[2]))];
+
+        angles = min([x_angle_psi[1],y_angle_theta[1],z_angle_phi[1]],[x_angle_psi[2],y_angle_theta[2],z_angle_phi[2]]);
     else
-        z_angle_phi = 0;
-        if R(3,1) == -1
-            y_angle_theta = pi/2;
-            x_angle_psi = z_angle_phi + atan2(R(1,2),R(1,3));
+        z_angle_phi = 0
+        if R(3,1) = -1
+            y_angle_theta = pi/2
+            x_angle_psi = z_angle_phi + atan2(R(1,2),R(1,3))
         else
-            y_angle_theta = -pi/2;
-            x_angle_psi = -z_angle_phi + atan2(-R(1,2),-R(1,3));
+            y_angle_theta = -pi/2
+            x_angle_psi = -z_angle_phi + atan2(-R(1,2),-R(1,3))
         end
-        angles = [x_angle_psi,y_angle_theta,z_angle_phi];
+        angles = [x_angle_psi,y_angle_theta,z_angle_phi]
     end
 end
 

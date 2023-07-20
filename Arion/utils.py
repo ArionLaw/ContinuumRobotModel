@@ -6,6 +6,45 @@ Holds functions to help compute things.
 
 '''
 
+def getEulerAngles(R):
+    if abs(R[2,0]) != 1:
+        y_angle_theta = [-np.arcsin(R[2,0]) , np.pi - (-np.arcsin(R[2,0]))]
+        x_angle_psi = [math.atan2(R[2,1]/np.cos(y_angle_theta[0]),R[2,2]/np.cos(y_angle_theta[0])) , math.atan2(R[2,1]/np.cos(y_angle_theta[1]),R[2,2]/np.cos(y_angle_theta[1]))]
+        z_angle_phi = [math.atan2(R[1,0]/np.cos(y_angle_theta[0]),R[0,0]/np.cos(y_angle_theta[0])) , math.atan2(R[1,0]/np.cos(y_angle_theta[1]),R[0,0]/np.cos(y_angle_theta[1]))]
+        angle_set1 = [x_angle_psi[0],y_angle_theta[0],z_angle_phi[0]]
+        angle_set2 = [x_angle_psi[1],y_angle_theta[1],z_angle_phi[1]]
+        return angle_set1
+    else:
+        z_angle_phi = 0
+        if R[3,1] == -1:
+            y_angle_theta = np.pi/2
+            x_angle_psi = z_angle_phi + math.atan2(R[1,2],R[1,3])
+        else:
+            y_angle_theta = -np.pi/2
+            x_angle_psi = -z_angle_phi + math.atan2(-R[1,2],-R[1,3])
+        return [x_angle_psi,y_angle_theta,z_angle_phi]
+
+def RotMtx(a,theta):
+    ct = np.cos(theta)
+    st = np.sin(theta)
+    if a == 'z':
+        R = np.array([[ct , -st , 0],
+                      [st ,  ct , 0],
+                      [0  ,  0  , 1]])
+    elif a == 'y':
+        R = np.array([[ct  , 0 , st],
+                      [0   , 1 , 0],
+                      [-st , 0 , ct]])
+    elif a == 'x':
+        R = np.array([[1 , 0  ,  0],
+                      [0 , ct , -st],
+                      [0 , st ,  ct]])
+    else:
+        R = np.array([[1 , 0 , 0],
+                      [0 , 1 , 0],
+                      [0 , 0 , 1]])
+    return R
+
 def getDistance(p1, p2):
     '''
     Calculates the straight distance given two points in 2D.
@@ -91,6 +130,14 @@ def getAngleTwoVectors(v1, v2):
     '''
     angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1, ord=2) * np.linalg.norm(v2, ord=2)))
     return angle
+
+def getRotationAxis(v1, v2, angle):
+    """
+    Returns the axis of rotation between 2 vectors in 3D
+    Angle in Radians
+    """
+    axis = np.cross(v1,v2)/np.linalg.norm(v1, ord=2)/np.linalg.norm(v2, ord=2)/np.sin(angle)
+    return axis
 
 def fitCircleToPoints2D(P):
     '''

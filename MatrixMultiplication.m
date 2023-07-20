@@ -9,11 +9,19 @@ syms alpha
 
 phase_offset = 120*pi/180;
 
-R_straight = RotMtx('y',0)*RotMtx('z',phase_offset)
-R_notch = RotMtx('y',gamma)*RotMtx('z',phase_offset)
-R_segment = RotMtx('y',gamma)*RotMtx('z',phase_offset)*RotMtx('y',beta)*RotMtx('z',phase_offset)*RotMtx('y',alpha)*RotMtx('z',phase_offset)
-R_simp = RotMtx('z',roll)*R_segment
-R_full = RotMtx('z',roll)*R_segment*R_segment*R_segment
+%R_straight = RotMtx('y',0)*RotMtx('z',phase_offset)
+%R_notch = RotMtx('y',gamma)*RotMtx('z',phase_offset)
+%R_segment = RotMtx('y',gamma)*RotMtx('z',phase_offset)*RotMtx('y',beta)*RotMtx('z',phase_offset)*RotMtx('y',alpha)*RotMtx('z',phase_offset)
+%R_simp = RotMtx('z',roll)*R_segment
+%R_full = RotMtx('z',roll)*R_segment*R_segment*R_segment
+
+R = [0.6124,   -0.7071,    0.3536;
+     0.6124,    0.7071,    0.3536;
+    -0.5000,         0,    0.8660];
+I = R*R'
+V = rotm2eul(I)'
+
+sumabs(V)
 
 
 %% functions
