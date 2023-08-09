@@ -45,31 +45,31 @@ def CableToDiskfromLookUpTable(find):
     y = y1 + (x-x1)*(y2-y1)/(x2-x1)
     return y
 
-def getDiskAngles(deltaL1,deltaL2,deltaL3):
+def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
     deltaL = np.array([deltaL1,deltaL2,deltaL3])
-    deltaL[deltaL<0] = 0
-    diff = (min(deltaL))
+    deltaL[deltaL<0] = 0 # not possible to extend length of cable, set to 0 displacement
+    diff = (min(deltaL)) # set smallest cable displacement as reference length
     deltaL1 = deltaL[0] - diff
     deltaL2 = deltaL[1] - diff
     deltaL3 = deltaL[2] - diff
-
-    print("cables: \n", [deltaL1,deltaL2,deltaL3])
+    #print("cables: \n", [deltaL1,deltaL2,deltaL3])
 
     if (deltaL1 > 0):
-        Disk3 = CableToDiskfromLookUpTable(deltaL1)
+        Disk4 = -CableToDiskfromLookUpTable(deltaL1)
+        if (deltaL3 > 0):
+            Disk3 = -CableToDiskfromLookUpTable(deltaL3)
+        else:
+            Disk3 = CableToDiskfromLookUpTable(deltaL2)
+    elif (deltaL2 > 0):
+        Disk3 = CableToDiskfromLookUpTable(deltaL2)
         if (deltaL3 > 0):
             Disk4 = CableToDiskfromLookUpTable(deltaL3)
         else:
-            Disk4 = CableToDiskfromLookUpTable(deltaL2)
-    elif (deltaL2 > 0):
-        Disk4 = CableToDiskfromLookUpTable(deltaL2)
-        if (deltaL3 > 0):
-            Disk3 = CableToDiskfromLookUpTable(deltaL3)
-        else:
-            Disk3 = CableToDiskfromLookUpTable(deltaL1)
-    # check polarities
-    # conditional checking
-    return [Disk3, Disk4]
+            Disk4 = -CableToDiskfromLookUpTable(deltaL1)
+
+    Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
+    Disk2 = -1*EE_pull #need to tune according to motion ratio
+    return [Disk1,Disk2,Disk3,Disk4]
 
 getCabletoDiskMapping()
 #np.savetxt("cableToDiskMapping.csv", cableToDiskMapping ,delimiter=",")
@@ -79,5 +79,5 @@ mapping.to_csv("cableToDiskMapping.csv",index=True)
 #diskAngle = CableToDiskfromLookUpTable(4.425786)
 #print(diskAngle)
 
-Disks3_4 = getDiskAngles(1,-2,3)
-print("disks: \n", Disks3_4)
+#DiskAngles = getDiskAngles(1,1,1,-2,3)
+#print("disks: \n", DiskAngles)

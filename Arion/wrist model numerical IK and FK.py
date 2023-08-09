@@ -1,6 +1,7 @@
 from utils import *
 from TaskSpace_to_JointSpace import *
 from JointSpace_to_CableSpace import *
+from CableSpace_to_DiskSpace import *
 from plotting import *
 import numpy as np
 
@@ -129,6 +130,8 @@ print("current EE orientation: \n", R_currentFK)
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
+getCabletoDiskMapping()
+
 print("\n IK")
 # wrist position IK
 psm_insertion = np.sqrt(EE_pos_desired[0]**2 + EE_pos_desired[1]**2 + EE_pos_desired[2]**2); #magnitude = psm_insertion
@@ -150,11 +153,16 @@ R_wrist_IK = get_R_fullwristmodel(joint_angles[0],joint_angles[1],joint_angles[2
 R_updated = R_shaft@R_wrist_IK
 #print("R_full_IK: \n", R_updated)
 #print("R_desired: \n", R_desired)
+
 deltaCablesGamma = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[1], "0")
 deltaCablesBeta = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[2], "120")
 deltaCablesAlpha = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[3], "240")
 deltaCablesTotal = 3*(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
+EE_pull = 1 #place holder value for now, need to obtain from ROS topic
 print("cable deltas for notch 1: ", deltaCablesGamma)
 print("cable deltas for notch 2: ", deltaCablesBeta)
 print("cable deltas for notch 3: ", deltaCablesAlpha)
 print("total cable delta: ", deltaCablesTotal)
+
+DiskAngles = [getDiskAngles(joint_angles[0],EE_pull,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])]
+
