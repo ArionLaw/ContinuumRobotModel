@@ -6,13 +6,15 @@ import pandas as pd
 
 
 def getCabletoDiskMapping():
+    """
+    obtain mapping of Wiper Disk Angle vs Cable Displacement in the form of a lookup table
+    """
     restingCableLength = 29 #mm
     diskLocation = 10 #mm
     wiperLength = 15 #mm
     wiperWidth = 6 #mm
 
     global mapping
-    #mapping = np.array([[1,1]])
     mapping = pd.DataFrame(columns = ['DiskAngle','DeltaCable'])
     lengthAC = restingCableLength
     theta = 0
@@ -22,15 +24,16 @@ def getCabletoDiskMapping():
         lengthBC = np.sqrt((positionB[0] - wiperWidth/2)**2 + (diskLocation+positionB[1])**2)
         lengthDelta = lengthAB + lengthBC - lengthAC
         
-        #mapping = np.append(mapping, [[theta,lengthDelta]], axis=0)
         entry = pd.DataFrame([[theta,lengthDelta]] , columns = ['DiskAngle','DeltaCable'])
         mapping = pd.concat([mapping,entry],ignore_index=True)
         
         theta = theta + np.pi/360
-    #mapping = np.delete(mapping,0,0)
     return mapping
 
 def CableToDiskfromLookUpTable(find):
+    """
+    interpolation of Wiper Disk Angle output from Cable Displacement input from lookup table
+    """
     mask_lower = mapping['DeltaCable'].lt(find)
     mask_lower = mapping.loc[mask_lower]
     #print("lower: \n" , mask_lower)
@@ -46,6 +49,10 @@ def CableToDiskfromLookUpTable(find):
     return y
 
 def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
+    """
+    calculate Disk Angles from jointspace and cablespace inputs
+    [roll (jointspace), end effector, (jointspace), Cable1 (cablespace), Cable2 (cablespace), Cable3 (cablespace)]
+    """
     deltaL = np.array([deltaL1,deltaL2,deltaL3])
     deltaL[deltaL<0] = 0 # not possible to extend length of cable, set to 0 displacement
     diff = (min(deltaL)) # set smallest cable displacement as reference length
@@ -71,13 +78,6 @@ def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
     Disk2 = -1*EE_pull #need to tune according to motion ratio
     return [Disk1,Disk2,Disk3,Disk4]
 
-getCabletoDiskMapping()
-#np.savetxt("cableToDiskMapping.csv", cableToDiskMapping ,delimiter=",")
-mapping.to_csv("cableToDiskMapping.csv",index=True)
+#getCabletoDiskMapping()
+#mapping.to_csv("cableToDiskMapping.csv",index=True)
 #print(mapping)
-
-#diskAngle = CableToDiskfromLookUpTable(4.425786)
-#print(diskAngle)
-
-#DiskAngles = getDiskAngles(1,1,1,-2,3)
-#print("disks: \n", DiskAngles)

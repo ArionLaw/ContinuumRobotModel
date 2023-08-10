@@ -47,6 +47,7 @@ alpha = [0 , -1/2*pi , 2/3*pi , 2/3*pi]
 d = [c , 0 , 0 , 0]
 """
 np.set_printoptions(precision=3)
+getCabletoDiskMapping()
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters
@@ -130,7 +131,6 @@ print("current EE orientation: \n", R_currentFK)
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-getCabletoDiskMapping()
 
 print("\n IK")
 # wrist position IK
@@ -159,10 +159,11 @@ deltaCablesBeta = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[2], "120")
 deltaCablesAlpha = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[3], "240")
 deltaCablesTotal = 3*(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
 EE_pull = 1 #place holder value for now, need to obtain from ROS topic
-print("cable deltas for notch 1: ", deltaCablesGamma)
-print("cable deltas for notch 2: ", deltaCablesBeta)
-print("cable deltas for notch 3: ", deltaCablesAlpha)
-print("total cable delta: ", deltaCablesTotal)
+#print("cable deltas for notch 1: ", deltaCablesGamma)
+#print("cable deltas for notch 2: ", deltaCablesBeta)
+#print("cable deltas for notch 3: ", deltaCablesAlpha)
+#print("total cable delta: ", deltaCablesTotal)
 
-DiskAngles = [getDiskAngles(joint_angles[0],EE_pull,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])]
+DiskAngles = [getDiskAngles(joint_angles[0],EE_pull,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])] 
+# getDiskAngles inputs [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
 
