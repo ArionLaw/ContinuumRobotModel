@@ -3,6 +3,59 @@ from plotting import *
 import numpy as np
 import time
 
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+### FK ###
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+def get_wristPosition_from_PSMjoints(psm_pitch,psm_yaw,psm_insertion):
+    """
+    obtain position of wrist before notches from yaw, pitch and insertion joint values
+    """
+    EE_x = psm_insertion*np.sin(psm_yaw)*np.cos(psm_pitch)
+    EE_y = -psm_insertion*np.sin(psm_pitch)
+    EE_z = -psm_insertion*np.cos(psm_yaw)*np.cos(psm_pitch)
+    return [EE_x,EE_y,EE_z]
+
+def get_R_shaft(psm_yaw,psm_pitch):
+    """
+    calculates rotation matrix of instrument prior to roll joint
+    derived from daVinci PSM modified DH convention
+    """
+    R = RotMtx('x',np.pi/2)@RotMtx('z',(psm_yaw+np.pi/2))@RotMtx('x',-np.pi/2)@RotMtx('z',(psm_pitch-np.pi/2))@RotMtx('x',np.pi/2)
+    return R
+
+def get_R_fullwristmodel(roll,gamma,beta,alpha):
+    """
+    calculates rotation matrix of instrument wrist starting from the roll joint
+    """
+    R = RotMtx('z',roll)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)
+    return R
+
+def get_R_segment3notch(gamma,beta,alpha):
+    """
+    calculates the rotation matrix of a repeating segment of square cut wrist notches
+    3 notch segment, 120 degree out of phase
+    """
+    phase_offset = 120*np.pi/180
+    # "lazy method"
+    #R = RotMtx('y',gamma)*RotMtx('z',phase_offset)*RotMtx('y',beta)*RotMtx('z',phase_offset)*RotMtx('y',alpha)*RotMtx('z',phase_offset);
+   
+    #based off modified DH-Convention
+    R = RotMtx('x',(-np.pi/2))@RotMtx('z',(gamma-np.pi/2))@RotMtx('x',phase_offset)@RotMtx('z',beta)@RotMtx('x',phase_offset)@RotMtx('z',alpha)@RotMtx('x',phase_offset)@RotMtx('z',np.pi/2)@RotMtx('x',np.pi/2)
+    return R
+
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+### IK ###
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+
+def get_PSMjoints_from_wristPosition(EE_pos_desired):
+    """
+    obtain initial yaw, pitch and insertion joint values of PSM kinematic chain from desired EE_position
+    """
+    psm_insertion = np.sqrt(EE_pos_desired[0]**2 + EE_pos_desired[1]**2 + EE_pos_desired[2]**2); #magnitude = psm_insertion
+    psm_pitch = np.arcsin(-EE_pos_desired[1]/psm_insertion)
+    psm_yaw = np.arcsin(EE_pos_desired[0]/np.cos(psm_pitch)/psm_insertion)
+    return [psm_yaw,psm_pitch,psm_insertion]
+
 def IK_update(R_desired,roll,gamma,beta,alpha):
     """
     IK numerical soln for taskspace to joint space roll and notch angles
@@ -69,32 +122,4 @@ def get_R_error(R_desired,roll,gamma,beta,alpha):
     if there is no orientation error, matrix should be an identity matrix
     """
     R = R_desired@np.transpose(get_R_fullwristmodel(roll,gamma,beta,alpha))
-    return R
-
-def get_R_shaft(psm_yaw,psm_pitch):
-    """
-    calculates rotation matrix of instrument prior to roll joint
-    derived from daVinci PSM modified DH convention
-    """
-    R = RotMtx('x',np.pi/2)@RotMtx('z',(psm_yaw+np.pi/2))@RotMtx('x',-np.pi/2)@RotMtx('z',(psm_pitch-np.pi/2))@RotMtx('x',np.pi/2)
-    return R
-
-def get_R_fullwristmodel(roll,gamma,beta,alpha):
-    """
-    calculates rotation matrix of instrument wrist starting from the roll joint
-    """
-    R = RotMtx('z',roll)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)
-    return R
-
-def get_R_segment3notch(gamma,beta,alpha):
-    """
-    calculates the rotation matrix of a repeating segment of square cut wrist notches
-    3 notch segment, 120 degree out of phase
-    """
-    phase_offset = 120*np.pi/180
-    # "lazy method"
-    #R = RotMtx('y',gamma)*RotMtx('z',phase_offset)*RotMtx('y',beta)*RotMtx('z',phase_offset)*RotMtx('y',alpha)*RotMtx('z',phase_offset);
-   
-    #based off modified DH-Convention
-    R = RotMtx('x',(-np.pi/2))@RotMtx('z',(gamma-np.pi/2))@RotMtx('x',phase_offset)@RotMtx('z',beta)@RotMtx('x',phase_offset)@RotMtx('z',alpha)@RotMtx('x',phase_offset)@RotMtx('z',np.pi/2)@RotMtx('x',np.pi/2)
     return R

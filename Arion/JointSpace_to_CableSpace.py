@@ -2,9 +2,39 @@ from utils import *
 from plotting import *
 import numpy as np
 
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+### FK ###
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+
+def allocate_deltaCables(deltaCables):
+    """
+    interprets total cable displacement and translates into the fraction of cable displacement for a single wrist segment 
+    (3 notches 120deg out of phase)
+    """
+    segment_deltas = -1/3*deltaCables
+
+    #assumption that cable with the least displacement is negligible (slack)
+    slack = (min(segment_deltas)) # set smallest cable displacement as reference length
+    segment_deltas[segment_deltas <= slack] = 0
+    return segment_deltas
+    
+def get_NotchAngle_from_CableDelta(h, y_, r, w ,L_inner):
+    """
+    gets notch angle from displacement of innermost cable of notch
+    """
+    curvature = L_inner/(h*(r+y_) - L_inner*y_)
+    tube_midline = h/(1+y_*curvature)
+    
+    notch_angle = tube_midline*curvature
+    return 
+
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+### IK ###
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+
 def get_deltaCable_at_Notch(h, y_, r, w, notch_angle, phase):
     """
-    Cable Displacement Calculation per individual notch
+    gets cable displacements of all cables given the angle at a notch
     """
     if (notch_angle > 0):
         R = abs(h/notch_angle)
@@ -35,3 +65,4 @@ def get_deltaCable_at_Notch(h, y_, r, w, notch_angle, phase):
         deltaCable_L3 = L1 - h
     
     return(np.array([deltaCable_L1, deltaCable_L2, deltaCable_L3]))
+
