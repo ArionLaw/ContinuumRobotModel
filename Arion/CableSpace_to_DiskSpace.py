@@ -8,6 +8,7 @@ from JointSpace_to_CableSpace import *
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters
 #----------------------------------------------------------------------------------------------------------------------------------------------#
+
 n = 3 # sets of 3 cuts
 h = 0.66 #mm notch height
 c = 0.66 #mm notch spacing
@@ -19,6 +20,12 @@ OD = 1.37 #mm
 ID = 0.94 #mm
 r = OD/2
 w = r*np.sin(np.radians(30))
+
+shaft_length = 200 #mm
+
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+### Mapping Initialization ###
+#----------------------------------------------------------------------------------------------------------------------------------------------#
 
 def getCabletoDiskMapping():
     """
@@ -84,11 +91,15 @@ def DiskPosition_To_JointSpace(DiskPositions):
         beta = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
         alpha = 0
 
-    segment_deltas = allocate_deltaCables(gamma,beta,alpha)
-    gamma = get_NotchAngle_from_CableDelta(h, y_, r, w, segment_deltas[0])
-    beta = get_NotchAngle_from_CableDelta(h, y_, r, w, segment_deltas[1])
-    alpha = get_NotchAngle_from_CableDelta(h, y_, r, w, segment_deltas[2])
-    return[roll,EE_grip,gamma,beta,alpha]
+    wrist_cable_deltas = np.array([gamma,beta,alpha])
+    #print("Total Wrist Cable Deltas: \n" , wrist_cable_deltas)
+    segment_deltas = allocate_deltaCables(wrist_cable_deltas)
+    #print("3 Notch Segment Cable Deltas: \n" , segment_deltas)
+    gamma = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[0])
+    beta = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[1])
+    alpha = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[2])
+    joint_values = [roll,EE_grip,gamma,beta,alpha]
+    return joint_values
 
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#

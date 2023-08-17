@@ -52,7 +52,7 @@ getCabletoDiskMapping()
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-global n , h , c, prevStraightLength, postStraightLength, y_, g, OD, ID, r, w
+
 n = 3 # sets of 3 cuts
 h = 0.66 #mm notch height
 c = 0.66 #mm notch spacing
@@ -104,36 +104,38 @@ print("desired Rotation matrix: \n", R_desired)
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # initial joint configurations
-""""""
+"""
 roll = 0*np.pi/180
 gamma = 0; #35*np.pi/180; 
 beta  = 0; #25*np.pi/180; 
 alpha = 0; #0*np.pi/180;
-
+"""
+print("\n FK")
 psm_yaw = 0.7854; #0*np.pi/180;
 psm_pitch = -0.6155; #0*np.pi/180;
 psm_insertion = 43.3013; #100;
-
+psm_joints = [psm_yaw, psm_pitch, psm_insertion]
+print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
 disk_positions = [-0.2136763752838734, -1, 0.26000965425093653, 0.12707334917195753] # [roll , EE , Disk 3, Disk 4]
-joint_angles = DiskPosition_To_JointSpace(disk_positions)
-roll = joint_angles[0]
-EE_grip = joint_angles[1]
-gamma = joint_angles[2]
-beta = joint_angles[3]
-alphaa = joint_angles[4]
+joint_values = DiskPosition_To_JointSpace(disk_positions)
+print("Instrument Joint Values: \n" , joint_values)
+roll = joint_values[0]
+EE_grip = joint_values[1]
+gamma = joint_values[2]
+beta = joint_values[3]
+alpha = joint_values[4]
 
-print("\n FK")
 # wrist position FK
 EE_pos_FK = get_wristPosition_from_PSMjoints(psm_pitch,psm_yaw,psm_insertion)
-print("wrist position: \n", EE_pos_FK)
+print("Wrist Position: \n", EE_pos_FK)
 
 # orientation FK
 R_shaft = get_R_shaft(psm_yaw,psm_pitch)
 R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
 R_currentFK = R_shaft@R_wrist
-print("shaft orientation: \n", R_shaft)
-print("wrist orientation: \n", R_wrist)
-print("current EE orientation: \n", R_currentFK)
+print("Shaft Orientation: \n", R_shaft)
+print("Wrist Orientation: \n", R_wrist)
+print("Current EE Orientation: \n", R_currentFK)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
@@ -142,7 +144,7 @@ print("current EE orientation: \n", R_currentFK)
 print("\n IK")
 # wrist position IK
 psm_joints = get_PSMjoints_from_wristPosition(EE_pos_desired)
-print("psm joint angles(yaw,pitch,insertion): \n", psm_joints)
+print("PSM Joint Values(yaw,pitch,insertion): \n", psm_joints)
 
 # EE_orientation IK
 R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
