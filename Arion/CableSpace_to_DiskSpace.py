@@ -56,23 +56,24 @@ def getCabletoDiskMapping():
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def DiskToCablefromLookUpTable(find):
+def DiskToCablefromLookUpTable(x):
     """
     interpolation of Cable Displacement Output from Wiper Disk Angle input from lookup table
     """
-    mask_lower = mapping['DiskAngle'].lt(find)
+    mask_lower = mapping['DiskAngle'].lt(x)
     mask_lower = mapping.loc[mask_lower]
     #print("lower: \n" , mask_lower)
-    mask_upper = mapping['DiskAngle'].gt(find)
+    mask_upper = mapping['DiskAngle'].gt(x)
     mask_upper = mapping.loc[mask_upper]
     #print("upper: \n" , mask_upper)
     y1 = mask_lower['DeltaCable'].max()
     y2 = mask_upper['DeltaCable'].min()
     x1 = mask_lower['DiskAngle'].max()
     x2 = mask_upper['DiskAngle'].min()
-    x = find
-    y = y1 + (x-x1)*(y2-y1)/(x2-x1)
-    return y
+    if np.isnan(x1):
+        return 0
+    else:
+        return (y1 + (x-x1)*(y2-y1)/(x2-x1))
 
 def DiskPosition_To_JointSpace(DiskPositions):
     roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix
@@ -106,23 +107,25 @@ def DiskPosition_To_JointSpace(DiskPositions):
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def CableToDiskfromLookUpTable(find):
+def CableToDiskfromLookUpTable(x):
     """
     interpolation of Wiper Disk Angle output from Cable Displacement input from lookup table
     """
-    mask_lower = mapping['DeltaCable'].lt(find)
+    mask_lower = mapping['DeltaCable'].lt(x)
     mask_lower = mapping.loc[mask_lower]
     #print("lower: \n" , mask_lower)
-    mask_upper = mapping['DeltaCable'].gt(find)
+    mask_upper = mapping['DeltaCable'].gt(x)
     mask_upper = mapping.loc[mask_upper]
     #print("upper: \n" , mask_upper)
     y1 = mask_lower['DiskAngle'].max()
     y2 = mask_upper['DiskAngle'].min()
     x1 = mask_lower['DeltaCable'].max()
     x2 = mask_upper['DeltaCable'].min()
-    x = find
-    y = y1 + (x-x1)*(y2-y1)/(x2-x1)
-    return y
+    if np.isnan(x1):
+        return 0
+    else:
+        return (y1 + (x-x1)*(y2-y1)/(x2-x1))
+    
 
 def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
     """
@@ -135,15 +138,15 @@ def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
     
     deltaL[deltaL<=diff] = 0
     #deltaL = deltaL - diff
-    print("cables: \n", deltaL)
+    print("Cables Delta: \n", deltaL)
 
-    if (deltaL[0] > 0):
+    if (deltaL[0] >= 0):
         Disk4 = -CableToDiskfromLookUpTable(deltaL[0])
         if (deltaL[2] > 0):
             Disk3 = -CableToDiskfromLookUpTable(deltaL[2])
         else:
             Disk3 = CableToDiskfromLookUpTable(deltaL[1])
-    elif (deltaL[1] > 0):
+    elif (deltaL[1] >= 0):
         Disk3 = CableToDiskfromLookUpTable(deltaL[1])
         if (deltaL[2] > 0):
             Disk4 = CableToDiskfromLookUpTable(deltaL[2])

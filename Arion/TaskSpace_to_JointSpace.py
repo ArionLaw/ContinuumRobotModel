@@ -3,24 +3,64 @@ from plotting import *
 import numpy as np
 import time
 
+
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+#desired end effector orientation rotation matrix description
+#----------------------------------------------------------------------------------------------------------------------------------------------#
+
+
+#angle = getAngleTwoVectors(pos_des,vec_z) #acos(dot(vec_des,vec_z)/norm(vec_z)/norm(vec_des))
+#angle_degrees = np.degrees(angle) #angle*180/pi
+#axis = getRotationAxis(pos_des, vec_z, angle)#cross(vec_des,vec_z)/norm(vec_z)/norm(vec_des)/sin(angle)
+
+def get_R_desired(EE_orientation_desired, tip_desired):
+    """
+    obtain rotation matrix of desired end effector orientation  
+    """
+    vec_x = np.array([1,0,0])
+    vec_z = np.array([0,0,1])
+
+    # azimuth about z axis
+    phi = EE_orientation_desired[1]/abs(EE_orientation_desired[1])*np.arccos(np.dot(EE_orientation_desired[:2],vec_x[:2])/np.linalg.norm(vec_x[:2])/np.linalg.norm(EE_orientation_desired[:2]))
+    phi_degrees = phi*180/np.pi
+    print("phi(azimuth): \n", round(phi_degrees,3))
+
+    # altitude about y axis
+    proj_des = [np.sqrt(EE_orientation_desired[0]**2 + EE_orientation_desired[1]**2) , EE_orientation_desired[2]]
+    proj_z = np.array([0,1])
+    theta = np.arccos(np.dot(proj_des,proj_z)/np.linalg.norm(proj_z)/np.linalg.norm(proj_des))
+    theta_degrees = theta*180/np.pi
+    print("theta(elevation): \n", round(theta_degrees,3))
+
+    # tool tip roll about z axis
+    tip_roll = tip_desired*np.pi/180
+    print("tool tip roll: \n", round(tip_desired,3))
+
+    R_desired = RotMtx('z',phi)@RotMtx('y',theta)@RotMtx('z',tip_roll)
+    print("desired Rotation matrix: \n", R_desired)
+    return R_desired
+
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-def get_wristPosition_from_PSMjoints(psm_pitch,psm_yaw,psm_insertion):
+def get_wristPosition_from_PSMjoints(psm_joints):
     """
     obtain position of wrist before notches from yaw, pitch and insertion joint values
+    joint[0] = yaw
+    joint[1] = pitch
+    joint[2] = insertion
     """
-    EE_x = psm_insertion*np.sin(psm_yaw)*np.cos(psm_pitch)
-    EE_y = -psm_insertion*np.sin(psm_pitch)
-    EE_z = -psm_insertion*np.cos(psm_yaw)*np.cos(psm_pitch)
+    EE_x = psm_joints[2]*np.sin(psm_joints[0])*np.cos(psm_joints[1])
+    EE_y = -psm_joints[2]*np.sin(psm_joints[1])
+    EE_z = -psm_joints[2]*np.cos(psm_joints[0])*np.cos(psm_joints[1])
     return [EE_x,EE_y,EE_z]
 
-def get_R_shaft(psm_yaw,psm_pitch):
+def get_R_shaft(psm_joints):
     """
     calculates rotation matrix of instrument prior to roll joint
     derived from daVinci PSM modified DH convention
     """
-    R = RotMtx('x',np.pi/2)@RotMtx('z',(psm_yaw+np.pi/2))@RotMtx('x',-np.pi/2)@RotMtx('z',(psm_pitch-np.pi/2))@RotMtx('x',np.pi/2)
+    R = RotMtx('x',np.pi/2)@RotMtx('z',(psm_joints[0]+np.pi/2))@RotMtx('x',-np.pi/2)@RotMtx('z',(psm_joints[1]-np.pi/2))@RotMtx('x',np.pi/2)
     return R
 
 def get_R_fullwristmodel(roll,gamma,beta,alpha):
@@ -62,8 +102,8 @@ def IK_update(R_desired,roll,gamma,beta,alpha):
     """
     start_time = time.time()
     i=0
-    orientation_error = 1
-    previous_error = 2
+    orientation_error = 1 #arbitrary value to enter loop
+    previous_error = 2 #arbitrary value to prevent triggering exit condition(stuck in local minima)
     exit = False
     while (i<25) and (orientation_error>0.005) and exit == False:
         i=i+1
@@ -71,7 +111,7 @@ def IK_update(R_desired,roll,gamma,beta,alpha):
         orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
         #print("orientation error: ", orientation_error)
 
-        delta = 0.25*orientation_error
+        delta = 0.23*orientation_error
         if (abs(previous_error - orientation_error)) < 0.00001:
             exit = True
         
