@@ -1,0 +1,6 @@
+devel_space: /home/arionlaw/Documents/ContinuumRobotModel/devel
+install: false
+install_space: /home/arionlaw/Documents/ContinuumRobotModel/install
+profile: default
+source_space: /home/arionlaw/Documents/ContinuumRobotModel/src
+workspace: /home/arionlaw/Documents/ContinuumRobotModel

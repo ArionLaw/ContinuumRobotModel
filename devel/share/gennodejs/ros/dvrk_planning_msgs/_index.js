@@ -1,0 +1,1 @@
+/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/gennodejs/ros/dvrk_planning_msgs/_index.js

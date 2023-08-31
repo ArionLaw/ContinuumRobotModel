@@ -1,0 +1,12 @@
+(cl:in-package dvrk_planning_msgs-msg)
+(cl:export '(HEADER-VAL
+          HEADER
+          TRAJECTORY_NAME-VAL
+          TRAJECTORY_NAME
+          PERCENTAGE_COMPLETED-VAL
+          PERCENTAGE_COMPLETED
+          COMPLETED_TRAJECTORY_POINTS-VAL
+          COMPLETED_TRAJECTORY_POINTS
+          TOTAL_TRAJECTORY_POINTS-VAL
+          TOTAL_TRAJECTORY_POINTS
+))
