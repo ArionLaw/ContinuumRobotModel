@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "com.unity.test-framework": "1.1.24",
+    "com.unity.medcvr.dvrk_planning": "file:../../com.unity.medcvr.dvrk_planning"
+  },
+  "testables": [
+    "com.unity.medcvr.dvrk_planning"
+  ]
+}

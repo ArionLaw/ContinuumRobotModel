@@ -1,0 +1,5 @@
+std_msgs/Header header
+string trajectory_name
+float32 percentage_completed
+int64 completed_trajectory_points
+int64 total_trajectory_points

@@ -1,0 +1,50 @@
+cartesian_controllers:
+  - name: "Keyboard-PSM1"
+    input:
+      type: "increment"
+      topic: "/keyboard/twist"
+    output:
+      control_topic: "/PSM1/servo_jp"
+      feedback_topic: "/PSM1/measured_js"
+    kinematics:
+      robot: "psm"
+      tool:
+        type: "LND400006"
+  - name: "MTML-PSM2"
+    input:
+      type: "follow"
+      topic: "/MTML/measured_cp"
+      position_scale: 0.5
+    output:
+      control_topic: "/PSM2/servo_jp"
+      feedback_topic: "/PSM2/measured_js"
+      output_ref_to_input_rot:
+        quaternion:
+          x: 0
+          y: 0
+          z: 1
+          w: 0
+    kinematics:
+      robot: "psm"
+      tool:
+        type: "custom"
+        L_rcc: 0.4318
+        L_tool: 0.4162 #different tool for cutting
+        L_pitch2yaw: 0.0091
+        L_yaw2ctrlpnt: 0.0104 # Slightly different than LND400006 0.0102
+        scale: 1.0
+joint_controllers:
+  - name: "Keyboard-PSM1Jaw"
+    input:
+      type: "increment"
+      topic: "/keyboard/joint_state"
+      scale: "1.2"
+    output:
+      control_topic: "/PSM1/jaw/servo_jp"
+      feedback_topic: "/PSM1/jaw/measured_js"
+enable_at_start: ["Keyboard-PSM1", Keyboard-PSM1Jaw]
+clutch_topic: "/console/clutch"
+switcher:
+  switch_topic: "/console/camera"
+  disable_list: ["Keyboard-PSM1", Keyboard-PSM1Jaw]
+  enable_list: ["MTML-PSM2"]
