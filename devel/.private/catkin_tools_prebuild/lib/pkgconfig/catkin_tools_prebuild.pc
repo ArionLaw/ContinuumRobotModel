@@ -1,4 +1,4 @@
-prefix=/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/catkin_tools_prebuild
+prefix=/home/dvrk/ContinuumRobotModel/devel/.private/catkin_tools_prebuild
 
 Name: catkin_tools_prebuild
 Description: Description of catkin_tools_prebuild

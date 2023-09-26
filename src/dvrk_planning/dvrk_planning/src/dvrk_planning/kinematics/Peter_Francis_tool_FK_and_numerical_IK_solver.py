@@ -1,8 +1,9 @@
-from utils import *
-from TaskSpace_to_JointSpace import *
-from JointSpace_to_CableSpace import *
-from CableSpace_to_DiskSpace import *
-from plotting import *
+from pickle import FALSE
+from dvrk_planning.kinematics.utils import *
+from dvrk_planning.kinematics.TaskSpace_to_JointSpace import *
+from dvrk_planning.kinematics.JointSpace_to_CableSpace import *
+from dvrk_planning.kinematics.CableSpace_to_DiskSpace import *
+from dvrk_planning.kinematics.plotting import *
 import numpy as np
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -47,6 +48,7 @@ alpha = [0 , -1/2*pi , 2/3*pi , 2/3*pi]
 d = [c , 0 , 0 , 0]
 """
 np.set_printoptions(precision=3)
+printout = True
 getCabletoDiskMapping()
 
 class Peter_Francis_tool_Kinematics_Solver:
@@ -75,7 +77,8 @@ class Peter_Francis_tool_Kinematics_Solver:
                 from cable space displacements to joint space angles 
                 from joint space angles to task space poses                 
         """        
-        print("\n FK")
+        if printout is True:
+                print("\n FK")
 
         # from disk space angles to joint space angles
         joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
@@ -97,7 +100,8 @@ class Peter_Francis_tool_Kinematics_Solver:
         R_currentFK = R_shaft@R_wrist
         #print("Shaft Orientation: \n", R_shaft)
         #print("Wrist Orientation: \n", R_wrist)
-        print("Current EE Orientation: \n", R_currentFK)
+        if printout is True:
+                print("Current EE Orientation: \n", R_currentFK)
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
@@ -110,7 +114,8 @@ class Peter_Francis_tool_Kinematics_Solver:
                 from joint space angles to cable space displacements
                 from cable space displacements to disk space angles
         """
-        print("\n IK")     
+        if printout is True:
+                print("\n IK")     
 
         #calculate current wrist pose 
         joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
@@ -126,7 +131,7 @@ class Peter_Francis_tool_Kinematics_Solver:
         #print("PSM Joint Values(yaw,pitch,insertion): \n", psm_joints)
 
         # shaft orientation FK for current position
-        R_desired = get_R_desired(EE_orientation_desired, tip_desired)
+        R_desired = calc_R_desired(EE_orientation_desired, tip_desired)
         R_shaft = get_R_shaft(psm_joints)
 
         # wrist orientation FK for current position
@@ -140,7 +145,7 @@ class Peter_Francis_tool_Kinematics_Solver:
         R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
         #print("R_desired_wrist: \n", R_wrist_desired)
         joint_angles = [roll,gamma,beta,alpha]
-        joint_angles = IK_update(R_wrist_desired,joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3])
+        joint_angles = IK_update(R_wrist_desired,joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3],printout)
         #print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles)
         R_wrist_IK = get_R_fullwristmodel(joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3])
         #print("R_wrist_IK: \n", R_wrist_IK)
@@ -163,7 +168,8 @@ class Peter_Francis_tool_Kinematics_Solver:
         # get Disk Angle inputs for PSM tool base 
         # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
         DiskAngles = [getDiskAngles(joint_angles[0],EE_pull,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])] 
-        print("Disk Angles: \n", DiskAngles)
+        if printout is True:
+                print("Disk Angles: \n", DiskAngles)
 
 
 # configurations for testing FK and IK
@@ -182,7 +188,9 @@ psm_yaw = 0.7854;
 psm_pitch = -0.6155;
 psm_insertion = 43.3013;
 """
-
+# test run
+"""
+printout = True
 EE_orientation_desired = np.array([-0.25,-0.25,-0.5])#np.array([1,1,0])
 tip_desired = 0 #in degrees
 PSM_wrist_pos_desired = [-25,-25,-25] #[25,25,-25] #in mm
@@ -198,3 +206,4 @@ psm_insertion = 43.3013
 psm_joints = [psm_yaw, psm_pitch, psm_insertion]
 
 tool1.compute_fk(disk_positions,psm_joints)
+"""

@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/setup.sh
+    local-name: /home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/setup.sh

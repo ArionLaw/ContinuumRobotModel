@@ -1,9 +1,9 @@
-from utils import *
-from plotting import *
+from dvrk_planning.kinematics.utils import *
+from dvrk_planning.kinematics.plotting import *
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from JointSpace_to_CableSpace import *
+from dvrk_planning.kinematics.JointSpace_to_CableSpace import *
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### Mapping Initialization ###

@@ -67,14 +67,14 @@ set(cutting_app_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("FALSE" STREQUAL "TRUE")
-  set(cutting_app_SOURCE_PREFIX /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/cutting_app)
-  set(cutting_app_DEVEL_PREFIX /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app)
+  set(cutting_app_SOURCE_PREFIX /home/dvrk/ContinuumRobotModel/src/dvrk_planning/cutting_app)
+  set(cutting_app_DEVEL_PREFIX /home/dvrk/ContinuumRobotModel/devel/.private/cutting_app)
   set(cutting_app_INSTALL_PREFIX "")
   set(cutting_app_PREFIX ${cutting_app_DEVEL_PREFIX})
 else()
   set(cutting_app_SOURCE_PREFIX "")
   set(cutting_app_DEVEL_PREFIX "")
-  set(cutting_app_INSTALL_PREFIX /home/arionlaw/Documents/ContinuumRobotModel/install)
+  set(cutting_app_INSTALL_PREFIX /home/dvrk/ContinuumRobotModel/install)
   set(cutting_app_PREFIX ${cutting_app_INSTALL_PREFIX})
 endif()
 
@@ -154,7 +154,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /home/arionlaw/Documents/ContinuumRobotModel/install/lib;/home/arionlaw/Documents/ContinuumRobotModel/devel/lib;/opt/ros/noetic/lib)
+    foreach(path /home/dvrk/ContinuumRobotModel/install/lib;/home/dvrk/ContinuumRobotModel/devel/lib;/home/dvrk/ambf/build/devel/lib;/home/dvrk/catkin_ws/devel/lib;/opt/ros/noetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

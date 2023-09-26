@@ -1,5 +1,5 @@
-from utils import *
-from plotting import *
+from dvrk_planning.kinematics.utils import *
+from dvrk_planning.kinematics.plotting import *
 import numpy as np
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#

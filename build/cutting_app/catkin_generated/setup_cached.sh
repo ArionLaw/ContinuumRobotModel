@@ -7,7 +7,7 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH="/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app:$CMAKE_PREFIX_PATH"
-export PWD='/home/arionlaw/Documents/ContinuumRobotModel/build/cutting_app'
-export ROSLISP_PACKAGE_DIRECTORIES="/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
-export ROS_PACKAGE_PATH="/home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/cutting_app:$ROS_PACKAGE_PATH"
+export CMAKE_PREFIX_PATH="/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app:$CMAKE_PREFIX_PATH"
+export PWD='/home/dvrk/ContinuumRobotModel/build/cutting_app'
+export ROSLISP_PACKAGE_DIRECTORIES="/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
+export ROS_PACKAGE_PATH="/home/dvrk/ContinuumRobotModel/src/dvrk_planning/cutting_app:$ROS_PACKAGE_PATH"

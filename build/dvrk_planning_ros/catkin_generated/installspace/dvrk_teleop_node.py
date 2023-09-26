@@ -32,6 +32,9 @@ class DvrkTeleopNode:
                             scale = tool_yaml["scale"] 
                             print("Choosing scale {}".format(scale))
                         kin_solver = PsmKinematicsSolver(class_(scale))
+                elif kin_yaml["robot"] == "fetal":
+                    tool_yaml = kin_yaml[""]
+                    kin_solver = Peter_Francis_tool_Kinematics_Solver
                 else:
                     raise KeyError ("Only [psm] available now")
                 self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)

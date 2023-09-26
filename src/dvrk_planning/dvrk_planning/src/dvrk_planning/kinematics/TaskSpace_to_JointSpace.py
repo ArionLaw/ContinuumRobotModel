@@ -1,5 +1,5 @@
-from utils import *
-from plotting import *
+from dvrk_planning.kinematics.utils import *
+from dvrk_planning.kinematics.plotting import *
 import numpy as np
 from PyKDL import Vector, Rotation, Frame, dot
 import time
@@ -118,7 +118,7 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired):
     psm_yaw = np.arcsin(EE_pos_desired[0]/np.cos(psm_pitch)/psm_insertion)
     return [psm_yaw,psm_pitch,psm_insertion]
 
-def IK_update(R_desired,roll,gamma,beta,alpha):
+def IK_update(R_desired,roll,gamma,beta,alpha,printout):
     """
     IK numerical soln for taskspace to joint space roll and notch angles
     """
@@ -150,9 +150,10 @@ def IK_update(R_desired,roll,gamma,beta,alpha):
         previous_error = orientation_error
 
     joint_angles = [roll,gamma,beta,alpha]
-    print("--- %s seconds ---" % (time.time() - start_time))
-    print("i: ",i)
-    print("orientation error: ", orientation_error)
+    if printout is True:
+        print("--- %s seconds ---" % (time.time() - start_time))
+        print("i: ",i)
+        print("orientation error: ", orientation_error)
     return joint_angles
 
 def angle_update(d_theta,orientation_error,theta,delta):

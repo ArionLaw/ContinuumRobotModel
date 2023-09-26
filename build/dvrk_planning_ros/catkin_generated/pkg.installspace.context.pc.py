@@ -4,5 +4,5 @@ PROJECT_PKG_CONFIG_INCLUDE_DIRS = "".split(';') if "" != "" else []
 PROJECT_CATKIN_DEPENDS = "dvrk_planning;dvrk_planning_msgs;rospy".replace(';', ' ')
 PKG_CONFIG_LIBRARIES_WITH_PREFIX = "".split(';') if "" != "" else []
 PROJECT_NAME = "dvrk_planning_ros"
-PROJECT_SPACE_DIR = "/home/arionlaw/Documents/ContinuumRobotModel/install"
+PROJECT_SPACE_DIR = "/home/dvrk/ContinuumRobotModel/install"
 PROJECT_VERSION = "0.0.0"

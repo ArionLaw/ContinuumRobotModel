@@ -1,5 +1,5 @@
-Linked: (/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/lib/pkgconfig/cutting_app.pc, /home/arionlaw/Documents/ContinuumRobotModel/devel/lib/pkgconfig/cutting_app.pc)
-Linked: (/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/lib/cutting_app/cmake.lock, /home/arionlaw/Documents/ContinuumRobotModel/devel/lib/cutting_app/cmake.lock)
-Linked: (/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/lib/cutting_app/teleop_goal_interface.py, /home/arionlaw/Documents/ContinuumRobotModel/devel/lib/cutting_app/teleop_goal_interface.py)
-Linked: (/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/share/cutting_app/cmake/cutting_appConfig-version.cmake, /home/arionlaw/Documents/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig-version.cmake)
-Linked: (/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/cutting_app/share/cutting_app/cmake/cutting_appConfig.cmake, /home/arionlaw/Documents/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig.cmake)
+Symlinking /home/dvrk/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig.cmake
+Symlinking /home/dvrk/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig-version.cmake
+Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/cutting_app/cmake.lock
+Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/cutting_app/teleop_goal_interface.py
+Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/pkgconfig/cutting_app.pc

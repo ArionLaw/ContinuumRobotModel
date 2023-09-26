@@ -1,4 +1,4 @@
-prefix=/home/arionlaw/Documents/ContinuumRobotModel/install
+prefix=/home/dvrk/ContinuumRobotModel/install
 
 Name: dvrk_planning_msgs
 Description: Description of dvrk_planning_msgs

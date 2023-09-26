@@ -7,7 +7,7 @@
 # new environment variables
 
 # modified environment variables
-export CMAKE_PREFIX_PATH="/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/catkin_tools_prebuild:$CMAKE_PREFIX_PATH"
-export PWD='/home/arionlaw/Documents/ContinuumRobotModel/build/catkin_tools_prebuild'
-export ROSLISP_PACKAGE_DIRECTORIES='/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/catkin_tools_prebuild/share/common-lisp'
-export ROS_PACKAGE_PATH="/home/arionlaw/Documents/ContinuumRobotModel/build/catkin_tools_prebuild:$ROS_PACKAGE_PATH"
+export CMAKE_PREFIX_PATH="/home/dvrk/ContinuumRobotModel/devel/.private/catkin_tools_prebuild:$CMAKE_PREFIX_PATH"
+export PWD='/home/dvrk/ContinuumRobotModel/build/catkin_tools_prebuild'
+export ROSLISP_PACKAGE_DIRECTORIES="/home/dvrk/ContinuumRobotModel/devel/.private/catkin_tools_prebuild/share/common-lisp:$ROSLISP_PACKAGE_DIRECTORIES"
+export ROS_PACKAGE_PATH="/home/dvrk/ContinuumRobotModel/build/catkin_tools_prebuild:$ROS_PACKAGE_PATH"

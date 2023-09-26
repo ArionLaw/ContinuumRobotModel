@@ -43,51 +43,51 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs
+CMAKE_SOURCE_DIR = /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs
+CMAKE_BINARY_DIR = /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs
 
 # Utility rule file for dvrk_planning_msgs_generate_messages_lisp.
 
 # Include the progress variables for this target.
 include CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/progress.make
 
-CMakeFiles/dvrk_planning_msgs_generate_messages_lisp: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp
-CMakeFiles/dvrk_planning_msgs_generate_messages_lisp: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp
-CMakeFiles/dvrk_planning_msgs_generate_messages_lisp: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp
+CMakeFiles/dvrk_planning_msgs_generate_messages_lisp: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp
+CMakeFiles/dvrk_planning_msgs_generate_messages_lisp: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp
+CMakeFiles/dvrk_planning_msgs_generate_messages_lisp: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp
 
 
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/lib/genlisp/gen_lisp.py
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/Waypoints.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Transform.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Lisp code from dvrk_planning_msgs/Waypoints.msg"
-	catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/Waypoints.msg -Idvrk_planning_msgs:/home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p dvrk_planning_msgs -o /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/lib/genlisp/gen_lisp.py
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/Waypoints.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Transform.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Generating Lisp code from dvrk_planning_msgs/Waypoints.msg"
+	catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/Waypoints.msg -Idvrk_planning_msgs:/home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p dvrk_planning_msgs -o /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg
 
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp: /opt/ros/noetic/lib/genlisp/gen_lisp.py
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp: /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/TrajectoryStatus.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Lisp code from dvrk_planning_msgs/TrajectoryStatus.msg"
-	catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/TrajectoryStatus.msg -Idvrk_planning_msgs:/home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p dvrk_planning_msgs -o /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp: /opt/ros/noetic/lib/genlisp/gen_lisp.py
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp: /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/TrajectoryStatus.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Generating Lisp code from dvrk_planning_msgs/TrajectoryStatus.msg"
+	catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg/TrajectoryStatus.msg -Idvrk_planning_msgs:/home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p dvrk_planning_msgs -o /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg
 
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/lib/genlisp/gen_lisp.py
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/srv/ComputeIK.srv
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/std_msgs/msg/Header.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/sensor_msgs/msg/JointState.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/TransformStamped.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Transform.msg
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Lisp code from dvrk_planning_msgs/ComputeIK.srv"
-	catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/srv/ComputeIK.srv -Idvrk_planning_msgs:/home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p dvrk_planning_msgs -o /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/lib/genlisp/gen_lisp.py
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/srv/ComputeIK.srv
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Vector3.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Transform.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/TransformStamped.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/std_msgs/msg/Header.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/sensor_msgs/msg/JointState.msg
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp: /opt/ros/noetic/share/geometry_msgs/msg/Quaternion.msg
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --blue --bold --progress-dir=/home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Generating Lisp code from dvrk_planning_msgs/ComputeIK.srv"
+	catkin_generated/env_cached.sh /usr/bin/python3 /opt/ros/noetic/share/genlisp/cmake/../../../lib/genlisp/gen_lisp.py /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/srv/ComputeIK.srv -Idvrk_planning_msgs:/home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs/msg -Igeometry_msgs:/opt/ros/noetic/share/geometry_msgs/cmake/../msg -Isensor_msgs:/opt/ros/noetic/share/sensor_msgs/cmake/../msg -Istd_msgs:/opt/ros/noetic/share/std_msgs/cmake/../msg -p dvrk_planning_msgs -o /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv
 
 dvrk_planning_msgs_generate_messages_lisp: CMakeFiles/dvrk_planning_msgs_generate_messages_lisp
-dvrk_planning_msgs_generate_messages_lisp: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp
-dvrk_planning_msgs_generate_messages_lisp: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp
-dvrk_planning_msgs_generate_messages_lisp: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp
+dvrk_planning_msgs_generate_messages_lisp: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/Waypoints.lisp
+dvrk_planning_msgs_generate_messages_lisp: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/msg/TrajectoryStatus.lisp
+dvrk_planning_msgs_generate_messages_lisp: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/common-lisp/ros/dvrk_planning_msgs/srv/ComputeIK.lisp
 dvrk_planning_msgs_generate_messages_lisp: CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/build.make
 
 .PHONY : dvrk_planning_msgs_generate_messages_lisp
@@ -102,6 +102,6 @@ CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/clean:
 .PHONY : CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/clean
 
 CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/depend:
-	cd /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/dvrk_planning_msgs_generate_messages_lisp.dir/depend
 

@@ -1,1 +1,1 @@
-/home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/roseus/ros/dvrk_planning_msgs/manifest.l
+/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/share/roseus/ros/dvrk_planning_msgs/manifest.l

@@ -1,2 +1,2 @@
 - setup-file:
-    local-name: /home/arionlaw/Documents/ContinuumRobotModel/devel/.private/dvrk_planning/setup.sh
+    local-name: /home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning/setup.sh

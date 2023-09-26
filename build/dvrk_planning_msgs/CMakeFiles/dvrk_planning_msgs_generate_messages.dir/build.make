@@ -43,10 +43,10 @@ RM = /usr/bin/cmake -E remove -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs
+CMAKE_SOURCE_DIR = /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs
+CMAKE_BINARY_DIR = /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs
 
 # Utility rule file for dvrk_planning_msgs_generate_messages.
 
@@ -67,6 +67,6 @@ CMakeFiles/dvrk_planning_msgs_generate_messages.dir/clean:
 .PHONY : CMakeFiles/dvrk_planning_msgs_generate_messages.dir/clean
 
 CMakeFiles/dvrk_planning_msgs_generate_messages.dir/depend:
-	cd /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs /home/arionlaw/Documents/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles/dvrk_planning_msgs_generate_messages.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/src/dvrk_planning/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs /home/dvrk/ContinuumRobotModel/build/dvrk_planning_msgs/CMakeFiles/dvrk_planning_msgs_generate_messages.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/dvrk_planning_msgs_generate_messages.dir/depend
 

@@ -1,5 +1,5 @@
-Symlinking /home/arionlaw/Documents/ContinuumRobotModel/devel/lib/pkgconfig/cutting_app.pc
-Symlinking /home/arionlaw/Documents/ContinuumRobotModel/devel/lib/cutting_app/cmake.lock
-Symlinking /home/arionlaw/Documents/ContinuumRobotModel/devel/lib/cutting_app/teleop_goal_interface.py
-Symlinking /home/arionlaw/Documents/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig-version.cmake
-Symlinking /home/arionlaw/Documents/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig.cmake
+Symlinking /home/dvrk/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig.cmake
+Symlinking /home/dvrk/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig-version.cmake
+Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/cutting_app/cmake.lock
+Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/cutting_app/teleop_goal_interface.py
+Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/pkgconfig/cutting_app.pc
