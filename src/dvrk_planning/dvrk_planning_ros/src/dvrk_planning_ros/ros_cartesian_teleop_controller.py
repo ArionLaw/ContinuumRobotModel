@@ -71,10 +71,10 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._wait_for_output_feedback_sub_msg(True)
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
-            self._teleop_controller.enable(self.current_output_tf)
+            self._teleop_controller.enable(self.current_output_jps)
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg(True)
-            self._teleop_controller.enable(self.current_input_tf, self.current_output_tf)
+            self._teleop_controller.enable(self.current_input_tf, self.current_output_jps)
 
     def disable(self):
         self._teleop_controller.disable()
@@ -89,11 +89,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
-            self._teleop_controller.unclutch(self.current_input_tf, self.current_output_tf)
-
-    def _output_feedback_callback(self, js):
-        super()._output_feedback_callback(js)
-        self.current_output_tf = self._teleop_controller.kinematics_solver.compute_fk(js.position)
+            self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
 
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)

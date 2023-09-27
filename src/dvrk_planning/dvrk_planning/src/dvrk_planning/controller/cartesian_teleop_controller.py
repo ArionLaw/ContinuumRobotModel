@@ -18,6 +18,7 @@ class CartesianTeleopController(TeleopController):
         super().__init__(input_type, ControllerType.CARTESIAN)
         self.output_ref_to_input_rot = convert_frame_to_mat(Frame(output_ref_to_input_rot, Vector(0.0, 0.0, 0.0)))
         self.kinematics_solver = kinematics_solver
+        self.current_output_js = np.array([])
 
     def _rotation_adjustment(self, input_diff_tf):
         return self.output_ref_to_input_rot[0:3,0:3].dot(input_diff_tf[0:3,3]).flatten()
@@ -38,8 +39,8 @@ class CartesianTeleopController(TeleopController):
             return False
 
         absolute_output_tf = self._update_impl(args)
-        output_js = self.kinematics_solver.compute_ik(absolute_output_tf)
-        self.output_callback(output_js)
+        self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf)
+        self.output_callback(self.current_output_js)
         return True
 
     def _update_impl(self, args):
@@ -52,18 +53,20 @@ class CartesianFollowTeleopController(CartesianTeleopController):
         self.start_output_tf = np.identity(4)
         self.position_scale = position_scale
 
-    def enable(self, start_input_tf, start_output_tf):
+    def enable(self, start_input_tf, start_output_js):
         self.start_input_tf = np.copy(start_input_tf)
-        self.start_output_tf = np.copy(start_output_tf)
+        self.current_output_js = np.copy(start_output_js)
+        self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
         super()._enable()
 
     # When unclutching:
     # Position of output tf stays the same
     # MTM adjusts rotation for current output rotation. Need to check, but that wont work for occulus, or haptic pen.
     # start_output_tf should be the current tf of the output when uncluthing
-    def unclutch(self, start_input_tf, start_output_tf):
+    def unclutch(self, start_input_tf, start_output_js):
         self.start_input_tf = np.copy(start_input_tf)
-        self.start_output_tf = np.copy(start_output_tf)
+        self.current_output_js = np.copy(start_output_js)
+        self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
         super()._unclutch()
 
     def __update_input_tf(self, absolute_input_tf):
@@ -85,8 +88,9 @@ class CartesianIncrementTeleopController(CartesianTeleopController):
         super().__init__(InputType.INCREMENT, kinematics_solver, output_ref_to_input_rot)
         self.current_output_tf = np.identity(4)
 
-    def enable(self, current_output_tf):
-        self.current_output_tf = np.copy(current_output_tf)
+    def enable(self, current_output_js):
+        self.current_output_js = np.copy(current_output_js)
+        self.current_output_tf = self.kinematics_solver.compute_fk(self.current_output_js)
         super()._enable()
 
     def unclutch(self):
