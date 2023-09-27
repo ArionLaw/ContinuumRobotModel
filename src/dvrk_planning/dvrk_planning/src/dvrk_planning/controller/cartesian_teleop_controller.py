@@ -39,7 +39,7 @@ class CartesianTeleopController(TeleopController):
             return False
 
         absolute_output_tf = self._update_impl(args)
-        self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf)
+        self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf, self.current_output_js)
         self.output_callback(self.current_output_js)
         return True
 
