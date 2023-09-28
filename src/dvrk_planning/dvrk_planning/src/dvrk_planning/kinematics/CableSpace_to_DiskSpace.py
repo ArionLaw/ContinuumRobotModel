@@ -60,7 +60,7 @@ def DiskToCablefromLookUpTable(x):
 def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix
     EE_grip = DiskPositions[1]/-1 #need to tune according to motion ratio
-
+    print(DiskPositions)
     if DiskPositions[3] < 0:
         gamma = 0
         beta = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
@@ -109,7 +109,7 @@ def CableToDiskfromLookUpTable(x):
         return (y1 + (x-x1)*(y2-y1)/(x2-x1))
     
 
-def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
+def getDiskAngles(roll,EE_pinch,deltaL1,deltaL2,deltaL3):
     """
     calculate Disk Angles from jointspace and cablespace inputs
     [roll (jointspace), end effector, (jointspace), Cable1 (cablespace), Cable2 (cablespace), Cable3 (cablespace)]
@@ -136,7 +136,7 @@ def getDiskAngles(roll,EE_pull,deltaL1,deltaL2,deltaL3):
             Disk4 = -CableToDiskfromLookUpTable(deltaL[0])
 
     Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
-    Disk2 = -1*EE_pull #need to tune according to motion ratio
+    Disk2 = -1*EE_pinch #need to tune according to motion ratio
     return [Disk1,Disk2,Disk3,Disk4]
 
 #getCabletoDiskMapping()

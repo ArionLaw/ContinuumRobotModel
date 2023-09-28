@@ -54,7 +54,12 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
-
+        """
+        kin_yaml = controller_yaml["kinematics"]
+        if kin_yaml["robot"] == "fetal":
+            do_nothing = 0
+        else:
+        """    
         super().__init__(controller_yaml, input_topic_type)
         self.js_msg.name = kinematics_solver.get_active_joint_names()
         self._teleop_controller.register(self._output_callback)

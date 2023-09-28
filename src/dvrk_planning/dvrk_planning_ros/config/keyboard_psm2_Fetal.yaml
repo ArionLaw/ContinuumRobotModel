@@ -9,7 +9,7 @@ cartesian_controllers:
     kinematics:
       robot: "fetal"
       tool:
-        type: "LND400006"
+        type: 
 joint_controllers:
   - name: "Keyboard-PSM2Jaw"
     input:

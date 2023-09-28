@@ -6,6 +6,15 @@ Holds functions to help compute things.
 
 '''
 
+def ConvertToTransformMatrix(R,p):
+    T = np.identity(4)
+    for i in range(3):
+        for j in range(3):
+            T[i,j] = R[(i,j)]                              
+    for i in range(3):
+        T[i,3] = p[i]
+    return T
+
 def getEulerAngles(R):
     if abs(R[2,0]) != 1:
         y_angle_theta = [-np.arcsin(R[2,0]) , np.pi - (-np.arcsin(R[2,0]))]
