@@ -60,7 +60,9 @@ def DiskToCablefromLookUpTable(x):
 def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix
     EE_grip = DiskPositions[1]/-1 #need to tune according to motion ratio
-    print(DiskPositions)
+    
+    #print(DiskPositions)
+    
     if DiskPositions[3] < 0:
         gamma = 0
         beta = DiskToCablefromLookUpTable(abs(DiskPositions[2]))

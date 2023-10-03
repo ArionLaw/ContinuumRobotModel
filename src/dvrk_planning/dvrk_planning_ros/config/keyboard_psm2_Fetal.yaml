@@ -10,12 +10,4 @@ cartesian_controllers:
       robot: "fetal"
       tool:
         type: 
-joint_controllers:
-  - name: "Keyboard-PSM2Jaw"
-    input:
-      type: "increment"
-      topic: "/keyboard/joint_state"
-    output:
-      control_topic: "/PSM2/jaw/servo_jp"
-      feedback_topic: "/PSM2/jaw/measured_js"
 clutch_topic: "/console/clutch"

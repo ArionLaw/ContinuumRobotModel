@@ -49,7 +49,7 @@ alpha = [0 , -1/2*pi , 2/3*pi , 2/3*pi]
 d = [c , 0 , 0 , 0]
 """
 np.set_printoptions(precision=3)
-printout = True
+printout = False
 getCabletoDiskMapping()
 
 class Peter_Francis_tool_Kinematics_Solver:
@@ -81,11 +81,14 @@ class Peter_Francis_tool_Kinematics_Solver:
                         from cable space displacements to joint space angles 
                         from joint space angles to task space poses                 
                 """        
-                if printout is True:
-                        print("\n FK")
+                
                 psm_joints = joints[0:3]
                 disk_positions = joints[3:]
-                print("joints", joints)
+                
+                if printout is True:
+                        print("\n FK")
+                        print("joints", joints)
+
                 # from disk space angles to joint space angles
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
                 #print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
@@ -106,15 +109,16 @@ class Peter_Francis_tool_Kinematics_Solver:
                 R_currentFK = R_shaft@R_wrist
                 #print("Shaft Orientation: \n", R_shaft)
                 #print("Wrist Orientation: \n", R_wrist)
+                
                 if printout is True:
                         print("Current EE Orientation: \n", R_currentFK)
-
-                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK)
+                
+                Tf = ConvertToTransformMatrix(R_currentFK,EE_pos_FK)
+                return Tf
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-    
 
         def compute_ik(self, tf_desired, disk_positions):
                 """
@@ -123,24 +127,30 @@ class Peter_Francis_tool_Kinematics_Solver:
                         from cable space displacements to disk space angles
                 """
                 if printout is True:
-                        print("\n IK")     
+                        print("\n IK")
+                        print("Disk Angles: \n", disk_positions)    
+
                 PSM_wrist_pos_desired = tf_desired[0:3, 3]
                 R_desired = tf_desired[0:3, 0:3]
-                #calculate current wrist pose 
-                joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
+                dial_positions = disk_positions[3:]
+
+                #obtain current wrist pose 
+                joint_values = DiskPosition_To_JointSpace(dial_positions,self.h,self.y_,self.r)
+
                 #print("Instrument Joint Values: \n" , joint_values)
                 roll = joint_values[0]
-                EE_grip = joint_values[1]
+                EE_jaw = joint_values[1]
                 gamma = joint_values[2]
                 beta = joint_values[3]
                 alpha = joint_values[4]
 
                 # wrist position IK
                 psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired)
-                #print("PSM Joint Values(yaw,pitch,insertion): \n", psm_joints)
+                
+                if printout is True:
+                        print("PSM Joint Values(yaw,pitch,insertion): \n", psm_joints)
 
                 # shaft orientation FK for current position
-                # R_desired = calc_R_desired(EE_orientation_desired)
                 R_shaft = get_R_shaft(psm_joints)
 
                 # wrist orientation FK for current position
@@ -168,7 +178,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "120")
                 deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "240")
                 deltaCablesTotal = 3*(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
-                EE_pull = 1 #place holder value for now, need to obtain from ROS topic
+                
                 #print("cable deltas for notch 1: ", deltaCablesGamma)
                 #print("cable deltas for notch 2: ", deltaCablesBeta)
                 #print("cable deltas for notch 3: ", deltaCablesAlpha)
@@ -176,9 +186,13 @@ class Peter_Francis_tool_Kinematics_Solver:
 
                 # get Disk Angle inputs for PSM tool base 
                 # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
-                DiskAngles = [getDiskAngles(joint_angles[0],EE_pinch,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])] 
+                DiskAngles = getDiskAngles(joint_angles[0],EE_jaw,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])
+                
                 if printout is True:
                         print("Disk Angles: \n", DiskAngles)
+
+                joints_list = psm_joints + DiskAngles
+                return joints_list
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### ??? ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
