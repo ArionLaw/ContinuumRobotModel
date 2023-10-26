@@ -59,7 +59,7 @@ def DiskToCablefromLookUpTable(x):
 
 def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix
-    EE_grip = DiskPositions[1]/-1 #need to tune according to motion ratio
+    EE_jaw = DiskPositions[1]/-1 #need to tune according to motion ratio
     
     #print(DiskPositions)
     
@@ -83,7 +83,7 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     gamma = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[0])
     beta = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[1])
     alpha = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[2])
-    joint_values = [roll,EE_grip,gamma,beta,alpha]
+    joint_values = [roll,EE_jaw,gamma,beta,alpha]
     return joint_values
 
 

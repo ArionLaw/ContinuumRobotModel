@@ -14,11 +14,29 @@ import time
 #angle_degrees = np.degrees(angle) #angle*180/pi
 #axis = getRotationAxis(pos_des, vec_z, angle)#cross(vec_des,vec_z)/norm(vec_z)/norm(vec_des)/sin(angle)
 
+def get_R_desired(frame):
+    """
+    obtain rotation matrix of desired end effector frame
+    """
+    """
+    np_mat = np.mat([[1, 0, 0, 0],
+                     [0, 1, 0, 0],
+                     [0, 0, 1, 0],
+                     [0, 0, 0, 1]], dtype=float)
+    for i in range(3):
+        for j in range(3):
+            np_mat[i, j] = frame.M[(i, j)]
+            # 3x3 rotation matrix
+
+    for i in range(3):
+        np_mat[i, 3] = frame.p[i]
+        # 3x1 position vector
+    """
+    return frame.M()
 
 def calc_R_desired(EE_orientation_desired, tip_desired):
     """
-    #obtain rotation matrix of desired end effector orientation
-    ### antiquated function ###  
+    obtain rotation matrix of desired end effector orientation  
     """
     vec_x = np.array([1,0,0])
     vec_z = np.array([0,0,1])
@@ -43,7 +61,6 @@ def calc_R_desired(EE_orientation_desired, tip_desired):
     #print("desired Rotation matrix: \n", R_desired)
 
     return R_desired
-
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###

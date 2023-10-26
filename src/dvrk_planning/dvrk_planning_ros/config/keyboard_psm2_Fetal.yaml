@@ -10,4 +10,5 @@ cartesian_controllers:
       robot: "fetal"
       tool:
         type: 
+
 clutch_topic: "/console/clutch"

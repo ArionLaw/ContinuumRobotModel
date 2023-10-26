@@ -53,6 +53,11 @@ class RosTeleopController:
 
     def _output_callback(self, joint_positions):
         self.js_msg.position = get_harmonized_joint_positions(joint_positions, np.array(self.current_output_jps))
+
+        print("np.array(self.current_output_jps):\n", np.array(self.current_output_jps))
+        print("output js:\n", joint_positions)
+        print("output js harmonized:\n", self.js_msg.position)
+
         self.output_pub.publish(self.js_msg)
 
     def _output_feedback_callback(self, js):
