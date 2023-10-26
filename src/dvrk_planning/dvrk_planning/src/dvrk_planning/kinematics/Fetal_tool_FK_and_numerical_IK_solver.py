@@ -126,9 +126,9 @@ class Peter_Francis_tool_Kinematics_Solver:
                         print("\n IK")     
                 PSM_wrist_pos_desired = tf_desired[0:3, 3]
                 R_desired = tf_desired[0:3, 0:3]
-                #calculate current wrist pose 
+                ### calculate current wrist pose 
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
-                #print("Instrument Joint Values: \n" , joint_values)
+                print("Instrument Joint Values: \n" , joint_values)
                 
                 roll = joint_values[0]
                 EE_pinch = joint_values[1]
@@ -136,22 +136,23 @@ class Peter_Francis_tool_Kinematics_Solver:
                 beta = joint_values[3]
                 alpha = joint_values[4]
 
-                # wrist position IK
+                ### wrist position IK
                 psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired)
                 #print("PSM Joint Values(yaw,pitch,insertion): \n", psm_joints)
 
-                # shaft orientation FK for current position
+                ### shaft orientation FK for current position
                 # R_desired = calc_R_desired(EE_orientation_desired)
                 R_shaft = get_R_shaft(psm_joints)
 
-                # wrist orientation FK for current position
+                ### wrist orientation FK for current position
                 R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
                 R_currentFK = R_shaft@R_wrist
-                #print("Shaft Orientation: \n", R_shaft)
-                #print("Wrist Orientation: \n", R_wrist)
-                #print("Current EE Orientation: \n", R_currentFK)
+                print("Desired Orientation: \n", np.around(R_desired,4))
+                print("Shaft Orientation: \n", np.around(R_shaft,4))
+                print("Wrist Orientation: \n", np.around(R_wrist,4))
+                print("Current EE Orientation: \n", np.around(R_currentFK,4))
 
-                # EE_orientation IK
+                ### EE_orientation IK
                 R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
                 #print("R_desired_wrist: \n", R_wrist_desired)
                 joint_angles = [roll,gamma,beta,alpha]
@@ -166,24 +167,25 @@ class Peter_Francis_tool_Kinematics_Solver:
 
                 # convert from joint angles to cable displacements
                 deltaCablesGamma = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[1], "0")
-                deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "120")
-                deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "240")
+                deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "240")
+                deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "120")
                 deltaCablesTotal = 3*(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
+                
                 EE_pull = 1 #place holder value for now, need to obtain from ROS topic
-                #print("cable deltas for notch 1: ", deltaCablesGamma)
-                #print("cable deltas for notch 2: ", deltaCablesBeta)
-                #print("cable deltas for notch 3: ", deltaCablesAlpha)
+                print("cable deltas for notch 1: ", deltaCablesGamma)
+                print("cable deltas for notch 2: ", deltaCablesBeta)
+                print("cable deltas for notch 3: ", deltaCablesAlpha)
                 #print("total cable delta: ", deltaCablesTotal)
 
                 # get Disk Angle inputs for PSM tool base 
                 # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
                 DiskAngles = getDiskAngles(joint_angles[0],EE_pinch,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])
                 joints_list = psm_joints + DiskAngles
-                if printout is True:
-                        print("Disk Angles: \n", joints_list)
+                #if printout is True:
+                        #print("Disk Angles: \n", joints_list)
                 return joints_list
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-### ??? ###
+### setup ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
         
         def get_active_joint_names(self):

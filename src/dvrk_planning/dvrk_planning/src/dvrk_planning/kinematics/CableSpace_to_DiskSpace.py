@@ -63,18 +63,18 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     
     #print(DiskPositions)
     
-    if DiskPositions[3] < 0:
-        gamma = 0
-        beta = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
-        alpha = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
-    elif DiskPositions[2] > 0:
+    if DiskPositions[2] < 0:
+        gamma = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
+        beta = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
+        alpha = 0
+    elif DiskPositions[3] > 0:
         gamma = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
         beta = 0
         alpha = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
     else:
-        gamma = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
-        beta = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
-        alpha = 0
+        gamma = 0
+        beta = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
+        alpha = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
 
     wrist_cable_deltas = np.array([gamma,beta,alpha])
     #print("Total Wrist Cable Deltas: \n" , wrist_cable_deltas)
@@ -125,17 +125,17 @@ def getDiskAngles(roll,EE_pinch,deltaL1,deltaL2,deltaL3):
     #print("Cables Delta: \n", deltaL)
 
     if (deltaL[0] >= 0):
-        Disk4 = -CableToDiskfromLookUpTable(deltaL[0])
-        if (deltaL[2] > 0):
-            Disk3 = -CableToDiskfromLookUpTable(deltaL[2])
-        else:
-            Disk3 = CableToDiskfromLookUpTable(deltaL[1])
-    elif (deltaL[1] >= 0):
-        Disk3 = CableToDiskfromLookUpTable(deltaL[1])
+        Disk3 = CableToDiskfromLookUpTable(deltaL[0])
         if (deltaL[2] > 0):
             Disk4 = CableToDiskfromLookUpTable(deltaL[2])
         else:
-            Disk4 = -CableToDiskfromLookUpTable(deltaL[0])
+            Disk4 = -CableToDiskfromLookUpTable(deltaL[1])
+    elif (deltaL[1] >= 0):
+        Disk4 = -CableToDiskfromLookUpTable(deltaL[1])
+        if (deltaL[2] > 0):
+            Disk3 = -CableToDiskfromLookUpTable(deltaL[2])
+        else:
+            Disk3 = CableToDiskfromLookUpTable(deltaL[0])
 
     Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
     Disk2 = -1*EE_pinch #need to tune according to motion ratio
