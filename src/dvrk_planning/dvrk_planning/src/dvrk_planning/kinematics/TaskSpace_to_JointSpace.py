@@ -89,7 +89,9 @@ def get_R_fullwristmodel(roll,gamma,beta,alpha):
     """
     calculates rotation matrix of instrument wrist starting from the roll joint
     """
-    R = RotMtx('z',roll)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)
+    R = RotMtx('z',roll)@RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',np.pi) #frame 5 orientation after frame 4 Outer Roll 
+    R = R@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha) #serial chain of 3 (3 phase, 3 notch segments)
+    R = R@RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',-np.pi/2) #correction to align frame 7 end effector orientation
     return R
 
 def get_R_segment3notch(gamma,beta,alpha):
@@ -98,11 +100,9 @@ def get_R_segment3notch(gamma,beta,alpha):
     3 notch segment, 120 degree out of phase
     """
     phase_offset = 120*np.pi/180
-    # "lazy method"
-    #R = RotMtx('y',gamma)*RotMtx('z',phase_offset)*RotMtx('y',beta)*RotMtx('z',phase_offset)*RotMtx('y',alpha)*RotMtx('z',phase_offset);
    
     #based off modified DH-Convention
-    R = RotMtx('x',(-np.pi/2))@RotMtx('z',(gamma-np.pi/2))@RotMtx('x',phase_offset)@RotMtx('z',beta)@RotMtx('x',phase_offset)@RotMtx('z',alpha)@RotMtx('x',phase_offset)@RotMtx('z',np.pi/2)@RotMtx('x',np.pi/2)
+    R = RotMtx('z',gamma)@RotMtx('x',phase_offset)@RotMtx('z',beta)@RotMtx('x',phase_offset)@RotMtx('z',alpha)@RotMtx('x',phase_offset)
     return R
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#

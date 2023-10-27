@@ -63,11 +63,11 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     
     #print(DiskPositions)
     
-    if DiskPositions[2] < 0:
+    if DiskPositions[2] > 0:
         gamma = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
         beta = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
         alpha = 0
-    elif DiskPositions[3] > 0:
+    elif DiskPositions[3] < 0:
         gamma = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
         beta = 0
         alpha = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
@@ -121,24 +121,25 @@ def getDiskAngles(roll,EE_pinch,deltaL1,deltaL2,deltaL3):
     diff = (min(deltaL)) # set smallest cable displacement as reference length
     
     deltaL[deltaL<=diff] = 0
-    #deltaL = deltaL - diff
-    #print("Cables Delta: \n", deltaL)
+    deltaL = deltaL - diff
+    print("Cables Delta: \n", deltaL)
 
-    if (deltaL[0] >= 0):
-        Disk3 = CableToDiskfromLookUpTable(deltaL[0])
-        if (deltaL[2] > 0):
+    if (deltaL[1] > 0):
+        Disk3 = -CableToDiskfromLookUpTable(deltaL[1])
+        if (deltaL[0] > 0):
+            Disk4 = -CableToDiskfromLookUpTable(deltaL[0])
+        else:
             Disk4 = CableToDiskfromLookUpTable(deltaL[2])
-        else:
-            Disk4 = -CableToDiskfromLookUpTable(deltaL[1])
-    elif (deltaL[1] >= 0):
-        Disk4 = -CableToDiskfromLookUpTable(deltaL[1])
-        if (deltaL[2] > 0):
-            Disk3 = -CableToDiskfromLookUpTable(deltaL[2])
-        else:
+    
+    elif (deltaL[2] >= 0):
+        Disk4 = CableToDiskfromLookUpTable(deltaL[2])
+        if (deltaL[0] >= 0):
             Disk3 = CableToDiskfromLookUpTable(deltaL[0])
-
-    Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
-    Disk2 = -1*EE_pinch #need to tune according to motion ratio
+        else:
+            Disk3 = -CableToDiskfromLookUpTable(deltaL[1])
+    
+    Disk1 = 1.56323325*roll #from dVRK 8mm needle driver coupling matrix
+    Disk2 = 1*EE_pinch #need to tune according to motion ratio
     return [Disk1,Disk2,Disk3,Disk4]
 
 #getCabletoDiskMapping()

@@ -147,17 +147,19 @@ class Peter_Francis_tool_Kinematics_Solver:
                 ### wrist orientation FK for current position
                 R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
                 R_currentFK = R_shaft@R_wrist
-                print("Desired Orientation: \n", np.around(R_desired,4))
-                print("Shaft Orientation: \n", np.around(R_shaft,4))
-                print("Wrist Orientation: \n", np.around(R_wrist,4))
-                print("Current EE Orientation: \n", np.around(R_currentFK,4))
+                #print("Desired Orientation: \n", np.around(R_desired,4))
+                #print("Shaft Orientation: \n", np.around(R_shaft,4))
+                #print("Wrist Orientation: \n", np.around(R_wrist,4))
+                #print("Current EE Orientation: \n", np.around(R_currentFK,4))
 
                 ### EE_orientation IK
                 R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
                 #print("R_desired_wrist: \n", R_wrist_desired)
                 joint_angles = [roll,gamma,beta,alpha]
                 joint_angles = IK_update(R_wrist_desired,joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3],printout)
-                #print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles)
+                
+                print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles)
+                
                 R_wrist_IK = get_R_fullwristmodel(joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3])
                 #print("R_wrist_IK: \n", R_wrist_IK)
                 #print("R_desired_wrist: \n", R_wrist_desired)
@@ -169,20 +171,21 @@ class Peter_Francis_tool_Kinematics_Solver:
                 deltaCablesGamma = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[1], "0")
                 deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "240")
                 deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "120")
-                deltaCablesTotal = 3*(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
+                deltaCablesTotal = 3*abs(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
                 
-                EE_pull = 1 #place holder value for now, need to obtain from ROS topic
+                #EE_pinch = 1 #place holder value for now, need to obtain from ROS topic
+
                 print("cable deltas for notch 1: ", deltaCablesGamma)
                 print("cable deltas for notch 2: ", deltaCablesBeta)
                 print("cable deltas for notch 3: ", deltaCablesAlpha)
-                #print("total cable delta: ", deltaCablesTotal)
+                print("total cable delta: ", deltaCablesTotal)
 
                 # get Disk Angle inputs for PSM tool base 
                 # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
-                DiskAngles = getDiskAngles(joint_angles[0],EE_pinch,-deltaCablesTotal[0],-deltaCablesTotal[1],-deltaCablesTotal[2])
+                DiskAngles = getDiskAngles(joint_angles[0],EE_pinch,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
                 joints_list = psm_joints + DiskAngles
-                #if printout is True:
-                        #print("Disk Angles: \n", joints_list)
+                if printout is True:
+                        print("Disk Angles: \n", np.around(DiskAngles,4))
                 return joints_list
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### setup ###
