@@ -164,21 +164,22 @@ class Peter_Francis_tool_Kinematics_Solver:
                 #print("R_wrist_IK: \n", R_wrist_IK)
                 #print("R_desired_wrist: \n", R_wrist_desired)
                 R_updated = R_shaft@R_wrist_IK
-                #print("R_full_IK: \n", R_updated)
-                #print("R_desired: \n", R_desired)
+                print("R_full_IK: \n", R_updated)
+                print("R_desired: \n", R_desired)
 
                 # convert from joint angles to cable displacements
                 deltaCablesGamma = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[1], "0")
-                deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "240")
                 deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "120")
-                deltaCablesTotal = 3*abs(deltaCablesGamma + deltaCablesBeta + deltaCablesAlpha)
+                deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "240")
+                
+                deltaCablesTotal = 3*abs(deltaCablesGamma + deltaCablesAlpha + deltaCablesBeta)
                 
                 #EE_pinch = 1 #place holder value for now, need to obtain from ROS topic
 
-                print("cable deltas for notch 1: ", deltaCablesGamma)
-                print("cable deltas for notch 2: ", deltaCablesBeta)
-                print("cable deltas for notch 3: ", deltaCablesAlpha)
-                print("total cable delta: ", deltaCablesTotal)
+                #print("cable deltas for notch 1: ", deltaCablesGamma)
+                #print("cable deltas for notch 3: ", deltaCablesAlpha)
+                #print("cable deltas for notch 2: ", deltaCablesBeta)
+                #print("total cable delta: ", deltaCablesTotal)
 
                 # get Disk Angle inputs for PSM tool base 
                 # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]

@@ -111,19 +111,19 @@ def CableToDiskfromLookUpTable(x):
         return (y1 + (x-x1)*(y2-y1)/(x2-x1))
     
 
-def getDiskAngles(roll,EE_pinch,deltaL1,deltaL2,deltaL3):
+def getDiskAngles(roll,EE_pinch,deltaL0,deltaL1,deltaL2):
     """
     calculate Disk Angles from jointspace and cablespace inputs
     [roll (jointspace), end effector, (jointspace), Cable1 (cablespace), Cable2 (cablespace), Cable3 (cablespace)]
     """
-    deltaL = np.array([deltaL1,deltaL2,deltaL3])
+    deltaL = np.array([deltaL0,deltaL1,deltaL2])
     deltaL[deltaL<0] = 0 # not possible to extend length of cable, set to 0 displacement
     diff = (min(deltaL)) # set smallest cable displacement as reference length
     
-    deltaL[deltaL<=diff] = 0
+    #deltaL[deltaL<=diff] = 0
     deltaL = deltaL - diff
     print("Cables Delta: \n", deltaL)
-
+    
     if (deltaL[1] > 0):
         Disk3 = -CableToDiskfromLookUpTable(deltaL[1])
         if (deltaL[0] > 0):
@@ -137,8 +137,9 @@ def getDiskAngles(roll,EE_pinch,deltaL1,deltaL2,deltaL3):
             Disk3 = CableToDiskfromLookUpTable(deltaL[0])
         else:
             Disk3 = -CableToDiskfromLookUpTable(deltaL[1])
-    
-    Disk1 = 1.56323325*roll #from dVRK 8mm needle driver coupling matrix
+    else:
+        print("whooosh")    
+    Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
     Disk2 = 1*EE_pinch #need to tune according to motion ratio
     return [Disk1,Disk2,Disk3,Disk4]
 
