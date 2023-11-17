@@ -135,7 +135,7 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
         orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
         #print("orientation error: ", orientation_error)
 
-        delta = 0.1*orientation_error
+        delta = 0.25*orientation_error
         if (abs(previous_error - orientation_error)) < 0.00001:
             exit = True
         
