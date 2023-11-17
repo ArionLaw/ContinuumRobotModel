@@ -16,6 +16,7 @@ import time
 
 def get_R_desired(frame):
     """
+    deprecated
     obtain rotation matrix of desired end effector frame
     """
     """
@@ -36,6 +37,7 @@ def get_R_desired(frame):
 
 def calc_R_desired(EE_orientation_desired, tip_desired):
     """
+    deprecated
     obtain rotation matrix of desired end effector orientation  
     """
     vec_x = np.array([1,0,0])
@@ -181,10 +183,16 @@ def roll_update(d_roll,orientation_error,roll,delta):
 def get_O_error(R_desired,roll,gamma,beta,alpha):
     """
     calculates orientation error of current configuration relative to R_desired 
-    error is expressed as a pythagorean magnitude of 3 euler angle errors
-    """
+    
+    error is expressed as the angle of difference between rotations 
+
+    ### old method ### error is expressed as a pythagorean magnitude of 3 euler angle errors
     angles_error = getEulerAngles(get_R_error(R_desired,roll,gamma,beta,alpha))
     E = np.sqrt(abs(angles_error[0])**2 + abs(angles_error[1])**2 + abs(angles_error[2])**2)
+    """
+    R_error = get_R_error(R_desired,roll,gamma,beta,alpha)
+    E = np.arccos((np.trace(R_error)-1)/2)
+    
     #print("angle error : " , angles_error)
     #print("orientation error: ", E)
     return E

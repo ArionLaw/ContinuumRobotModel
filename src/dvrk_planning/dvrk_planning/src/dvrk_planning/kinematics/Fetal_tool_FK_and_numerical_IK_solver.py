@@ -128,7 +128,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 R_desired = tf_desired[0:3, 0:3]
                 ### calculate current wrist pose 
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
-                print("Instrument Joint Values: \n" , joint_values)
+                #print("Instrument Joint Values: \n (roll, EE jaw, gamma, beta, alpha) \n" , joint_values)
                 
                 roll = joint_values[0]
                 EE_pinch = joint_values[1]
