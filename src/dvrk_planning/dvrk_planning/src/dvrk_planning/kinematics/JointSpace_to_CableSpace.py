@@ -1,6 +1,6 @@
-OS = "Windows"
-
-if OS == "Windows":
+#test_cases = True
+test_cases = False
+if test_cases == True:
     from utils import *
     from plotting import *
 

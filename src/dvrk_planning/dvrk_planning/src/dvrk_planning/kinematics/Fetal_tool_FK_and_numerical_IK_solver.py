@@ -1,5 +1,6 @@
-OS = "Windows"
-if OS == "Windows":
+#test_cases = True
+test_cases = False
+if test_cases == True:
         from utils import *
         from TaskSpace_to_JointSpace import *
         from JointSpace_to_CableSpace import *
@@ -129,7 +130,7 @@ class Peter_Francis_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
     
 
-        def compute_ik(self, tf_desired, disk_positions):
+        def compute_ik(self, tf_desired, direct_joint_positions):
                 """
                 compute from task space poses to joint space angles
                         from joint space angles to cable space displacements
@@ -141,10 +142,11 @@ class Peter_Francis_tool_Kinematics_Solver:
                 #print("tf_p:\n", PSM_wrist_pos_desired)
                 R_desired = tf_desired[0:3, 0:3]
                 #print("tf_R:\n", R_desired)
-                #print("disk_positions:\n", disk_positions[3:])
+                disk_positions = direct_joint_positions[3:]
+                #print("disk_positions:\n", disk_positions)
 
                 ### calculate current wrist pose 
-                joint_values = DiskPosition_To_JointSpace(disk_positions[3:],self.h,self.y_,self.r)
+                joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
                 if printout is True: print("Continuum Wrist Joint Values: \n(roll, EE jaw, gamma, beta, alpha):\n" , joint_values) 
                 
                 roll = joint_values[0]
@@ -234,19 +236,24 @@ psm_yaw = 0.7854;
 psm_pitch = -0.6155;
 psm_insertion = 43.3013;
 """
-# test run
-input_current_output_js_list,tf_matrices_list = read_TestCaseFile()
-for i in range(len(input_current_output_js_list)):
-        print("============================================================================================================================")
-        print("iteration: ", i)
-        disk_positions = input_current_output_js_list[i]
-        print("Disk Positions:\n", disk_positions)
-        tf_desired = np.matrix(tf_matrices_list[i])
-        print("tf Desired:\n",tf_desired)
 
-        printout = True
-        tool1 = Peter_Francis_tool_Kinematics_Solver()
-        tool1.compute_ik(tf_desired, disk_positions)
+# run test cases
+def run_test_cases():
+        input_current_output_js_list,tf_matrices_list = read_TestCaseFile()
+        for i in range(len(input_current_output_js_list)):
+                print("============================================================================================================================")
+                print("iteration: ", i)
+                disk_positions = input_current_output_js_list[i]
+                print("Disk Positions:\n", disk_positions)
+                tf_desired = np.matrix(tf_matrices_list[i])
+                print("tf Desired:\n",tf_desired)
+
+                printout = True
+                tool1 = Peter_Francis_tool_Kinematics_Solver()
+                tool1.compute_ik(tf_desired, disk_positions)
+
+#run_test_cases()
+
 
 """
 disk_positions = [3.2833419526133314, -1, 0.1117424042942665, -0.15561920043570215]

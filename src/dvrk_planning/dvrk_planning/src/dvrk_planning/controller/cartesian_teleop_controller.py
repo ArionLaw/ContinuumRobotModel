@@ -43,7 +43,7 @@ class CartesianTeleopController(TeleopController):
         print("absolute_output_tf: ", np.around(absolute_output_tf, 3))
         self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf, self.current_output_js)
         print("self.current_output_js: ", np.around(self.current_output_js, 3))
-        print("---------------")
+        print("===============================================================================================================================")
         self.output_callback(self.current_output_js)
         return True
 

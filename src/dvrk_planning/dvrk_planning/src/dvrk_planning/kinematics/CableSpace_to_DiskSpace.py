@@ -1,6 +1,6 @@
-OS = "Windows"
-
-if OS == "Windows":
+#test_cases = True
+test_cases = False
+if test_cases == True:
     from utils import *
     from plotting import *
     from JointSpace_to_CableSpace import *
@@ -33,7 +33,7 @@ def getCabletoDiskMapping():
     theta = 0
     
     #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg 
-    #actual disks are tracking <30deg when experiencing crash, despite kinematics calculating disks at 60 deg
+    #actual disks are tracking <30deg when experiencing crash, despite kinematics calculating disks at 60deg
 
     while theta < np.pi/2:
         positionB = [wiperLength*np.sin(theta) + wiperWidth/2*np.cos(theta) , wiperLength*np.cos(theta) + wiperWidth/2*np.sin(theta)]
