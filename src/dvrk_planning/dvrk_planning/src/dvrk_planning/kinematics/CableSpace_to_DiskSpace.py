@@ -1,9 +1,18 @@
-from dvrk_planning.kinematics.utils import *
-from dvrk_planning.kinematics.plotting import *
+OS = "Windows"
+
+if OS == "Windows":
+    from utils import *
+    from plotting import *
+    from JointSpace_to_CableSpace import *
+
+else:
+    from dvrk_planning.kinematics.utils import *
+    from dvrk_planning.kinematics.plotting import *
+    from dvrk_planning.kinematics.JointSpace_to_CableSpace import *
+
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-from dvrk_planning.kinematics.JointSpace_to_CableSpace import *
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### Mapping Initialization ###
@@ -22,7 +31,11 @@ def getCabletoDiskMapping():
     mapping = pd.DataFrame(columns = ['DiskAngle','DeltaCable'])
     lengthAC = restingCableLength
     theta = 0
-    while theta < np.pi/3:
+    
+    #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg 
+    #actual disks are tracking <30deg when experiencing crash, despite kinematics calculating disks at 60 deg
+
+    while theta < np.pi/2:
         positionB = [wiperLength*np.sin(theta) + wiperWidth/2*np.cos(theta) , wiperLength*np.cos(theta) + wiperWidth/2*np.sin(theta)]
         lengthAB = np.sqrt((positionB[0] - wiperWidth/2)**2 + (lengthAC-diskLocation-positionB[1])**2)
         lengthBC = np.sqrt((positionB[0] - wiperWidth/2)**2 + (diskLocation+positionB[1])**2)
@@ -52,6 +65,7 @@ def DiskToCablefromLookUpTable(x):
     y2 = mask_upper['DeltaCable'].min()
     x1 = mask_lower['DiskAngle'].max()
     x2 = mask_upper['DiskAngle'].min()
+    #print("[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -65,21 +79,31 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     
     if DiskPositions[2] > 0:
         gamma = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
+        #print("gamma")
         beta = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
+        #print("beta")
         alpha = 0
+        #print("unused\nalpha")
     elif DiskPositions[3] < 0:
         gamma = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
+        #print("gamma")
         beta = 0
+        #print("unused\nbeta")
         alpha = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
+        #print("alpha")
     else:
         gamma = 0
+        #print("gamma")
         beta = DiskToCablefromLookUpTable(abs(DiskPositions[3]))
+        #print("beta")
         alpha = DiskToCablefromLookUpTable(abs(DiskPositions[2]))
+        #print("alpha")
+    #print("\n")
 
     wrist_cable_deltas = np.array([gamma,beta,alpha])
-    #print("Total Wrist Cable Deltas: \n" , wrist_cable_deltas)
+    #if printout is True: print("Total Wrist Cable Deltas: \n" , wrist_cable_deltas)
     segment_deltas = allocate_deltaCables(wrist_cable_deltas)
-    #print("3 Notch Segment Cable Deltas: \n" , segment_deltas)
+    #if printout is True: print("3 Notch Segment Cable Deltas: \n" , segment_deltas)
     gamma = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[0])
     beta = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[1])
     alpha = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[2])

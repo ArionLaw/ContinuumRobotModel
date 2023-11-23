@@ -1,5 +1,13 @@
-from dvrk_planning.kinematics.utils import *
-from dvrk_planning.kinematics.plotting import *
+OS = "Windows"
+
+if OS == "Windows":
+    from utils import *
+    from plotting import *
+
+else:
+    from dvrk_planning.kinematics.utils import *
+    from dvrk_planning.kinematics.plotting import *
+
 import numpy as np
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#

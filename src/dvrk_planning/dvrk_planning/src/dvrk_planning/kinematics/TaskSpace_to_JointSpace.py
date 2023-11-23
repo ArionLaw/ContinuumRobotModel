@@ -1,7 +1,15 @@
-from dvrk_planning.kinematics.utils import *
-from dvrk_planning.kinematics.plotting import *
+OS = "Windows"
+
+if OS == "Windows":
+    from utils import *
+    from plotting import *
+
+else:
+    from dvrk_planning.kinematics.utils import *
+    from dvrk_planning.kinematics.plotting import *
+    from PyKDL import Vector, Rotation, Frame, dot
+
 import numpy as np
-from PyKDL import Vector, Rotation, Frame, dot
 import time
 
 
@@ -115,9 +123,12 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired):
     """
     obtain initial yaw, pitch and insertion joint values of PSM kinematic chain from desired EE_position
     """
-    psm_insertion = np.sqrt(EE_pos_desired[0]**2 + EE_pos_desired[1]**2 + EE_pos_desired[2]**2); #magnitude = psm_insertion
-    psm_pitch = np.arcsin(-EE_pos_desired[1]/psm_insertion)
-    psm_yaw = np.arcsin(EE_pos_desired[0]/np.cos(psm_pitch)/psm_insertion)
+    x = float(EE_pos_desired[0])
+    y = float(EE_pos_desired[1])
+    z = float(EE_pos_desired[2])
+    psm_insertion = np.sqrt(x**2 + y**2 + z**2); #magnitude = psm_insertion
+    psm_pitch = np.arcsin(-y/psm_insertion)
+    psm_yaw = np.arcsin(x/np.cos(psm_pitch)/psm_insertion)
     return [psm_yaw,psm_pitch,psm_insertion]
 
 def IK_update(R_desired,roll,gamma,beta,alpha,printout):
@@ -131,9 +142,9 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
     exit = False
     while (i<25) and (orientation_error>0.005) and exit == False:
         i=i+1
-        #print("i: ",i)
+        #if printout is True: print("i: ",i)
         orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
-        #print("orientation error: ", orientation_error)
+        #if printout is True: print("orientation error: ", orientation_error)
 
         delta = 0.25*orientation_error
         if (abs(previous_error - orientation_error)) < 0.00001:
@@ -148,12 +159,12 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
         gamma = angle_update(d_gamma,orientation_error,gamma,delta)
         beta = angle_update(d_beta,orientation_error,beta,delta)
         alpha = angle_update(d_alpha,orientation_error,alpha,delta)
-        #print([roll,gamma,beta,alpha])
+        #if printout is True: print([roll,gamma,beta,alpha])
         previous_error = orientation_error
 
     joint_angles = [roll,gamma,beta,alpha]
     if printout is True:
-        print("--- %s seconds ---" % (time.time() - start_time))
+        print("\n--- %s seconds ---" % (time.time() - start_time))
         print("i: ",i)
         print("orientation error: ", orientation_error)
     return joint_angles
