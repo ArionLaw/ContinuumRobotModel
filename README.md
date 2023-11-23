@@ -20,11 +20,15 @@ rosrun dvrk_robot dvrk_console_json -j console-PSM2.json
 
 # Terminal 4 
 cd ContinuumRobotModel/
+
 source devel/setup.bash
+
 rosrun dvrk_planning_ros psm_teleop_keyboard.py
 
 # Terminal 5
 cd ContinuumRobotModel/
+
 source devel/setup.bash
+
 rosrun dvrk_planning_ros dvrk_teleop_node.py -y config/keyboard_psm2_Fetal.yaml
 
