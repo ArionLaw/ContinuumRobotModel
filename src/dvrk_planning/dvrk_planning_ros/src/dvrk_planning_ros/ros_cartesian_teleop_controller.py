@@ -7,6 +7,7 @@ from geometry_msgs.msg import TransformStamped, TwistStamped
 
 from PyKDL import Rotation, Vector
 
+from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopController
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
 from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
 from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
@@ -38,6 +39,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         if("output_ref_to_input_rot" in output_yaml):
             output_ref_to_input_rot = output_ref_to_input_rot_from_yaml(output_yaml["output_ref_to_input_rot"])
         input_yaml = controller_yaml["input"]
+        self.jaw_sub = None
         if input_yaml["type"] == "follow":
             position_scale = 1.0
             if("position_scale" in input_yaml):
@@ -48,6 +50,12 @@ class RosCartesiansTeleopController(RosTeleopController):
                 position_scale = position_scale)
             input_topic_type = TransformStamped
             self._input_callback_impl = self._input_callback_tf
+
+            if("jaw" in input_yaml):
+                self.jaw_input_topic = input_yaml["jaw_input_topic"]
+                self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
+                self.jaw_joint_pos
+
         elif input_yaml["type"] == "increment":
             self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
             input_topic_type = TwistStamped
@@ -59,7 +67,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         if kin_yaml["robot"] == "fetal":
             do_nothing = 0
         else:
-        """    
+        """
         super().__init__(controller_yaml, input_topic_type)
         self.js_msg.name = kinematics_solver.get_active_joint_names()
         self._teleop_controller.register(self._output_callback)
@@ -73,7 +81,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.enable(self.current_output_jps)
         elif self._teleop_controller.input_type == InputType.FOLLOW:
-            self._wait_for_input_sub_msg(True)
+            self.wait_for_input_sub_msg(True)
             self._teleop_controller.enable(self.current_input_tf, self.current_output_jps)
 
     def disable(self):
@@ -87,7 +95,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
         elif self._teleop_controller.input_type == InputType.FOLLOW:
-            self._wait_for_input_sub_msg()
+            self.wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
 
@@ -100,3 +108,13 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._teleop_controller.update(
             Vector(twist.linear.x, twist.linear.y, twist.linear.z),
             Rotation.RPY(twist.angular.x, twist.angular.y, twist.angular.z))
+
+    def _input_jaw_mimic(self, data):
+        self.input_jaw_js = data.position
+
+    def wait_for_input_sub_msg(self):
+        super().wait_for_input_sub_msg()
+        if self.jaw_sub is not None:
+            print(self._get_str_name(), ": waiting for message from topic [" + self.jaw_input_topic +"]" )
+            rospy.wait_for_message(self.jaw_input_topic, JointState)
+            print(self._get_str_name(), ": finished waiting for message from topic [" + self.jaw_input_topic +"]" )

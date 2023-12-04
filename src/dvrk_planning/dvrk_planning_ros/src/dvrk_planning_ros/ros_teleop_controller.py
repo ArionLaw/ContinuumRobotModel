@@ -64,7 +64,7 @@ class RosTeleopController:
         self.js_msg.name =  js.name
         self.current_output_jps = js.position
 
-    def _wait_for_input_sub_msg(self, always_print=False):
+    def wait_for_input_sub_msg(self, always_print=False):
         try:
             if(always_print):
                  raise
