@@ -42,6 +42,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self.jaw_sub = None
         if input_yaml["type"] == "follow":
             position_scale = 1.0
+            self.kinematics_solver = kinematics_solver
             if("position_scale" in input_yaml):
                 position_scale = input_yaml["position_scale"]
             self._teleop_controller = CartesianFollowTeleopController(
@@ -50,12 +51,20 @@ class RosCartesiansTeleopController(RosTeleopController):
                 position_scale = position_scale)
             input_topic_type = TransformStamped
             self._input_callback_impl = self._input_callback_tf
-
+            self._jaw_teleop_controller = None
+            self.desired_output_jaw_angle = None
             if("jaw" in input_yaml):
                 self.jaw_input_topic = input_yaml["jaw_input_topic"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self.jaw_joint_pos
+                scale = 1.0
+                if "jaw_scale" in input_yaml:
+                    scale = input_yaml["jaw_scale"]
+                self._jaw_teleop_controller = JointFollowTeleopController(scale)
+                self._jaw_teleop_controller.register(self._output_jaw_callback)
+                self.desired_output_jaw_angle = 0.0
 
+                self
         elif input_yaml["type"] == "increment":
             self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
             input_topic_type = TwistStamped
@@ -83,12 +92,19 @@ class RosCartesiansTeleopController(RosTeleopController):
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg(True)
             self._teleop_controller.enable(self.current_input_tf, self.current_output_jps)
+            if self._jaw_teleop_controller:
+                current_output_jaw = self.kinematics_solver.compute_jaw_fk(self.current_output_jps)
+                self._jaw_teleop_controller.enable(self.input_jaw_js, current_output_jaw)
 
     def disable(self):
         self._teleop_controller.disable()
+        if self._jaw_teleop_controller:
+            self._jaw_teleop_controller.disable()
 
     def clutch(self):
         self._teleop_controller.clutch()
+        if self._jaw_teleop_controller:
+            self._jaw_teleop_controller.clutch()
 
     def unclutch(self):
         # TODO, this is not good oop
@@ -98,10 +114,13 @@ class RosCartesiansTeleopController(RosTeleopController):
             self.wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
+            if self._jaw_teleop_controller:
+                current_output_jaw = self.kinematics_solver.compute_jaw_fk(self.current_output_jps)
+                self._jaw_teleop_controller.unclutch(self.input_jaw_js, current_output_jaw)
 
     def _input_callback_tf(self, data):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
-        self._teleop_controller.update(self.current_input_tf)
+        self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
 
     def _input_callback_twist(self, data):
         twist = data.twist
@@ -111,9 +130,13 @@ class RosCartesiansTeleopController(RosTeleopController):
 
     def _input_jaw_mimic(self, data):
         self.input_jaw_js = data.position
+        self._jaw_teleop_controller.update(self.input_jaw_js)
 
-    def wait_for_input_sub_msg(self):
-        super().wait_for_input_sub_msg()
+    def _output_jaw_callback(self, joint_positions):
+        self.desired_output_jaw_angle = joint_positions[0]
+
+    def wait_for_input_sub_msg(self, is_print = False):
+        super().wait_for_input_sub_msg(is_print)
         if self.jaw_sub is not None:
             print(self._get_str_name(), ": waiting for message from topic [" + self.jaw_input_topic +"]" )
             rospy.wait_for_message(self.jaw_input_topic, JointState)
