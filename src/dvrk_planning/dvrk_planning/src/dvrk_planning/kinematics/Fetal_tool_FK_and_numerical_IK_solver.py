@@ -1,5 +1,5 @@
-#test_cases = True
-test_cases = False
+test_cases = True
+#test_cases = False
 if test_cases == True:
         from utils import *
         from TaskSpace_to_JointSpace import *
@@ -95,42 +95,41 @@ class Peter_Francis_tool_Kinematics_Solver:
                         from cable space displacements to joint space angles 
                         from joint space angles to task space poses                 
                 """        
-                if printout is True:
-                        print("\n FK")
+                if printout is True: print("------------------------------------------- FK -------------------------------------------")
                 psm_joints = joints[0:3]
                 disk_positions = joints[3:]
-                print("joints", joints)
+                if printout is True: print("joints", joints)
+
                 # from disk space angles to joint space angles
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
-                #print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
-                #print("Instrument Joint Values: \n" , joint_values)
+                if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
+                if printout is True: print("Instrument Joint Values: \n" , joint_values)
                 roll = joint_values[0]
-                EE_grip = joint_values[1]
+                EE_pinch = joint_values[1]
                 gamma = joint_values[2]
                 beta = joint_values[3]
                 alpha = joint_values[4]
 
                 # wrist position FK
                 EE_pos_FK = get_wristPosition_from_PSMjoints(psm_joints)
-                #print("Wrist Position: \n", EE_pos_FK)
+                if printout is True: print("Wrist Position: \n", EE_pos_FK)
 
                 # orientation FK
                 R_shaft = get_R_shaft(psm_joints)
                 R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
                 R_currentFK = R_shaft@R_wrist
-                #print("Shaft Orientation: \n", R_shaft)
-                #print("Wrist Orientation: \n", R_wrist)
-                if printout is True:
-                        print("Current EE Orientation: \n", R_currentFK)
+                if printout is True: print("Shaft Orientation: \n", R_shaft)
+                if printout is True: print("Wrist Orientation: \n", R_wrist)
+                if printout is True: print("Current EE Orientation: \n", R_currentFK)
 
-                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK)
+                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
     
 
-        def compute_ik(self, tf_desired, direct_joint_positions):
+        def compute_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch):
                 """
                 compute from task space poses to joint space angles
                         from joint space angles to cable space displacements
@@ -180,10 +179,10 @@ class Peter_Francis_tool_Kinematics_Solver:
                 print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles,"\n")
                 
                 R_wrist_IK = get_R_fullwristmodel(joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3])
-                #if printout is True: print("R_wrist_IK: \n", R_wrist_IK)
+                #if printout is True: print("R_wrist_current: \n", R_wrist_IK)
                 #if printout is True: print("R_desired_wrist: \n", R_wrist_desired)
                 R_updated = R_shaft@R_wrist_IK
-                if printout is True: print("R_full_IK: \n", R_updated)
+                if printout is True: print("R_current: \n", R_updated)
                 if printout is True: print("R_desired: \n", R_desired)
 
                 # convert from joint angles to cable displacements
@@ -202,7 +201,7 @@ class Peter_Francis_tool_Kinematics_Solver:
 
                 # get Disk Angle inputs for PSM tool base 
                 # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
-                DiskAngles = getDiskAngles(joint_angles[0],EE_pinch,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
+                DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
                 joints_list = psm_joints + DiskAngles
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list
