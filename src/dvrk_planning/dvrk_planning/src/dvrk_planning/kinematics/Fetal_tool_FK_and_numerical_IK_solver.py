@@ -20,7 +20,6 @@ else:
         
 
 import numpy as np
-
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # Notes
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -65,6 +64,7 @@ d = [c , 0 , 0 , 0]
 np.set_printoptions(precision=3)
 printout = True
 getCabletoDiskMapping()
+getEECabletoDisk2Mapping()
 
 class Peter_Francis_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -105,7 +105,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
                 if printout is True: print("Instrument Joint Values: \n" , joint_values)
                 roll = joint_values[0]
-                EE_pinch = joint_values[1]
+                EE_pinch_angle = joint_values[1]
                 gamma = joint_values[2]
                 beta = joint_values[3]
                 alpha = joint_values[4]
@@ -122,14 +122,14 @@ class Peter_Francis_tool_Kinematics_Solver:
                 if printout is True: print("Wrist Orientation: \n", R_wrist)
                 if printout is True: print("Current EE Orientation: \n", R_currentFK)
 
-                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch
+                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch_angle
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
     
 
-        def compute_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch):
+        def compute_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch_angle):
                 """
                 compute from task space poses to joint space angles
                         from joint space angles to cable space displacements
@@ -149,7 +149,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 if printout is True: print("Continuum Wrist Joint Values: \n(roll, EE jaw, gamma, beta, alpha):\n" , joint_values) 
                 
                 roll = joint_values[0]
-                EE_pinch = joint_values[1]
+                #EE_pinch_angle = joint_values[1]
                 gamma = joint_values[2]
                 beta = joint_values[3]
                 alpha = joint_values[4]
@@ -191,8 +191,6 @@ class Peter_Francis_tool_Kinematics_Solver:
                 deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "240")
                 
                 deltaCablesTotal = 3*abs(deltaCablesGamma + deltaCablesAlpha + deltaCablesBeta)
-                
-                #EE_pinch = 1 #place holder value for now, need to obtain from ROS topic
 
                 #if printout is True: print("cable deltas for notch 1: ", deltaCablesGamma)
                 #if printout is True: print("cable deltas for notch 3: ", deltaCablesAlpha)
@@ -201,7 +199,7 @@ class Peter_Francis_tool_Kinematics_Solver:
 
                 # get Disk Angle inputs for PSM tool base 
                 # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
-                DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
+                DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
                 joints_list = psm_joints + DiskAngles
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list
@@ -252,7 +250,6 @@ def run_test_cases():
                 tool1.compute_ik(tf_desired, disk_positions)
 
 #run_test_cases()
-
 
 """
 disk_positions = [3.2833419526133314, -1, 0.1117424042942665, -0.15561920043570215]
