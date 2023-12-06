@@ -12,7 +12,7 @@ def read_TestCaseFile():
     #if input_filename == ".txt":
     input_filename = "NaN_test_case.txt"
 
-    file_path = sys.path[0]+"/test_cases/" + input_filename
+    file_path = sys.path[0]+ "/test_cases/" + input_filename
 
     try:
         with open(file_path, 'r') as file:

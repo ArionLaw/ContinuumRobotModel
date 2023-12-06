@@ -105,8 +105,8 @@ def getEECabletoDisk2Mapping():
     global EEmapping
     EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
 
-    ### cable delta reference length
-    thetaA = -10*np.pi/180 #-10deg cable delta reference location
+    ### cable zero displacement reference length
+    thetaA = -10*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
     xAnchorRef,yAnchorRef = calcEELinkageAnchorPos(thetaA)
     xCableDeltaRef = xAnchorRef - xRef
     yCableDeltaRef = yAnchorRef - yRef
@@ -177,7 +177,7 @@ def EECable_to_GripperAngle(TotalCableDelta,WristBendingCableDelta):
     """
     calculation for relationship between EE gripper angle and EE cable delta 
     """
-    R = 1 #mm EE scissor linkage arm lengths
+    R = 1.4 #mm EE scissor linkage arm lengths
     Max_EE_pinch_angle = 45*np.pi/180  #max EE jaw angle
     Min_EE_linkage_length = 2*R*np.cos(Max_EE_pinch_angle) #length of scissor linkage when EE fully open
     Max_EE_linkage_length = 2*R #length of scissor linkage when EE fully closed
@@ -189,7 +189,9 @@ def EECable_to_GripperAngle(TotalCableDelta,WristBendingCableDelta):
     if linkage_length <= Max_EE_linkage_length: # for EE pinch angles 0deg and greater
         EE_pinch_angle = np.arccos(linkage_length/2/R)
     else: # for EE pinch angles < 0deg when applying gripping force
-        EE_pinch_angle = -np.arccos(linkage_length/2/R)
+        EE_pinch_angle = -abs(np.arccos((linkage_length/2/R)-1)) #excess cable delta for actuation past 0 deg results in linkage_length/2/R > 1 
+        # domain of arccos func. is from -1 to 1 // addition of -1 accounts for spill over
+        # -abs(arccos) ensures negative value which should always be the case due to if else condition checking
     return EE_pinch_angle
 
 def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
@@ -284,9 +286,9 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     """
     calculation for relationship between EE gripper angle and EE cable delta 
     """
-    R = 1 #mm EE scissor linkage arm lengths
+    R = 1.4 #mm EE scissor linkage arm lengths
     Max_EE_pinch_angle = 45*np.pi/180  #max EE jaw angle
-    Min_EE_pinch_angle = -5*np.pi/180  #min EE jaw angle
+    Min_EE_pinch_angle = -10*np.pi/180  #min EE jaw angle
 
     if EE_pinch_angle > Max_EE_pinch_angle: EE_pinch_angle = Max_EE_pinch_angle #EE pinch angle joint limit, not able to open further
     elif EE_pinch_angle < Min_EE_pinch_angle: EE_pinch_angle = Min_EE_pinch_angle #EE pinch angle joint limit, cannot clamp further
@@ -296,7 +298,9 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     else: #clamping actuation range <0 deg for gripping
         EECableDelta = 2*R*np.cos(0) - 2*R*np.cos(Max_EE_pinch_angle) - 2*R*np.sin(EE_pinch_angle) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
     TotalCableDelta = EECableDelta + WristBendingCableDelta
-
+    print("EECableDelta: ", EECableDelta)
+    print("WristComponentCableDelta: ", WristBendingCableDelta)
+    print("TotalCableDelta: ", TotalCableDelta)
     return TotalCableDelta
 
 def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
@@ -330,25 +334,40 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
     EECableWristComponent = max(deltaL)
     EECableDelta = GripperAngle_to_EECable(EE_pinch_Angle,EECableWristComponent)
-    print("EECableDelta: ", EECableDelta)
     Disk2 = EECable_to_Disk2_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping
     
+    # dial limits
+    upperLimitDial_2 = 90*np.pi/180
+    lowerLimitDial_2 = -90*np.pi/180
+    if Disk2 > upperLimitDial_2: Disk2 = upperLimitDial_2
+    elif Disk2 < lowerLimitDial_2: Disk2 = lowerLimitDial_2
+
+    upperLimitDial_3_4 = 60*np.pi/180
+    lowerLimitDial_3_4 = -60*np.pi/180
+    if Disk2 > upperLimitDial_3_4: Disk3 = upperLimitDial_3_4
+    elif Disk2 < lowerLimitDial_3_4: Disk3 = lowerLimitDial_3_4
+    if Disk2 > upperLimitDial_3_4: Disk4 = upperLimitDial_3_4
+    elif Disk2 < lowerLimitDial_3_4: Disk4 = lowerLimitDial_3_4
+        
     return [Disk1,Disk2,Disk3,Disk4]
 
 
-#getCabletoDiskMapping()
-#getEECabletoDisk2Mapping()
-"""
+getCabletoDiskMapping()
+getEECabletoDisk2Mapping()
+
 file_path = sys.path[0]
-mapping.to_csv(file_path +'/dialmapping.csv')
-EEmapping.to_csv(file_path +'/EEmapping.csv')
-"""
+file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
+#print(file_path)
+mapping.to_csv(file_path +'\dialmapping.csv')
+EEmapping.to_csv(file_path +'\EEmapping.csv')
+
 """
 roll = 0
-EE_pinch_Angle = -5*np.pi/180
-deltaL0 = 0
+EE_pinch_Angle = -10*np.pi/180
+deltaL0 = 0.66*3
 deltaL1 = 0
 deltaL2 = 0
+print("EE jaw angle: " , EE_pinch_Angle/np.pi*180)
 DiskAngles = get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2)
 print("DiskAngles: ", DiskAngles)
 """
