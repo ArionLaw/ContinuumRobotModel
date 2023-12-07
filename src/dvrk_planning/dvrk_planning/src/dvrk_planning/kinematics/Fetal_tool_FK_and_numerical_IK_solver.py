@@ -62,7 +62,7 @@ alpha = [0 , -1/2*pi , 2/3*pi , 2/3*pi]
 d = [c , 0 , 0 , 0]
 """
 np.set_printoptions(precision=3)
-printout = True
+printout = False
 getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
 
@@ -103,7 +103,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 # from disk space angles to joint space angles
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
                 if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
-                if printout is True: print("Instrument Joint Values: \n" , joint_values)
+                if printout is True: print("Instrument Joint Values(roll, EE jaw, gamma, beta, alpha):  \n" , joint_values)
                 roll = joint_values[0]
                 EE_pinch_angle = joint_values[1]
                 gamma = joint_values[2]
@@ -122,7 +122,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 if printout is True: print("Wrist Orientation: \n", R_wrist)
                 if printout is True: print("Current EE Orientation: \n", R_currentFK)
 
-                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch_angle
+                return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch_angle, joint_values
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
@@ -176,7 +176,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 joint_angles = [roll,gamma,beta,alpha]
                 joint_angles = IK_update(R_wrist_desired,joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3],printout)
                 
-                print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles,"\n")
+                if printout is True: print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles,"\n")
                 
                 R_wrist_IK = get_R_fullwristmodel(joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3])
                 #if printout is True: print("R_wrist_current: \n", R_wrist_IK)
@@ -202,7 +202,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
                 joints_list = psm_joints + DiskAngles
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
-                return joints_list
+                return joints_list, joint_angles
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### setup ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -236,20 +236,40 @@ psm_insertion = 43.3013;
 
 # run test cases
 def run_test_cases():
-        input_current_output_js_list,tf_matrices_list = read_TestCaseFile()
+        input_filename = "-rot_x.txt"
+        input_current_output_js_list,tf_matrices_list = read_TestCaseFile(input_filename)
         for i in range(len(input_current_output_js_list)):
                 print("============================================================================================================================")
                 print("iteration: ", i)
                 disk_positions = input_current_output_js_list[i]
-                print("Disk Positions:\n", disk_positions)
+                #print("Disk Positions:\n", disk_positions)
                 tf_desired = np.matrix(tf_matrices_list[i])
-                print("tf Desired:\n",tf_desired)
+                #print("tf Desired:\n",tf_desired)
 
-                printout = True
+                printout = False
                 tool1 = Peter_Francis_tool_Kinematics_Solver()
-                tool1.compute_ik(tf_desired, disk_positions)
+                
+                #Transform, jaw angle and wrist joint angle as calculated from FK given input_current_output_js
+                Tf, jaw_angle, FK_joint_values = tool1.compute_fk(disk_positions)
 
-#run_test_cases()
+                #dial values and wrist joint angle as calculated from IK given log file Tf desired and current joint and dial positions
+                dialvalues, IKpre_joint_values = tool1.compute_ik(tf_desired, disk_positions, 45*np.pi/180) 
+
+                #Transform, jaw angle and wrist joint angle as calculated from FK given dial values calculated from IK
+                Tf, jaw_angle, IKpost_joint_values = tool1.compute_fk(dialvalues)
+                
+                actual_joint_values = [FK_joint_values[0],FK_joint_values[2],FK_joint_values[3],FK_joint_values[4]]
+                IKpost_joint_values = [IKpost_joint_values[0],IKpost_joint_values[2],IKpost_joint_values[3],IKpost_joint_values[4]]
+                print("current wrist joint values (roll,gamma,beta,alpha): \n" , actual_joint_values)
+                print("IK wrist joint values pre-cable allocation(roll,gamma,beta,alpha): \n" , IKpre_joint_values)
+                print("IK wrist joint values post-cable allocation(roll,gamma,beta,alpha): \n" , IKpost_joint_values)
+
+                joint_difference = []
+                for i in range(len(IKpost_joint_values)):
+                        joint_difference.append( IKpost_joint_values[i] - IKpre_joint_values[i])
+                #print("cable allocation error(roll,gamma,beta,alpha): \n" , joint_difference)
+
+run_test_cases()
 
 """
 disk_positions = [3.2833419526133314, -1, 0.1117424042942665, -0.15561920043570215]

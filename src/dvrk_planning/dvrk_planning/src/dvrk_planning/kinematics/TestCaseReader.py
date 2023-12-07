@@ -7,11 +7,7 @@ import re
 ### Reading Test Case .txt File ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def read_TestCaseFile():
-    #input_filename = input("Enter .txt file name (without.txt): ") + ".txt"
-    #if input_filename == ".txt":
-    input_filename = "NaN_test_case.txt"
-
+def read_TestCaseFile(input_filename):
     file_path = sys.path[0]+ "/test_cases/" + input_filename
 
     try:

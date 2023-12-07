@@ -32,8 +32,7 @@ def getCabletoDiskMapping():
     lengthAC = restingCableLength
     theta = 0
     
-    #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg 
-    #actual disks are tracking <30deg when experiencing crash, despite kinematics calculating disks at 60deg
+    #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg
 
     while theta < np.pi/2:
         positionB = [wiperLength*np.sin(theta) + wiperWidth/2*np.cos(theta) , wiperLength*np.cos(theta) + wiperWidth/2*np.sin(theta)]
@@ -225,7 +224,7 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     #if printout is True: print("Total Wrist Cable Deltas: \n" , wrist_cable_deltas)
     EECableWristComponent = max(wrist_cable_deltas)
     EECableDelta = Disk2_to_EECable_from_LookUpTable(DiskPositions[1])
-    print("EECableDelta: ", EECableDelta)
+    #print("EECableDelta: ", EECableDelta)
     EE_jaw = EECable_to_GripperAngle(EECableDelta,EECableWristComponent) #linear interpolation from EE gripper linkage mapping
     segment_deltas = allocate_deltaCables(wrist_cable_deltas)
     #if printout is True: print("3 Notch Segment Cable Deltas: \n" , segment_deltas)
@@ -298,9 +297,9 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     else: #clamping actuation range <0 deg for gripping
         EECableDelta = 2*R*np.cos(0) - 2*R*np.cos(Max_EE_pinch_angle) - 2*R*np.sin(EE_pinch_angle) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
     TotalCableDelta = EECableDelta + WristBendingCableDelta
-    print("EECableDelta: ", EECableDelta)
-    print("WristComponentCableDelta: ", WristBendingCableDelta)
-    print("TotalCableDelta: ", TotalCableDelta)
+    #print("EECableDelta: ", EECableDelta)
+    #print("WristComponentCableDelta: ", WristBendingCableDelta)
+    #print("TotalCableDelta: ", TotalCableDelta)
     return TotalCableDelta
 
 def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
