@@ -62,7 +62,7 @@ alpha = [0 , -1/2*pi , 2/3*pi , 2/3*pi]
 d = [c , 0 , 0 , 0]
 """
 np.set_printoptions(precision=3)
-printout = True
+printout = False
 getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
 

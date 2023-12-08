@@ -119,7 +119,7 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
     orientation_error = 1 #arbitrary value to enter loop
     previous_error = 2 #arbitrary value to prevent triggering exit condition(stuck in local minima)
     exit = False
-    while (i<25) and (orientation_error>0.005) and exit == False:
+    while (i<12) and (orientation_error>0.005) and exit == False:
         i=i+1
         #if printout is True: print("i: ",i)
         orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
@@ -142,10 +142,10 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
         previous_error = orientation_error
 
     joint_angles = [roll,gamma,beta,alpha]
-    if printout is True:
-        print("\n--- %s seconds ---" % (time.time() - start_time))
-        print("i: ",i)
-        print("orientation error: ", orientation_error)
+    #if printout is True:
+    #print("\n--- %s seconds ---" % (time.time() - start_time))
+    #print("i: ",i)
+    #print("orientation error: ", orientation_error)
     return joint_angles
 
 def angle_update(d_theta,orientation_error,theta,delta):

@@ -83,7 +83,7 @@ class RosCartesiansTeleopController(RosTeleopController):
 
         self.current_input_tf = np.identity(4)
         self.current_output_tf = np.identity(4)
-
+        self.is_half_hz = False
     def enable(self):
         self._wait_for_output_feedback_sub_msg(True)
         # TODO, this is not good oop
@@ -119,6 +119,9 @@ class RosCartesiansTeleopController(RosTeleopController):
                 self._jaw_teleop_controller.unclutch(self.input_jaw_js, current_output_jaw)
 
     def _input_callback_tf(self, data):
+        self.is_half_hz = not self.is_half_hz
+        if not self.is_half_hz:
+            return
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
 

@@ -1,0 +1,14 @@
+cartesian_controllers:
+  - name: "MTMR-PSM2_PeterFrancis"
+    input:
+      type: "follow"
+      topic: "/MTMR/measured_cp"
+    output:
+      control_topic: "/PSM2/servo_jp"
+      feedback_topic: "/PSM2/measured_js"
+    kinematics:
+      robot: "fetal"
+      tool:
+        type: 
+
+clutch_topic: "/console/clutch"
