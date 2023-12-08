@@ -89,7 +89,7 @@ class Peter_Francis_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def compute_fk(self, joints):
+        def compute_all_fk(self, joints):
                 """
                 compute from disk space angles to cable space displacements
                         from cable space displacements to joint space angles 
@@ -124,12 +124,14 @@ class Peter_Francis_tool_Kinematics_Solver:
 
                 return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch_angle, joint_values
 
+        def compute_fk(self, joints):
+                tf, _, _ = self.compute_all_fk(joints)
+                return tf
+
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-    
-
-        def compute_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch_angle):
+        def compute_all_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch_angle):
                 """
                 compute from task space poses to joint space angles
                         from joint space angles to cable space displacements
@@ -204,6 +206,11 @@ class Peter_Francis_tool_Kinematics_Solver:
                 joints_list = psm_joints + DiskAngles
                 #if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list, joint_angles
+
+        def compute_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch_angle):
+                joints_list, _ = self.compute_all_ik(tf_desired, direct_joint_positions, desired_EE_pinch_angle)
+                return joints_list
+
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### setup ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -257,13 +264,13 @@ def run_test_cases():
                         tool1 = Peter_Francis_tool_Kinematics_Solver()
                         
                         #Transform, jaw angle and wrist joint angle as calculated from FK given input_current_output_js
-                        Tf, jaw_angle, FK_joint_values = tool1.compute_fk(disk_positions)
+                        Tf, jaw_angle, FK_joint_values = tool1.compute_all_fk(disk_positions)
 
                         #dial values and wrist joint angle as calculated from IK given log file Tf desired and current joint and dial positions
-                        dialvalues, IKpre_joint_values = tool1.compute_ik(tf_desired, disk_positions, 45*np.pi/180) 
+                        dialvalues, IKpre_joint_values = tool1.compute_all_ik(tf_desired, disk_positions, 45*np.pi/180) 
 
                         #Transform, jaw angle and wrist joint angle as calculated from FK given dial values calculated from IK
-                        Tf, jaw_angle, IKpost_joint_values = tool1.compute_fk(dialvalues)
+                        Tf, jaw_angle, IKpost_joint_values = tool1.compute_all_fk(dialvalues)
                         
                         input_joint_values = [FK_joint_values[0],FK_joint_values[2],FK_joint_values[3],FK_joint_values[4]]
                         IKpost_joint_values = [IKpost_joint_values[0],IKpost_joint_values[2],IKpost_joint_values[3],IKpost_joint_values[4]]

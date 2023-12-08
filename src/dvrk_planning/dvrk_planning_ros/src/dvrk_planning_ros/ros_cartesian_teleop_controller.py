@@ -6,12 +6,13 @@ import numpy as np
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped, TwistStamped
 
-from PyKDL import Rotation, Vector
+from PyKDL import Rotation, Vector, Wrench
 
 from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopController
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
 from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
 from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
+from dvrk_planning_ros.mtm_device_crtk import MTM
 
 def quat_yaml_to_pykdl(quaternion_yaml):
     x = quaternion_yaml["x"]
@@ -53,18 +54,17 @@ class RosCartesiansTeleopController(RosTeleopController):
             input_topic_type = TransformStamped
             self._input_callback_impl = self._input_callback_tf
             self._jaw_teleop_controller = None
-            self.desired_output_jaw_angle = None
+            self.desired_output_jaw_angle = 0.5
             if("jaw" in input_yaml):
                 jaw_yaml = input_yaml["jaw"]
-                self.jaw_input_topic = jaw_yaml["input_topic"]
-                self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
-                self.jaw_joint_pos
                 scale = 1.0
                 if "scale" in jaw_yaml:
-                    scale = jaw_yaml["jaw_scale"]
+                    scale = jaw_yaml["scale"]
                 self._jaw_teleop_controller = JointFollowTeleopController(scale)
                 self._jaw_teleop_controller.register(self._output_jaw_callback)
-                self.desired_output_jaw_angle = 0.0
+                self.jaw_input_topic = jaw_yaml["input_topic"]
+                self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
+            self.mtm_device = MTM("/MTMR/")
 
         elif input_yaml["type"] == "increment":
             self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
@@ -94,8 +94,8 @@ class RosCartesiansTeleopController(RosTeleopController):
             self.wait_for_input_sub_msg(True)
             self._teleop_controller.enable(self.current_input_tf, self.current_output_jps)
             if self._jaw_teleop_controller:
-                current_output_jaw = self.kinematics_solver.compute_jaw_fk(self.current_output_jps)
-                self._jaw_teleop_controller.enable(self.input_jaw_js, current_output_jaw)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                self._jaw_teleop_controller.enable(self.input_jaw_js, np.array([current_output_jaw]))
 
     def disable(self):
         self._teleop_controller.disable()
@@ -116,15 +116,18 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
             if self._jaw_teleop_controller:
-                _, current_output_jaw = self.kinematics_solver.compute_fk(self.current_output_jps)
-                self._jaw_teleop_controller.unclutch(self.input_jaw_js, np.array[current_output_jaw])
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                self._jaw_teleop_controller.unclutch(self.input_jaw_js, np.array([current_output_jaw]))
 
     def _input_callback_tf(self, data):
         self.is_half_hz = not self.is_half_hz
         if not self.is_half_hz:
             return
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
+        # print(self.desired_output_jaw_angle)
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
+        f = Wrench()
+        self.mtm_device.servo_cf(f)
 
     def _input_callback_twist(self, data):
         twist = data.twist
