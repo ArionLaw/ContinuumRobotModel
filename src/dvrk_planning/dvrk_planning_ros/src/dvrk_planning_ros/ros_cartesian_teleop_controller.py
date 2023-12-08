@@ -3,6 +3,7 @@ import tf
 import yaml
 import numpy as np
 
+from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped, TwistStamped
 
 from PyKDL import Rotation, Vector
@@ -54,17 +55,17 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._jaw_teleop_controller = None
             self.desired_output_jaw_angle = None
             if("jaw" in input_yaml):
-                self.jaw_input_topic = input_yaml["jaw_input_topic"]
+                jaw_yaml = input_yaml["jaw"]
+                self.jaw_input_topic = jaw_yaml["input_topic"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self.jaw_joint_pos
                 scale = 1.0
-                if "jaw_scale" in input_yaml:
-                    scale = input_yaml["jaw_scale"]
+                if "scale" in jaw_yaml:
+                    scale = jaw_yaml["jaw_scale"]
                 self._jaw_teleop_controller = JointFollowTeleopController(scale)
                 self._jaw_teleop_controller.register(self._output_jaw_callback)
                 self.desired_output_jaw_angle = 0.0
 
-                self
         elif input_yaml["type"] == "increment":
             self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
             input_topic_type = TwistStamped
@@ -115,8 +116,8 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._wait_for_output_feedback_sub_msg()
             self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
             if self._jaw_teleop_controller:
-                current_output_jaw = self.kinematics_solver.compute_jaw_fk(self.current_output_jps)
-                self._jaw_teleop_controller.unclutch(self.input_jaw_js, current_output_jaw)
+                _, current_output_jaw = self.kinematics_solver.compute_fk(self.current_output_jps)
+                self._jaw_teleop_controller.unclutch(self.input_jaw_js, np.array[current_output_jaw])
 
     def _input_callback_tf(self, data):
         self.is_half_hz = not self.is_half_hz

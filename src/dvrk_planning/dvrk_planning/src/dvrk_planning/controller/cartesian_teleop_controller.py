@@ -38,10 +38,15 @@ class CartesianTeleopController(TeleopController):
         if(not self._update()):
             return False
 
-        absolute_output_tf = self._update_impl(args)
+        desired_jaw = None
+        if(len(args) > 1):
+            desired_jaw = args[1]
+            absolute_output_tf = self._update_impl((args[0],))
+        else:
+            absolute_output_tf = self._update_impl(args)
         # print("self.input_current_output_js: ", np.around(self.current_output_js, 3))        
         # print("absolute_output_tf: ", np.around(absolute_output_tf, 3))
-        self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf, self.current_output_js)
+        self.current_output_js = self.kinematics_solver.compute_ik(absolute_output_tf, self.current_output_js, desired_jaw)
         # print("self.current_output_js: ", np.around(self.current_output_js, 3))
         # print("===============================================================================================================================")
         self.output_callback(self.current_output_js)
@@ -106,4 +111,4 @@ class CartesianIncrementTeleopController(CartesianTeleopController):
         return self.current_output_tf
 
     def _update_impl(self, args):
-        return self.__increment_input_tf(*args)
+        return self.__increment_input_tf(*args) # Change to args[0], args[1] later

@@ -1,5 +1,5 @@
-test_cases = True
-#test_cases = False
+# test_cases = True
+test_cases = False
 if test_cases == True:
         from utils import *
         from TaskSpace_to_JointSpace import *
@@ -279,7 +279,7 @@ def run_test_cases():
                 sys.stdout = original_stdout
         print("finished")
 
-run_test_cases()
+# run_test_cases()
 
 """
 disk_positions = [3.2833419526133314, -1, 0.1117424042942665, -0.15561920043570215]
