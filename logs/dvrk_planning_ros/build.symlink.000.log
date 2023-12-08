@@ -1,9 +1,0 @@
-Symlinking /home/dvrk/ContinuumRobotModel/devel/share/dvrk_planning_ros/cmake/dvrk_planning_rosConfig-version.cmake
-Symlinking /home/dvrk/ContinuumRobotModel/devel/share/dvrk_planning_ros/cmake/dvrk_planning_rosConfig.cmake
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/python3/dist-packages/dvrk_planning_ros/__init__.py
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/dvrk_planning_ros/dvrk_teleop_node.py
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/dvrk_planning_ros/cmake.lock
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/dvrk_planning_ros/psm_teleop_keyboard.py
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/dvrk_planning_ros/psm_teleop_keyboard2.py
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/dvrk_planning_ros/dvrk_planning_node.py
-Symlinking /home/dvrk/ContinuumRobotModel/devel/lib/pkgconfig/dvrk_planning_ros.pc

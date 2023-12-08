@@ -1,8 +1,0 @@
-prefix=/home/dvrk/ContinuumRobotModel/install
-
-Name: dvrk_planning_msgs
-Description: Description of dvrk_planning_msgs
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime

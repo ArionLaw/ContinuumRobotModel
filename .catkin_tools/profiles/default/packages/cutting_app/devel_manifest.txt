@@ -1,7 +1,0 @@
-dvrk_planning/cutting_app
-/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/cmake.lock /home/dvrk/ContinuumRobotModel/devel/./cmake.lock
-/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/share/cutting_app/cmake/cutting_appConfig.cmake /home/dvrk/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig.cmake
-/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/share/cutting_app/cmake/cutting_appConfig-version.cmake /home/dvrk/ContinuumRobotModel/devel/share/cutting_app/cmake/cutting_appConfig-version.cmake
-/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/lib/cutting_app/cmake.lock /home/dvrk/ContinuumRobotModel/devel/lib/cutting_app/cmake.lock
-/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/lib/cutting_app/teleop_goal_interface.py /home/dvrk/ContinuumRobotModel/devel/lib/cutting_app/teleop_goal_interface.py
-/home/dvrk/ContinuumRobotModel/devel/.private/cutting_app/lib/pkgconfig/cutting_app.pc /home/dvrk/ContinuumRobotModel/devel/lib/pkgconfig/cutting_app.pc

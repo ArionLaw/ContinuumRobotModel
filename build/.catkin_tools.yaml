@@ -1,6 +1,0 @@
-devel_space: /home/dvrk/ContinuumRobotModel/devel
-install: false
-install_space: /home/dvrk/ContinuumRobotModel/install
-profile: default
-source_space: /home/dvrk/ContinuumRobotModel/src
-workspace: /home/dvrk/ContinuumRobotModel

@@ -1,1 +1,0 @@
-/home/dvrk/ContinuumRobotModel/devel/.private/dvrk_planning_msgs/lib/python3/dist-packages/dvrk_planning_msgs/msg/_Waypoints.py

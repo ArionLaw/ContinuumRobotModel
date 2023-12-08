@@ -1,8 +1,0 @@
-prefix=/home/dvrk/ContinuumRobotModel/install
-
-Name: dvrk_planning_ros
-Description: Description of dvrk_planning_ros
-Version: 0.0.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: dvrk_planning dvrk_planning_msgs rospy
