@@ -27,11 +27,12 @@ def quat_yaml_to_pykdl(quaternion_yaml):
 
     return Rotation.Quaternion(x, y, z, w)
 
-def output_ref_to_input_rot_from_yaml(output_ref_to_input_rot_yaml):
-    if "quaternion" in output_ref_to_input_rot_yaml:
-        return quat_yaml_to_pykdl(output_ref_to_input_rot_yaml["quaternion"])
-    elif "lookup_tf" in output_ref_to_input_rot_yaml:
-        lookup_tf_yaml = output_ref_to_input_rot_yaml["lookup_tf"]
+def rotation_from_yaml(reference_rot):
+    if "quaternion" in reference_rot:
+        return quat_yaml_to_pykdl(reference_rot["quaternion"])
+    # TODO elif "transform"
+    elif "lookup_tf" in reference_rot:
+        lookup_tf_yaml = reference_rot["lookup_tf"]
         t = tf.TransformListener()
         rospy.sleep(1) # Sleep is needed so TransformListener has time to get the tf's
         _, quat_rot  = t.lookupTransform(lookup_tf_yaml["camera_tf"],lookup_tf_yaml["base_tf"], rospy.Time(0))
@@ -43,9 +44,14 @@ class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
         self.br = tf.TransformBroadcaster()
         output_yaml = controller_yaml["output"]
-        output_ref_to_input_rot = Rotation.Quaternion(0, 0, 0, 1)
-        if("output_ref_to_input_rot" in output_yaml):
-            output_ref_to_input_rot = output_ref_to_input_rot_from_yaml(output_yaml["output_ref_to_input_rot"])
+
+        input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
+        if("input_2_input_reference_rot" in output_yaml):
+            input_2_input_reference_rot = rotation_from_yaml(output_yaml["input_2_input_reference_rot"])
+        output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
+        if("output_2_output_reference_rot" in output_yaml):
+            output_2_output_reference_rot = rotation_from_yaml(output_yaml["output_2_output_reference_rot"])
+
         input_yaml = controller_yaml["input"]
         self.jaw_sub = None
         if input_yaml["type"] == "follow":
@@ -55,7 +61,8 @@ class RosCartesiansTeleopController(RosTeleopController):
                 position_scale = input_yaml["position_scale"]
             self._teleop_controller = CartesianFollowTeleopController(
                 kinematics_solver,
-                output_ref_to_input_rot = output_ref_to_input_rot,
+                input_2_input_reference_rot = input_2_input_reference_rot,
+                output_2_output_reference_rot = output_2_output_reference_rot,
                 position_scale = position_scale)
             input_topic_type = TransformStamped
             self._input_callback_impl = self._input_callback_tf
@@ -73,7 +80,10 @@ class RosCartesiansTeleopController(RosTeleopController):
             self.mtm_device = MTM("/MTMR/")
 
         elif input_yaml["type"] == "increment":
-            self._teleop_controller = CartesianIncrementTeleopController(kinematics_solver, output_ref_to_input_rot = output_ref_to_input_rot)
+            self._teleop_controller = CartesianIncrementTeleopController(
+                kinematics_solver,
+                input_2_input_reference_rot = input_2_input_reference_rot,
+                output_2_output_reference_rot = output_2_output_reference_rot)
             input_topic_type = TwistStamped
             self._input_callback_impl = self._input_callback_twist
         else:
