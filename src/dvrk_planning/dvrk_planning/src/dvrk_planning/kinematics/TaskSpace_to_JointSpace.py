@@ -125,8 +125,9 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
         orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
         #if printout is True: print("orientation error: ", orientation_error)
 
+        #if orientation_error <
         delta = 0.25*orientation_error
-        if (abs(previous_error - orientation_error)) < 0.00001:
+        if (abs(previous_error - orientation_error)) < 0.0001:
             exit = True
         
         d_roll = [get_O_error(R_desired,roll+delta,gamma,beta,alpha),get_O_error(R_desired,roll-delta,gamma,beta,alpha)]
@@ -142,10 +143,10 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
         previous_error = orientation_error
 
     joint_angles = [roll,gamma,beta,alpha]
-    #if printout is True:
-    #print("\n--- %s seconds ---" % (time.time() - start_time))
-    #print("i: ",i)
-    #print("orientation error: ", orientation_error)
+    if printout is True:
+        print("\n--- %s seconds ---" % (time.time() - start_time))
+        print("i: ",i)
+        print("orientation error: ", orientation_error)
     return joint_angles
 
 def angle_update(d_theta,orientation_error,theta,delta):
@@ -181,9 +182,13 @@ def get_O_error(R_desired,roll,gamma,beta,alpha):
     E = np.sqrt(abs(angles_error[0])**2 + abs(angles_error[1])**2 + abs(angles_error[2])**2)
     """
     R_error = get_R_error(R_desired,roll,gamma,beta,alpha)
-    E = np.arccos((np.trace(R_error)-1)/2)
-    
+    trace_R = np.trace(R_error)
+    if trace_R > 3: trace_R = 3
+    elif trace_R < -1: trace_R = -1
+    E = np.arccos((trace_R-1)/2)
     #print("angle error : " , angles_error)
+    #print("R_error: \n", R_error)
+    #print("traceR: ", np.trace(R_error))
     #print("orientation error: ", E)
     return E
 

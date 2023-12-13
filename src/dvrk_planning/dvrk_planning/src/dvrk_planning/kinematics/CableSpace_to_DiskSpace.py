@@ -18,60 +18,59 @@ import sys
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
 def getCabletoDiskMapping():
-    #"""
+    """
     #obtain mapping of Wiper Disk Angle vs Cable Displacement in the form of a lookup table
-    #"""
+    """
     global mapping
     mapping = pd.DataFrame(columns = ['DiskAngle','DeltaCable'])
+    Approximation = False
 
-    """
-    restingCableLength = 29 #mm
-    diskLocation = 10 #mm
-    wiperLength = 15 #mm
-    wiperWidth = 6 #mm
-
-    lengthAC = restingCableLength
-    theta = 0
-    
-    #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg
-
-    while theta < np.pi/2:
-        positionB = [wiperLength*np.sin(theta) + wiperWidth/2*np.cos(theta) , wiperLength*np.cos(theta) + wiperWidth/2*np.sin(theta)]
-        lengthAB = np.sqrt((positionB[0] - wiperWidth/2)**2 + (lengthAC-diskLocation-positionB[1])**2)
-        lengthBC = np.sqrt((positionB[0] - wiperWidth/2)**2 + (diskLocation+positionB[1])**2)
-        lengthDelta = lengthAB + lengthBC - lengthAC
+    if Approximation == False:
+        print("trig model for dial 3 & 4 mapping")
+        restingCableLength = 29 #mm
+        diskLocation = 10 #mm
+        wiperLength = 15 #mm
+        wiperWidth = 6 #mm
+        lengthAC = restingCableLength
+        theta = 0
         
-        entry = pd.DataFrame([[theta,lengthDelta]] , columns = ['DiskAngle','DeltaCable'])
-        mapping = pd.concat([mapping,entry],ignore_index=True)
-        
-        theta = theta + np.pi/360
-    """
-    vscale = 4.55
-    hscale = 2.38
-    vshift = 4.55
-    hshift = -1.5
+        #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg
+        while theta < np.pi/2:
+            positionB = [wiperLength*np.sin(theta) + wiperWidth/2*np.cos(theta) , wiperLength*np.cos(theta) + wiperWidth/2*np.sin(theta)]
+            lengthAB = np.sqrt((positionB[0] - wiperWidth/2)**2 + (lengthAC-diskLocation-positionB[1])**2)
+            lengthBC = np.sqrt((positionB[0] - wiperWidth/2)**2 + (diskLocation+positionB[1])**2)
+            lengthDelta = lengthAB + lengthBC - lengthAC
+            
+            entry = pd.DataFrame([[theta,lengthDelta]] , columns = ['DiskAngle','DeltaCable'])
+            mapping = pd.concat([mapping,entry],ignore_index=True)
+            
+            theta = theta + np.pi/360
+    else:
+        print("sinusoid model for dial 3 & 4 mapping")
+        vscale = 4.55
+        hscale = 2.38
+        vshift = 4.55
+        hshift = -1.5
 
-    theta = 0
-    while theta < np.pi/2:
-        lengthDelta = vscale*np.sin(hscale*theta + hshift) + vshift        
-        entry = pd.DataFrame([[theta,lengthDelta]] , columns = ['DiskAngle','DeltaCable'])
-        mapping = pd.concat([mapping,entry],ignore_index=True)
-        
-        theta = theta + np.pi/360
+        theta = 0
+        while theta < np.pi/2:
+            lengthDelta = vscale*np.sin(hscale*theta + hshift) + vshift        
+            entry = pd.DataFrame([[theta,lengthDelta]] , columns = ['DiskAngle','DeltaCable'])
+            mapping = pd.concat([mapping,entry],ignore_index=True)
+            
+            theta = theta + np.pi/360
 
     return mapping
 
-"""
 def calcEELinkageAnchorPos(thetaA):
-"""
+    """
     #perform positional calculation for EE linkage
     #dimensions in mm
     #A = dial spin axis
     #B = gripper arm pivot
     #C = gripper swing arm pivot
     #D = mounting spin axis
-"""
-
+    """
     L2 = 2 #gripper dial offset
     L3 = 23 #gripper arm length [dial pivot] to [swing arm pivot]
     L4 = 18 #gripper swing arm length [swing arm pivot] to [mounting pivot]
@@ -109,7 +108,6 @@ def calcEELinkageAnchorPos(thetaA):
     yPosAnchor = LGripperArm*np.sin(thetaB-GripperArmAngle) + yB
 
     return xPosAnchor,yPosAnchor
-"""
 
 def getEECabletoDisk2Mapping():
     """
@@ -118,60 +116,63 @@ def getEECabletoDisk2Mapping():
     """
     global EEmapping
     EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
-
-    """
-    xRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
-    yRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
-
-    ### cable zero displacement reference length
-    thetaA = 0*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
-    xAnchorRef,yAnchorRef = calcEELinkageAnchorPos(thetaA)
-    xCableDeltaRef = xAnchorRef - xRef
-    yCableDeltaRef = yAnchorRef - yRef
+    Approximation = False
     
-    ### calculating mapping
-    thetaA = -np.pi/2
-    while thetaA < np.pi/2:
-        xAnchor,yAnchor = calcEELinkageAnchorPos(-thetaA)
-        xCableDelta = xAnchor - xRef
-        yCableDelta = yAnchor - yRef
+    if Approximation == False:
+        print("linkage kinematics model for dial 2 mapping")
+        xRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
+        yRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
 
-        if (yAnchor >= yAnchorRef):      
-            lengthEEDelta = np.sqrt((xCableDelta-xCableDeltaRef)**2 + (yCableDelta-yCableDeltaRef)**2)
-        else: #yAnchor < yAnchorRef
-            lengthEEDelta = -np.sqrt((xCableDelta-xCableDeltaRef)**2 + (yCableDelta-yCableDeltaRef)**2)
-
-        entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
-        EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
+        ### cable zero displacement reference length
+        thetaA = 0*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
+        xAnchorRef,yAnchorRef = calcEELinkageAnchorPos(thetaA)
+        xCableDeltaRef = xAnchorRef - xRef
+        yCableDeltaRef = yAnchorRef - yRef
         
-        thetaA = thetaA + np.pi/360
-    """
+        ### calculating mapping
+        thetaA = -np.pi*3/4
+        while thetaA < np.pi*3/4:
+            xAnchor,yAnchor = calcEELinkageAnchorPos(-thetaA)
+            xCableDelta = xAnchor - xRef
+            yCableDelta = yAnchor - yRef
 
-    zero_setpoint = 0 #radians zero 
-    breakover = -51*np.pi/180 #radians breakover distance
+            if (yAnchor >= yAnchorRef):      
+                lengthEEDelta = np.sqrt((xCableDelta-xCableDeltaRef)**2 + (yCableDelta-yCableDeltaRef)**2)
+            else: #yAnchor < yAnchorRef
+                lengthEEDelta = -np.sqrt((xCableDelta-xCableDeltaRef)**2 + (yCableDelta-yCableDeltaRef)**2)
 
-    #past breakover quadratic
-    post_scale = -0.4
-    post_vshift = 4.5 + zero_setpoint
-    post_hshift = 0
+            entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
+            EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
+            
+            thetaA = thetaA + np.pi/360
+    else:
+        print("piecewise sinusoidal model for dial 2 mapping")
+        zero_setpoint = 0 #radians zero 
+        breakover = -51*np.pi/180 #radians breakover distance
 
-    #before breakover sinusoid
-    pre_scale = 4.8
-    pre_vshift = -1.6 + zero_setpoint
-    pre_hshift = 3.45
+        #past breakover quadratic
+        post_scale = -0.4
+        post_vshift = 4.5 + zero_setpoint
+        post_hshift = 0
 
-    thetaA = -np.pi/2
-    while thetaA < np.pi/2: 
-        if (thetaA > breakover): #before breakover sinusoid    
-            lengthEEDelta = pre_scale*np.sin(thetaA + pre_hshift) + pre_vshift
-        else: #thetaA <= breakover #past breakover quadratic
-            lengthEEDelta = post_scale*(thetaA + post_hshift)**2 + post_vshift
+        #before breakover sinusoid
+        pre_scale = 4.8
+        pre_vshift = -1.6 + zero_setpoint
+        pre_hshift = 3.45
 
-        entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
-        EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
-        
-        thetaA = thetaA + np.pi/360    
-    return EEmapping
+        thetaA = -np.pi/2
+        while thetaA < np.pi/2: 
+            if (thetaA > breakover): #before breakover sinusoid    
+                lengthEEDelta = pre_scale*np.sin(thetaA + pre_hshift) + pre_vshift
+            else: #thetaA <= breakover #past breakover quadratic
+                lengthEEDelta = post_scale*(thetaA + post_hshift)**2 + post_vshift
+
+            entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
+            EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
+            
+            thetaA = thetaA + np.pi/360
+
+    return EEmapping    
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
@@ -354,10 +355,10 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     """
     deltaL = np.array([deltaL0,deltaL1,deltaL2])
     deltaL[deltaL<0] = 0 # not possible to extend length of cable, set to 0 displacement
-    diff = (min(deltaL)) # set smallest cable displacement as reference length
+    ref = (min(deltaL)) # set smallest cable displacement as reference length
     
-    #deltaL[deltaL<=diff] = 0
-    deltaL = deltaL - diff
+    deltaL[deltaL<= ref] = 0
+    #deltaL = deltaL - diff
     #print("Cables Delta: \n", deltaL)
     
     if (deltaL[1] > 0):
@@ -377,32 +378,49 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
         print("whooosh")    
     Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
     EECableWristComponent = max(deltaL)
-    EECableDelta = GripperAngle_to_EECable(EE_pinch_Angle,EECableWristComponent)
-    Disk2 = EECable_to_Disk2_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping
     
+    if EE_pinch_Angle is None:
+        Disk2 = 0
+    else:
+        EECableDelta = GripperAngle_to_EECable(EE_pinch_Angle,EECableWristComponent)
+        Disk2 = EECable_to_Disk2_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping
+    
+    #print("D1,D2,D3,D4:\n", [Disk1, Disk2, Disk3, Disk4])
+
     # dial limits
-    upperLimitDial_2 = 90*np.pi/180
+    upperLimitDial_2 = 135*np.pi/180
     lowerLimitDial_2 = -90*np.pi/180
-    if Disk2 > upperLimitDial_2: Disk2 = upperLimitDial_2
-    elif Disk2 < lowerLimitDial_2: Disk2 = lowerLimitDial_2
+    if Disk2 > upperLimitDial_2: 
+        Disk2 = upperLimitDial_2
+        print("Disk2 upper limit")
+    elif Disk2 < lowerLimitDial_2: 
+        Disk2 = lowerLimitDial_2
+        print("Disk2 lower limit")
 
     upperLimitDial_3_4 = 60*np.pi/180
     lowerLimitDial_3_4 = -60*np.pi/180
-    if Disk2 > upperLimitDial_3_4: Disk3 = upperLimitDial_3_4
-    elif Disk2 < lowerLimitDial_3_4: Disk3 = lowerLimitDial_3_4
-    if Disk2 > upperLimitDial_3_4: Disk4 = upperLimitDial_3_4
-    elif Disk2 < lowerLimitDial_3_4: Disk4 = lowerLimitDial_3_4
-        
+    if Disk3 > upperLimitDial_3_4: 
+        Disk3 = upperLimitDial_3_4
+        print("Disk3 upper limit")
+    elif Disk3 < lowerLimitDial_3_4: 
+        Disk3 = lowerLimitDial_3_4
+        print("Disk3 lower limit")
+    if Disk4 > upperLimitDial_3_4: 
+        Disk4 = upperLimitDial_3_4
+        print("Disk4 upper limit")
+    elif Disk4 < lowerLimitDial_3_4: 
+        Disk4 = lowerLimitDial_3_4
+        print("Disk4 lower limit")
+    
     return [Disk1,Disk2,Disk3,Disk4]
 
-
-getCabletoDiskMapping()
-getEECabletoDisk2Mapping()
+#getCabletoDiskMapping()
+#getEECabletoDisk2Mapping()
 
 file_path = sys.path[0]
 file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
 #print(file_path)
-mapping.to_csv(file_path +'/dialmapping.csv')
+#mapping.to_csv(file_path +'/dialmapping.csv')
 #EEmapping.to_csv(file_path +'/EEmapping.csv')
 
 """

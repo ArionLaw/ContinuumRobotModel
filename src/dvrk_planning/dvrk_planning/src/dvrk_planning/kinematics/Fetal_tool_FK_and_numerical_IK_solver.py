@@ -48,21 +48,8 @@ Secondary parameters (e.g. for testing, visualization):
 Notes:
 - Model does not currently consider the introduced slack in Francis' thesis (when two cables are actuated)
 '''
-
-"""
-# wrist inputs
-c1_Displacement = 0 #mm
-c2_Displacement = 0 #mm
-c3_Displacement = 0 #mm
-l = [c1_Displacement,c2_Displacement,c3_Displacement]
-
-# fake Modified DH
-a = [0 , h , h , h]
-alpha = [0 , -1/2*pi , 2/3*pi , 2/3*pi]
-d = [c , 0 , 0 , 0]
-"""
 np.set_printoptions(precision=3)
-printout = False
+printout = True
 getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
 
@@ -248,8 +235,8 @@ def run_test_cases():
         input_current_output_js_list,tf_matrices_list = read_TestCaseFile(input_filename)
 
         original_stdout = sys.stdout
-
-        with open('testcaselog.txt','w') as f:
+        log_filename = input_filename + '_testcaselog.txt'
+        with open(log_filename,'w') as f:
                 sys.stdout = f
 
                 for i in range(len(input_current_output_js_list)):
@@ -260,14 +247,13 @@ def run_test_cases():
                         tf_desired = np.matrix(tf_matrices_list[i])
                         #print("tf Desired:\n",tf_desired)
 
-                        printout = False
                         tool1 = Peter_Francis_tool_Kinematics_Solver()
                         
                         #Transform, jaw angle and wrist joint angle as calculated from FK given input_current_output_js
                         Tf, jaw_angle, FK_joint_values = tool1.compute_all_fk(disk_positions)
 
                         #dial values and wrist joint angle as calculated from IK given log file Tf desired and current joint and dial positions
-                        dialvalues, IKpre_joint_values = tool1.compute_all_ik(tf_desired, disk_positions, 45*np.pi/180) 
+                        dialvalues, IKpre_joint_values = tool1.compute_all_ik(tf_desired, disk_positions, 30*np.pi/180) 
 
                         #Transform, jaw angle and wrist joint angle as calculated from FK given dial values calculated from IK
                         Tf, jaw_angle, IKpost_joint_values = tool1.compute_all_fk(dialvalues)
@@ -286,7 +272,7 @@ def run_test_cases():
                 sys.stdout = original_stdout
         print("finished")
 
-# run_test_cases()
+run_test_cases()
 
 """
 disk_positions = [3.2833419526133314, -1, 0.1117424042942665, -0.15561920043570215]
