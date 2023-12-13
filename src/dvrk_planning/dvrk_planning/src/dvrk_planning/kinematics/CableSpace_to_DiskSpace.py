@@ -1,5 +1,5 @@
-# test_cases = True
-test_cases = False
+test_cases = True
+#test_cases = False
 if test_cases == True:
     from utils import *
     from plotting import *
@@ -46,14 +46,15 @@ def getCabletoDiskMapping():
         theta = theta + np.pi/360
     return mapping
 
-def calcEELinkageAnchorPos(thetaA):
+#def calcEELinkageAnchorPos(thetaA):
     """
-    perform positional calculation for EE linkage
-    dimensions in mm
-    A = dial spin axis
-    B = gripper arm pivot
-    C = gripper swing arm pivot
-    D = mounting spin axis
+    #perform positional calculation for EE linkage
+    #dimensions in mm
+    #A = dial spin axis
+    #B = gripper arm pivot
+    #C = gripper swing arm pivot
+    #D = mounting spin axis
+    """
     """
     L2 = 2 #gripper dial offset
     L3 = 23 #gripper arm length [dial pivot] to [swing arm pivot]
@@ -92,11 +93,12 @@ def calcEELinkageAnchorPos(thetaA):
     yPosAnchor = LGripperArm*np.sin(thetaB-GripperArmAngle) + yB
 
     return xPosAnchor,yPosAnchor
-
-def getEECabletoDisk2Mapping():
     """
-    obtain mapping of Disk 2 Angle vs EE Cable Displacement in the form of a lookup table
-    dimensions in mm    
+#def getEECabletoDisk2Mapping():
+    #"""
+    #obtain mapping of Disk 2 Angle vs EE Cable Displacement in the form of a lookup table
+    #dimensions in mm    
+    #"""
     """
     xRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
     yRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
@@ -105,7 +107,7 @@ def getEECabletoDisk2Mapping():
     EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
 
     ### cable zero displacement reference length
-    thetaA = -10*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
+    thetaA = 0*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
     xAnchorRef,yAnchorRef = calcEELinkageAnchorPos(thetaA)
     xCableDeltaRef = xAnchorRef - xRef
     yCableDeltaRef = yAnchorRef - yRef
@@ -113,7 +115,7 @@ def getEECabletoDisk2Mapping():
     ### calculating mapping
     thetaA = -np.pi/2
     while thetaA < np.pi/2:
-        xAnchor,yAnchor = calcEELinkageAnchorPos(thetaA)
+        xAnchor,yAnchor = calcEELinkageAnchorPos(-thetaA)
         xCableDelta = xAnchor - xRef
         yCableDelta = yAnchor - yRef
 
@@ -121,6 +123,41 @@ def getEECabletoDisk2Mapping():
             lengthEEDelta = np.sqrt((xCableDelta-xCableDeltaRef)**2 + (yCableDelta-yCableDeltaRef)**2)
         else: #yAnchor < yAnchorRef
             lengthEEDelta = -np.sqrt((xCableDelta-xCableDeltaRef)**2 + (yCableDelta-yCableDeltaRef)**2)
+
+        entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
+        EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
+        
+        thetaA = thetaA + np.pi/360
+    return EEmapping
+    """
+
+def getEECabletoDisk2Mapping():
+    """
+    #obtain mapping of Disk 2 Angle vs EE Cable Displacement in the form of a lookup table
+    #piecewise quadratic approximation of linkage travel 
+    #dimensions in mm
+    """
+    global EEmapping
+    EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
+    zero_setpoint = 0 #radians zero 
+    breakover = -51*np.pi/180 #radians breakover distance
+
+    #past breakover quadratic
+    post_scale = -0.4
+    post_vshift = 4.5 + zero_setpoint
+    post_hshift = 0
+
+    #before breakover sinusoid
+    pre_scale = 4.8
+    pre_vshift = -1.6 + zero_setpoint
+    pre_hshift = 3.45
+
+    thetaA = -np.pi/2
+    while thetaA < np.pi/2: 
+        if (thetaA > breakover): #before breakover sinusoid    
+            lengthEEDelta = pre_scale*np.sin(thetaA + pre_hshift) + pre_vshift
+        else: #thetaA <= breakover #past breakover quadratic
+            lengthEEDelta = post_scale*(thetaA + post_hshift)**2 + post_vshift
 
         entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
         EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
@@ -351,14 +388,14 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     return [Disk1,Disk2,Disk3,Disk4]
 
 
-getCabletoDiskMapping()
+#getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
 
 file_path = sys.path[0]
 file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
 #print(file_path)
-mapping.to_csv(file_path +'\dialmapping.csv')
-EEmapping.to_csv(file_path +'\EEmapping.csv')
+#mapping.to_csv(file_path +'/dialmapping.csv')
+EEmapping.to_csv(file_path +'/EEmapping.csv')
 
 """
 roll = 0
