@@ -18,12 +18,13 @@ import sys
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
 def getCabletoDiskMapping():
-    """
-    obtain mapping of Wiper Disk Angle vs Cable Displacement in the form of a lookup table
-    """
+    #"""
+    #obtain mapping of Wiper Disk Angle vs Cable Displacement in the form of a lookup table
+    #"""
     global mapping
     mapping = pd.DataFrame(columns = ['DiskAngle','DeltaCable'])
 
+    """
     restingCableLength = 29 #mm
     diskLocation = 10 #mm
     wiperLength = 15 #mm
@@ -44,18 +45,33 @@ def getCabletoDiskMapping():
         mapping = pd.concat([mapping,entry],ignore_index=True)
         
         theta = theta + np.pi/360
+    """
+    vscale = 4.55
+    hscale = 2.38
+    vshift = 4.55
+    hshift = -1.5
+
+    theta = 0
+    while theta < np.pi/2:
+        lengthDelta = vscale*np.sin(hscale*theta + hshift) + vshift        
+        entry = pd.DataFrame([[theta,lengthDelta]] , columns = ['DiskAngle','DeltaCable'])
+        mapping = pd.concat([mapping,entry],ignore_index=True)
+        
+        theta = theta + np.pi/360
+
     return mapping
 
-#def calcEELinkageAnchorPos(thetaA):
-    """
+"""
+def calcEELinkageAnchorPos(thetaA):
+"""
     #perform positional calculation for EE linkage
     #dimensions in mm
     #A = dial spin axis
     #B = gripper arm pivot
     #C = gripper swing arm pivot
     #D = mounting spin axis
-    """
-    """
+"""
+
     L2 = 2 #gripper dial offset
     L3 = 23 #gripper arm length [dial pivot] to [swing arm pivot]
     L4 = 18 #gripper swing arm length [swing arm pivot] to [mounting pivot]
@@ -93,18 +109,19 @@ def getCabletoDiskMapping():
     yPosAnchor = LGripperArm*np.sin(thetaB-GripperArmAngle) + yB
 
     return xPosAnchor,yPosAnchor
+"""
+
+def getEECabletoDisk2Mapping():
     """
-#def getEECabletoDisk2Mapping():
-    #"""
     #obtain mapping of Disk 2 Angle vs EE Cable Displacement in the form of a lookup table
     #dimensions in mm    
-    #"""
+    """
+    global EEmapping
+    EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
+
     """
     xRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
     yRef = 16.25 #distance in mm from [gripper dial spin axis] to [origin]
-
-    global EEmapping
-    EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
 
     ### cable zero displacement reference length
     thetaA = 0*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
@@ -128,17 +145,8 @@ def getCabletoDiskMapping():
         EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
         
         thetaA = thetaA + np.pi/360
-    return EEmapping
     """
 
-def getEECabletoDisk2Mapping():
-    """
-    #obtain mapping of Disk 2 Angle vs EE Cable Displacement in the form of a lookup table
-    #piecewise quadratic approximation of linkage travel 
-    #dimensions in mm
-    """
-    global EEmapping
-    EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
     zero_setpoint = 0 #radians zero 
     breakover = -51*np.pi/180 #radians breakover distance
 
@@ -162,7 +170,7 @@ def getEECabletoDisk2Mapping():
         entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
         EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
         
-        thetaA = thetaA + np.pi/360
+        thetaA = thetaA + np.pi/360    
     return EEmapping
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -388,14 +396,14 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     return [Disk1,Disk2,Disk3,Disk4]
 
 
-#getCabletoDiskMapping()
+getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
 
 file_path = sys.path[0]
 file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
 #print(file_path)
-#mapping.to_csv(file_path +'/dialmapping.csv')
-EEmapping.to_csv(file_path +'/EEmapping.csv')
+mapping.to_csv(file_path +'/dialmapping.csv')
+#EEmapping.to_csv(file_path +'/EEmapping.csv')
 
 """
 roll = 0
