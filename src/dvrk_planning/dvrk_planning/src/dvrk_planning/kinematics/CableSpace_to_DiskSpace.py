@@ -188,11 +188,17 @@ def Disk_to_Cable_from_LookUpTable(x):
     mask_upper = mapping['DiskAngle'].gt(x)
     mask_upper = mapping.loc[mask_upper]
     #print("upper: \n" , mask_upper)
-    y1 = mask_lower['DeltaCable'].max()
-    y2 = mask_upper['DeltaCable'].min()
+    
     x1 = mask_lower['DiskAngle'].max()
     x2 = mask_upper['DiskAngle'].min()
-    #print("[x1,x2,y1,y2]",[x1,x2,y1,y2])
+    if mask_lower['DeltaCable'].max() < mask_upper['DeltaCable'].min(): # y1 < y2 increasing function
+        y1 = mask_lower['DeltaCable'].max()
+        y2 = mask_upper['DeltaCable'].min()
+    else: # y1 > y2 decreasing function
+        y1 = mask_lower['DeltaCable'].min()
+        y2 = mask_upper['DeltaCable'].max()
+    
+    #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -208,11 +214,17 @@ def Disk2_to_EECable_from_LookUpTable(x):
     mask_upper = EEmapping['Disk2Angle'].gt(x)
     mask_upper = EEmapping.loc[mask_upper]
     #print("upper: \n" , mask_upper)
-    y1 = mask_lower['DeltaEECable'].max()
-    y2 = mask_upper['DeltaEECable'].min()
+    
     x1 = mask_lower['Disk2Angle'].max()
     x2 = mask_upper['Disk2Angle'].min()
-    #print("[x1,x2,y1,y2]",[x1,x2,y1,y2])
+    if mask_lower['DeltaEECable'].max() < mask_upper['DeltaEECable'].min(): # y1 < y2 increasing function
+        y1 = mask_lower['DeltaEECable'].max()
+        y2 = mask_upper['DeltaEECable'].min()
+    else: # y1 > y2 decreasing function
+        y1 = mask_lower['DeltaEECable'].min()
+        y2 = mask_upper['DeltaEECable'].max()
+    
+    #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -234,7 +246,8 @@ def EECable_to_GripperAngle(TotalCableDelta,WristBendingCableDelta):
     if linkage_length <= Max_EE_linkage_length: # for EE pinch angles 0deg and greater
         EE_pinch_angle = np.arccos(linkage_length/2/R)
     else: # for EE pinch angles < 0deg when applying gripping force
-        EE_pinch_angle = -abs(np.arccos((linkage_length/2/R)-1)) #excess cable delta for actuation past 0 deg results in linkage_length/2/R > 1 
+        Equivalent_Length = Max_EE_linkage_length - (linkage_length - Max_EE_linkage_length)
+        EE_pinch_angle = -abs(np.arccos(((Equivalent_Length)/2/R))) #excess cable delta for actuation past 0 deg results in linkage_length/2/R > 1 
         # domain of arccos func. is from -1 to 1 // addition of -1 accounts for spill over
         # -abs(arccos) ensures negative value which should always be the case due to if else condition checking
     return EE_pinch_angle
@@ -296,10 +309,17 @@ def Cable_to_Disk_from_LookUpTable(x):
     mask_upper = mapping['DeltaCable'].gt(x)
     mask_upper = mapping.loc[mask_upper]
     #print("upper: \n" , mask_upper)
-    y1 = mask_lower['DiskAngle'].max()
-    y2 = mask_upper['DiskAngle'].min()
+
     x1 = mask_lower['DeltaCable'].max()
     x2 = mask_upper['DeltaCable'].min()
+    if mask_lower['DiskAngle'].max() < mask_upper['DiskAngle'].min(): # y1 < y2 increasing function
+        y1 = mask_lower['DiskAngle'].max()
+        y2 = mask_upper['DiskAngle'].min()
+    else: # y1 > y2 decreasing function
+        y1 = mask_lower['DiskAngle'].min()
+        y2 = mask_upper['DiskAngle'].max()
+    
+    #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -318,10 +338,17 @@ def EECable_to_Disk2_from_LookUpTable(x):
     mask_upper = EEmapping['DeltaEECable'].gt(x)
     mask_upper = EEmapping.loc[mask_upper]
     #print("upper: \n" , mask_upper)
-    y1 = mask_lower['Disk2Angle'].max()
-    y2 = mask_upper['Disk2Angle'].min()
+
     x1 = mask_lower['DeltaEECable'].max()
     x2 = mask_upper['DeltaEECable'].min()
+    if mask_lower['Disk2Angle'].max() < mask_upper['Disk2Angle'].min(): # y1 < y2 increasing function
+        y1 = mask_lower['Disk2Angle'].max()
+        y2 = mask_upper['Disk2Angle'].min()
+    else: # y1 > y2 decreasing function
+        y1 = mask_lower['Disk2Angle'].min()
+        y2 = mask_upper['Disk2Angle'].max()
+
+    #print("dial2[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -342,6 +369,7 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
         EECableDelta = 2*R*np.cos(EE_pinch_angle) - 2*R*np.cos(Max_EE_pinch_angle) # scissor linkage length - scissor linkage min length
     else: #clamping actuation range <0 deg for gripping
         EECableDelta = 2*R*np.cos(0) - 2*R*np.cos(Max_EE_pinch_angle) - 2*R*np.sin(EE_pinch_angle) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
+    
     TotalCableDelta = EECableDelta + WristBendingCableDelta
     #print("EECableDelta: ", EECableDelta)
     #print("WristComponentCableDelta: ", WristBendingCableDelta)
@@ -414,8 +442,8 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     
     return [Disk1,Disk2,Disk3,Disk4]
 
-#getCabletoDiskMapping()
-#getEECabletoDisk2Mapping()
+getCabletoDiskMapping()
+getEECabletoDisk2Mapping()
 
 file_path = sys.path[0]
 file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
@@ -425,11 +453,25 @@ file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_plannin
 
 """
 roll = 0
-EE_pinch_Angle = -10*np.pi/180
-deltaL0 = 0.66*3
+EE_pinch_Angle = 0*np.pi/180
+deltaL0 = 0 #0.66*3
 deltaL1 = 0
 deltaL2 = 0
 print("EE jaw angle: " , EE_pinch_Angle/np.pi*180)
 DiskAngles = get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2)
 print("DiskAngles: ", DiskAngles)
+"""
+
+"""
+h = 0.66 #mm notch height
+y_ =  0.56 #mm neutral bending plane 
+OD = 1.37 #mm
+ID = 0.94 #mm
+r = OD/2
+
+Dial2 = [0,-0.1852856218497767,-0.2] # [45deg , 0 deg, -12.6deg]
+DialAngles = [0,Dial2[2],0,0]
+print("Dial2 position: ", DialAngles[1])
+JointAngles = DiskPosition_To_JointSpace(DialAngles,h,y_,r)
+print("jaw angle: " , JointAngles[1]*180/np.pi)
 """

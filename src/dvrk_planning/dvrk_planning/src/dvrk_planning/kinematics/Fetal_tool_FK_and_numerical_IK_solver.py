@@ -50,8 +50,8 @@ Notes:
 '''
 np.set_printoptions(precision=3)
 printout = True
-getCabletoDiskMapping()
-getEECabletoDisk2Mapping()
+#getCabletoDiskMapping()
+#getEECabletoDisk2Mapping()
 
 class Peter_Francis_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
