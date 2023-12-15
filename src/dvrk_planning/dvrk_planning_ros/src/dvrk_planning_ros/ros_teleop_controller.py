@@ -64,7 +64,7 @@ class RosTeleopController:
         self.extra_js_msg.position = np.array([harmonized_jp[6]])
 
         # print("np.array(self.current_output_jps):\n", np.around(np.array(self.current_output_jps),3))
-        print("sending output js:\n", np.around(joint_positions,3))
+        #print("sending output js:\n", np.around(joint_positions,3))
         # print("sending output js harmonized:\n", np.around(self.js_msg.position,3))
 
         self.output_pub.publish(self.js_msg)

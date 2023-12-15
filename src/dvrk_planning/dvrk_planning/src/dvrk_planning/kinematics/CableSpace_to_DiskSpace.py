@@ -23,7 +23,7 @@ def getCabletoDiskMapping():
     """
     global mapping
     mapping = pd.DataFrame(columns = ['DiskAngle','DeltaCable'])
-    Approximation = False
+    Approximation = True
 
     if Approximation == False:
         print("trig model for dial 3 & 4 mapping")
@@ -48,9 +48,9 @@ def getCabletoDiskMapping():
     else:
         print("sinusoid model for dial 3 & 4 mapping")
         vscale = 4.55 # value determined by mechanism
-        hscale = 2.38 # tunable parameter
+        hscale = 0.9 # tunable parameter
         vshift = 4.55 # value determined by mechanism
-        hshift = -1.5 # tunable parameter
+        hshift = -1.5 # leave this alone
 
         theta = 0
         while theta < np.pi/2:
@@ -120,7 +120,7 @@ def getEECabletoDisk2Mapping():
     """
     global EEmapping
     EEmapping = pd.DataFrame(columns = ['Disk2Angle','DeltaEECable'])
-    Approximation = False
+    Approximation = True
     
     if Approximation == False:
         print("linkage kinematics model for dial 2 mapping")
@@ -150,31 +150,50 @@ def getEECabletoDisk2Mapping():
             
             thetaA = thetaA + np.pi/360
     else:
-        print("piecewise sinusoidal model for dial 2 mapping")
-        zero_setpoint = 0 #radians zero 
+        
+        zero_setpoint = 32.5*np.pi/180 #radians zero 
         breakover = -51*np.pi/180 + zero_setpoint #radians breakover distance
 
-        #past breakover quadratic
-        post_scale = -0.4
-        post_vshift = 4.5 
-        post_hshift = 0 - zero_setpoint
+        #simple sinusoid arccos
+        single_sinusoid = True
+        vscale = 1.6
+        hscale = 1.1
+        vshift = -0.6
+        hshift = 0
 
-        #before breakover sinusoid
-        pre_scale = 4.8
-        pre_vshift = -1.6 
+        #piecewise sinusoidal working range
+        pre_vscale = 4.8
+        pre_hscale = 0.35
+        pre_vshift = 1.6 
         pre_hshift = 3.45 - zero_setpoint
+        
+        #piecewise sinusoidal breakover range
+        post_vscale = 1.1
+        post_hscale = 1.5
+        post_vshift = 3.1 
+        post_hshift = 2.7
 
         thetaA = -np.pi/2
-        while thetaA < np.pi/2: 
-            if (thetaA > breakover): #before breakover sinusoid    
-                lengthEEDelta = pre_scale*np.sin(thetaA + pre_hshift) + pre_vshift
-            else: #thetaA <= breakover #past breakover quadratic
-                lengthEEDelta = post_scale*(thetaA + post_hshift)**2 + post_vshift
+        if single_sinusoid == True:
+            print("simple sinusoidal model for dial 2 mapping")
+            while thetaA < np.pi/2:
+                lengthEEDelta = vscale*np.arccos(hscale*thetaA + hshift) + vshift
+                entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
+                EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
+                
+                thetaA = thetaA + np.pi/360
+        else:
+            print("piecewise sinusoidal model for dial 2 mapping")
+            while thetaA < np.pi/2: 
+                if (thetaA > breakover): #working range 
+                    lengthEEDelta = pre_vscale*np.sin(pre_hscale*thetaA + pre_hshift) + pre_vshift
+                else: #thetaA <= breakover #breakover range
+                    lengthEEDelta = post_vscale*np.sin(post_hscale*thetaA + post_hshift) + post_vshift
 
-            entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
-            EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
-            
-            thetaA = thetaA + np.pi/360
+                entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
+                EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
+                
+                thetaA = thetaA + np.pi/360
 
     return EEmapping    
 
@@ -320,7 +339,7 @@ def Cable_to_Disk_from_LookUpTable(x):
         y1 = mask_lower['DiskAngle'].min()
         y2 = mask_upper['DiskAngle'].max()
     
-    print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
+    #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -390,7 +409,7 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     
     deltaL[deltaL<= ref] = 0
     #deltaL = deltaL - diff
-    print("Cables Delta: \n", deltaL)
+    #print("Cables Delta: \n", deltaL)
     
     if (deltaL[2] > 0):
         Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])
