@@ -24,7 +24,7 @@ import time
 
 def calc_R_desired(EE_orientation_desired, tip_desired):
     """
-    deprecated, given Tf matrix
+    DEPRECATED, given Tf matrix from controller
     obtain rotation matrix of desired end effector orientation  
     """
     vec_x = np.array([1,0,0])
@@ -119,14 +119,14 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
     orientation_error = 1 #arbitrary value to enter loop
     previous_error = 2 #arbitrary value to prevent triggering exit condition(stuck in local minima)
     exit = False
+
     while (i<12) and (orientation_error>0.005) and exit == False:
         i=i+1
         #if printout is True: print("i: ",i)
         orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
         #if printout is True: print("orientation error: ", orientation_error)
 
-        #if orientation_error <
-        delta = 0.25*orientation_error
+        delta = 0.25*orientation_error #empirically obtained coeefficient 0.25 optimal for stability and settling time
         if (abs(previous_error - orientation_error)) < 0.0001:
             exit = True
         

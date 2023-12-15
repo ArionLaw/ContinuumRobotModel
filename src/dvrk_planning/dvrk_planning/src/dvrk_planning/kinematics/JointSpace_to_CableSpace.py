@@ -14,15 +14,30 @@ import numpy as np
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def allocate_deltaCables(deltaCables):
+def get_NotchAngle_from_TotalCableDeltas(h,TotalCableDeltas):
     """
-    interprets total cable displacement and translates into the fraction of cable displacement for a single wrist segment 
-    (3 notches 120deg out of phase)
+    interprets total cable displacement and decomposes into wrist joint angles based off of linear approximation
     """
-    return 1/3*deltaCables
-    
+    notch_height = h
+    dInner_dTheta = (-0.02 - notch_height)/(30*np.pi/180)#(0.008 - notch_height)/(30*np.pi/180) # linear approximation
+    dOuter_dTheta = (0.515 - notch_height)/(30*np.pi/180)#(0.54- notch_height)/(30*np.pi/180) # linear approximation
+    M_dcable_dTheta = np.array([[-dInner_dTheta , -dOuter_dTheta , -dOuter_dTheta],
+                                [-dOuter_dTheta , -dInner_dTheta , -dOuter_dTheta],
+                                [-dOuter_dTheta , -dOuter_dTheta , -dInner_dTheta]])
+    InvM_dcable_dTheta = np.linalg.inv(M_dcable_dTheta)
+    print(M_dcable_dTheta)
+    print(InvM_dcable_dTheta)
+    divided_cable_deltas = 1/3*TotalCableDeltas
+    print("Divided Cable Displacements per Notch: ",divided_cable_deltas)
+    NotchAngles = InvM_dcable_dTheta@divided_cable_deltas
+    print(NotchAngles)
+    NotchAngles[NotchAngles<0] = 0
+    print(NotchAngles)
+    return NotchAngles
+
 def get_NotchAngle_from_CableDelta(h, y_, r ,deltaL_inner):
     """
+    DEPRECATED
     gets notch angle from displacement of innermost cable of notch
     """
     curvature = deltaL_inner/(h*(r+y_) - deltaL_inner*y_)

@@ -34,7 +34,7 @@ def getCabletoDiskMapping():
         lengthAC = restingCableLength
         theta = 0
         
-        #calculating up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg
+        """ calculating mapping  up to 90deg to prevent NaN crash error when interpolating for disk angles close to 60deg """
         while theta < np.pi/2:
             positionB = [wiperLength*np.sin(theta) + wiperWidth/2*np.cos(theta) , wiperLength*np.cos(theta) + wiperWidth/2*np.sin(theta)]
             lengthAB = np.sqrt((positionB[0] - wiperWidth/2)**2 + (lengthAC-diskLocation-positionB[1])**2)
@@ -47,10 +47,10 @@ def getCabletoDiskMapping():
             theta = theta + np.pi/360
     else:
         print("sinusoid model for dial 3 & 4 mapping")
-        vscale = 4.55
-        hscale = 2.38
-        vshift = 4.55
-        hshift = -1.5
+        vscale = 4.55 # value determined by mechanism
+        hscale = 2.38 # tunable parameter
+        vshift = 4.55 # value determined by mechanism
+        hshift = -1.5 # tunable parameter
 
         theta = 0
         while theta < np.pi/2:
@@ -71,6 +71,8 @@ def calcEELinkageAnchorPos(thetaA):
     #C = gripper swing arm pivot
     #D = mounting spin axis
     """
+
+    """ linkage parameter definition """
     L2 = 2 #gripper dial offset
     L3 = 23 #gripper arm length [dial pivot] to [swing arm pivot]
     L4 = 18 #gripper swing arm length [swing arm pivot] to [mounting pivot]
@@ -82,6 +84,7 @@ def calcEELinkageAnchorPos(thetaA):
     GripperArmAngle = np.arctan2(xBtoAnchorX,yBtoAnchorY)
     LGripperArm = np.sqrt(xBtoAnchorX**2 + yBtoAnchorY**2)
 
+    """ linkage joint angle calculations """
     angleBAD = abs(thetaA - thetaAD)
     LengthBD = np.sqrt(L1**2 + L2**2 - 2*L1*L2*np.cos(angleBAD))
     angleADB = np.arccos((L1**2 + LengthBD**2 - L2**2)/(2*L1*LengthBD))
@@ -102,6 +105,7 @@ def calcEELinkageAnchorPos(thetaA):
         #print("thetaB (angleBAD from 0 to -pi): ", thetaB)
         #thetaC = np.pi - angleBDC + (angleADB + thetaAD)
 
+    """ position of cable attachment point """
     xB = L2*np.cos(thetaA)
     yB = L2*np.sin(thetaA)
     xPosAnchor = LGripperArm*np.cos(thetaB-GripperArmAngle) + xB
@@ -129,7 +133,7 @@ def getEECabletoDisk2Mapping():
         xCableDeltaRef = xAnchorRef - xRef
         yCableDeltaRef = yAnchorRef - yRef
         
-        ### calculating mapping
+        """ calculating mapping """
         thetaA = -np.pi*3/4
         while thetaA < np.pi*3/4:
             xAnchor,yAnchor = calcEELinkageAnchorPos(-thetaA)
@@ -148,17 +152,17 @@ def getEECabletoDisk2Mapping():
     else:
         print("piecewise sinusoidal model for dial 2 mapping")
         zero_setpoint = 0 #radians zero 
-        breakover = -51*np.pi/180 #radians breakover distance
+        breakover = -51*np.pi/180 + zero_setpoint #radians breakover distance
 
         #past breakover quadratic
         post_scale = -0.4
-        post_vshift = 4.5 + zero_setpoint
-        post_hshift = 0
+        post_vshift = 4.5 
+        post_hshift = 0 - zero_setpoint
 
         #before breakover sinusoid
         pre_scale = 4.8
-        pre_vshift = -1.6 + zero_setpoint
-        pre_hshift = 3.45
+        pre_vshift = -1.6 
+        pre_hshift = 3.45 - zero_setpoint
 
         thetaA = -np.pi/2
         while thetaA < np.pi/2: 
@@ -280,17 +284,16 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     #print("\n")
 
     wrist_cable_deltas = np.array([gamma,beta,alpha])
-    #if printout is True: print("Total Wrist Cable Deltas: \n" , wrist_cable_deltas)
+    print("Total Wrist Cable Deltas: \n [gamma,beta,alpha]\n" , wrist_cable_deltas)
     EECableWristComponent = max(wrist_cable_deltas)
     EECableDelta = Disk2_to_EECable_from_LookUpTable(DiskPositions[1])
     #print("EECableDelta: ", EECableDelta)
     EE_jaw = EECable_to_GripperAngle(EECableDelta,EECableWristComponent) #linear interpolation from EE gripper linkage mapping
-    segment_deltas = allocate_deltaCables(wrist_cable_deltas)
-    #if printout is True: print("3 Notch Segment Cable Deltas: \n" , segment_deltas)
-    gamma = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[0])
-    beta = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[1])
-    alpha = get_NotchAngle_from_CableDelta(h, y_, r, segment_deltas[2])
-    joint_values = [roll,EE_jaw,gamma,beta,alpha]
+    WristJointAngles = get_NotchAngle_from_TotalCableDeltas(h,wrist_cable_deltas)
+    #gamma = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[0])
+    #beta = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[1])
+    #alpha = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[2])
+    joint_values = [roll,EE_jaw,WristJointAngles[0],WristJointAngles[1],WristJointAngles[2]]
     return joint_values
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -301,8 +304,6 @@ def Cable_to_Disk_from_LookUpTable(x):
     """
     interpolation of Wiper Disk Angle output from Cable Displacement input from lookup table
     """
-    if x > np.pi/3: x = np.pi/3 #disk value 90deg ceiling limit 
-
     mask_lower = mapping['DeltaCable'].lt(x)
     mask_lower = mapping.loc[mask_lower]
     #print("lower: \n" , mask_lower)
@@ -323,15 +324,14 @@ def Cable_to_Disk_from_LookUpTable(x):
     if np.isnan(x1):
         return 0
     else:
-        return (y1 + (x-x1)*(y2-y1)/(x2-x1))
+        y = (y1 + (x-x1)*(y2-y1)/(x2-x1))
+        if y > np.pi/3: y = np.pi/3 #disk value 90deg ceiling limit 
+        return y
     
 def EECable_to_Disk2_from_LookUpTable(x):
     """
     interpolation of Wiper Disk Angle output from Cable Displacement input from lookup table
-    """
-    if x <= -np.pi/2: x = -np.pi/2 #disk value 90deg floor limit
-    elif x >= np.pi/2: x = np.pi/2 #disk value 90deg ceiling limit 
-    
+    """    
     mask_lower = EEmapping['DeltaEECable'].lt(x)
     mask_lower = EEmapping.loc[mask_lower]
     #print("lower: \n" , mask_lower)
@@ -352,7 +352,10 @@ def EECable_to_Disk2_from_LookUpTable(x):
     if np.isnan(x1):
         return 0
     else:
-        return (y1 + (x-x1)*(y2-y1)/(x2-x1))
+        y = (y1 + (x-x1)*(y2-y1)/(x2-x1))
+        if y <= -np.pi/2: y = -np.pi/2 #disk value 90deg floor limit
+        elif y >= np.pi/2: y = np.pi/2 #disk value 90deg ceiling limit 
+        return y
     
 def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     """
@@ -387,21 +390,21 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     
     deltaL[deltaL<= ref] = 0
     #deltaL = deltaL - diff
-    #print("Cables Delta: \n", deltaL)
+    print("Cables Delta: \n", deltaL)
     
-    if (deltaL[1] > 0):
-        Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[1])
+    if (deltaL[2] > 0):
+        Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])
         if (deltaL[0] > 0):
             Disk4 = -Cable_to_Disk_from_LookUpTable(deltaL[0])
         else:
-            Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[2])
+            Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[1])
     
-    elif (deltaL[2] >= 0):
-        Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[2])
+    elif (deltaL[1] >= 0):
+        Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[1])
         if (deltaL[0] >= 0):
             Disk3 = Cable_to_Disk_from_LookUpTable(deltaL[0])
         else:
-            Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[1])
+            Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])
     else:
         print("whooosh")    
     Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix

@@ -87,7 +87,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 disk_positions = joints[3:]
                 #if printout is True: print("joints", joints)
 
-                # from disk space angles to joint space angles
+                """ from disk space angles to joint space angles """
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
                 #if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
                 #if printout is True: print("Instrument Joint Values(roll, EE jaw, gamma, beta, alpha):  \n" , joint_values)
@@ -97,11 +97,11 @@ class Peter_Francis_tool_Kinematics_Solver:
                 beta = joint_values[3]
                 alpha = joint_values[4]
 
-                # wrist position FK
+                """ wrist position FK """
                 EE_pos_FK = get_wristPosition_from_PSMjoints(psm_joints)
                 #if printout is True: print("Wrist Position: \n", EE_pos_FK)
 
-                # orientation FK
+                """ orientation FK """
                 R_shaft = get_R_shaft(psm_joints)
                 R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
                 R_currentFK = R_shaft@R_wrist
@@ -118,7 +118,7 @@ class Peter_Francis_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def compute_all_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch_angle):
+        def compute_all_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle):
                 """
                 compute from task space poses to joint space angles
                         from joint space angles to cable space displacements
@@ -130,10 +130,10 @@ class Peter_Francis_tool_Kinematics_Solver:
                 #print("tf_p:\n", PSM_wrist_pos_desired)
                 R_desired = tf_desired[0:3, 0:3]
                 #print("tf_R:\n", R_desired)
-                disk_positions = direct_joint_positions[3:]
+                disk_positions = direct_psm_and_disk_joint_positions[3:]
                 #print("disk_positions:\n", disk_positions)
 
-                ### calculate current wrist pose 
+                """ FK calculate wrist pseudojoints of current pose using """ 
                 joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
                 #if printout is True: print("Continuum Wrist Joint Values: \n(roll, EE jaw, gamma, beta, alpha):\n" , joint_values) 
                 
@@ -143,15 +143,15 @@ class Peter_Francis_tool_Kinematics_Solver:
                 beta = joint_values[3]
                 alpha = joint_values[4]
 
-                ### wrist position IK
+                """ IK calculate psm joints to obtain wrist cartesian position """
                 psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired)
                 #if printout is True: print("PSM Joint Values(yaw,pitch,insertion):\n", psm_joints)
 
-                ### shaft orientation FK for current position
+                """ FK calculate current shaft orientation given wrist cartesian position """
                 # R_desired = calc_R_desired(EE_orientation_desired)
                 R_shaft = get_R_shaft(psm_joints)
 
-                ### wrist orientation FK for current position
+                """ FK calculate current wrist orientation of current pose """
                 R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
                 R_currentFK = R_shaft@R_wrist
                 #if printout is True: print("Desired Orientation: \n", np.around(R_desired,4))
@@ -159,10 +159,10 @@ class Peter_Francis_tool_Kinematics_Solver:
                 #if printout is True: print("Wrist Orientation: \n", np.around(R_wrist,4))
                 #if printout is True: print("Current EE Orientation: \n", np.around(R_currentFK,4))
 
-                ### EE_orientation IK
+                """ numerical IK calculate pseudojoint values to achieve desired EE_orientation (comparison Rcurrent vs Rdesired)"""
                 R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
                 #print("R_desired_wrist: \n", R_wrist_desired)
-                joint_angles = [roll,gamma,beta,alpha]
+                joint_angles = [roll,gamma,beta,alpha] #initial orientation of pseudojoints
                 joint_angles = IK_update(R_wrist_desired,joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3],printout)
                 
                 #if printout is True: print("Notch Joint Angles(roll, gamma, beta, alpha): \n", joint_angles,"\n")
@@ -175,20 +175,20 @@ class Peter_Francis_tool_Kinematics_Solver:
                 if printout is True: print("R_current: \n", R_updated)
                 if printout is True: print("R_desired: \n", R_desired)
 
-                # convert from joint angles to cable displacements
+                """ convert from pseudojoint values to cable displacements """
                 deltaCablesGamma = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[1], "0")
-                deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "120")
-                deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "240")
+                deltaCablesBeta = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[2], "120")
+                deltaCablesAlpha = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[3], "240")
                 
                 deltaCablesTotal = 3*abs(deltaCablesGamma + deltaCablesAlpha + deltaCablesBeta)
 
                 #if printout is True: print("cable deltas for notch 1: ", deltaCablesGamma)
-                #if printout is True: print("cable deltas for notch 3: ", deltaCablesAlpha)
                 #if printout is True: print("cable deltas for notch 2: ", deltaCablesBeta)
+                #if printout is True: print("cable deltas for notch 3: ", deltaCablesAlpha)
                 #if printout is True: print("total cable delta: ", deltaCablesTotal)
 
-                # get Disk Angle inputs for PSM tool base 
-                # [roll (joint space), end effector actuation (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
+                """ convert cable displacements to dial positions """
+                """ [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)] """
                 DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
                 joints_list = psm_joints + DiskAngles
                 #if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
@@ -273,6 +273,70 @@ def run_test_cases():
         print("finished")
 
 run_test_cases()
+
+"""
+n = 3 # sets of 3 cuts
+h = 0.66 #mm notch height
+c = 0.66 #mm notch spacing
+prevStraightLength = 5 #mm
+postStraightLength = 1 #mm
+y_ = 0.56 #mm neutral bending plane
+g = 1.16 #mm notch depth
+OD = 1.37 #mm
+ID = 0.94 #mm
+r = OD/2
+w = r*np.sin(np.radians(30))
+shaft_length = 400 #mm
+
+# testing from pseudojoints to delta cables to dial values (IK)
+print("------------------------------------------- IK -------------------------------------------")  
+psm_joints = [0,0,0.1]
+roll = 0
+desired_EE_pinch_angle = 0
+gamma = 20*np.pi/180
+beta = 20*np.pi/180
+alpha = 0
+
+tool1 = Peter_Francis_tool_Kinematics_Solver()
+
+joint_angles = [roll,gamma,beta,alpha]
+print("pseudojoint angles: \n [roll,gamma,beta,alpha]\n",joint_angles)
+deltaCablesGamma = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[1], "0")
+deltaCablesBeta = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[2], "120")
+deltaCablesAlpha = get_deltaCable_at_Notch(h, y_, r, w, joint_angles[3], "240")
+deltaCablesTotal = 3*abs(deltaCablesGamma + deltaCablesAlpha + deltaCablesBeta)
+
+if printout is True: print("cable deltas for notch 1: ", deltaCablesGamma)
+if printout is True: print("cable deltas for notch 2: ", deltaCablesBeta)
+if printout is True: print("cable deltas for notch 3: ", deltaCablesAlpha)
+if printout is True: print("total cable delta: ", deltaCablesTotal)
+
+# convert cable displacements to dial positions
+# [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)]
+DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
+joints_list = psm_joints + DiskAngles
+if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
+
+print("\n------------------------------------------------------------------------------------------")  
+print(joints_list)
+print("------------------------------------------------------------------------------------------\n")  
+
+""""""
+# testing from dial/joint values to cable displacement to pseudojoints (FK)
+print("------------------------------------------- FK -------------------------------------------")  
+joints = joints_list#[ 0, 0, 0.1, 0, -0.347, 0.158, 0.158]
+psm_joints = joints[0:3]
+disk_positions = joints[3:]
+#print(joints)
+
+# from disk space angles to joint space angles
+joint_values = DiskPosition_To_JointSpace(disk_positions,h,y_,r)
+#if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
+print("Instrument Joint Values(roll, EE jaw, gamma, beta, alpha):  \n" , joint_values, "\n")
+
+WristAngleError = np.array([joint_values[0],joint_values[2],joint_values[3],joint_values[4]]) - np.array(joint_angles)
+print("WristAngleError: \n" , WristAngleError)
+"""
 
 """
 disk_positions = [3.2833419526133314, -1, 0.1117424042942665, -0.15561920043570215]
