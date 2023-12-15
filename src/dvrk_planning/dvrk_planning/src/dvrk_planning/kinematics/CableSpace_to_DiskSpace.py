@@ -320,7 +320,7 @@ def Cable_to_Disk_from_LookUpTable(x):
         y1 = mask_lower['DiskAngle'].min()
         y2 = mask_upper['DiskAngle'].max()
     
-    #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
+    print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
     if np.isnan(x1):
         return 0
     else:
@@ -390,7 +390,7 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     
     deltaL[deltaL<= ref] = 0
     #deltaL = deltaL - diff
-    #print("Cables Delta: \n", deltaL)
+    print("Cables Delta: \n", deltaL)
     
     if (deltaL[2] > 0):
         Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])

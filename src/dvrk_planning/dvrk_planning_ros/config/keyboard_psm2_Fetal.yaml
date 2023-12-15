@@ -5,7 +5,9 @@ cartesian_controllers:
       topic: "/keyboard/twist"
     output:
       control_topic: "/PSM2/servo_jp"
+      extra_control_topic: "/PSM2/jaw/servo_jp"
       feedback_topic: "/PSM2/measured_js"
+      extra_feedback_topic: "/PSM2/jaw/measured_js"
     kinematics:
       robot: "fetal"
       tool:

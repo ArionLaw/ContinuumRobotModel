@@ -157,7 +157,7 @@ class Peter_Francis_tool_Kinematics_Solver:
                 #if printout is True: print("Desired Orientation: \n", np.around(R_desired,4))
                 #if printout is True: print("Shaft Orientation: \n", np.around(R_shaft,4))
                 #if printout is True: print("Wrist Orientation: \n", np.around(R_wrist,4))
-                #if printout is True: print("Current EE Orientation: \n", np.around(R_currentFK,4))
+                if printout is True: print("Current EE Orientation: \n", np.around(R_currentFK,4))
 
                 """ numerical IK calculate pseudojoint values to achieve desired EE_orientation (comparison Rcurrent vs Rdesired)"""
                 R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
@@ -172,8 +172,8 @@ class Peter_Francis_tool_Kinematics_Solver:
                 #if printout is True: print("R_wrist_current: \n", R_wrist_IK)
                 #if printout is True: print("R_desired_wrist: \n", R_wrist_desired)
                 R_updated = R_shaft@R_wrist_IK
-                #if printout is True: print("R_current: \n", R_updated)
-                #if printout is True: print("R_desired: \n", R_desired)
+                if printout is True: print("R_current: \n", np.around(R_updated,4))
+                if printout is True: print("R_desired: \n", np.around(R_desired,4))
 
                 """ convert from pseudojoint values to cable displacements """
                 deltaCablesGamma = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, joint_angles[1], "0")
