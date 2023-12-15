@@ -1,5 +1,5 @@
-test_cases = True
-#test_cases = False
+#test_cases = True
+test_cases = False
 if test_cases == True:
     from utils import *
     from plotting import *
@@ -284,7 +284,7 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     #print("\n")
 
     wrist_cable_deltas = np.array([gamma,beta,alpha])
-    print("Total Wrist Cable Deltas: \n [gamma,beta,alpha]\n" , wrist_cable_deltas)
+    #print("Total Wrist Cable Deltas: \n [gamma,beta,alpha]\n" , wrist_cable_deltas)
     EECableWristComponent = max(wrist_cable_deltas)
     EECableDelta = Disk2_to_EECable_from_LookUpTable(DiskPositions[1])
     #print("EECableDelta: ", EECableDelta)
@@ -325,7 +325,7 @@ def Cable_to_Disk_from_LookUpTable(x):
         return 0
     else:
         y = (y1 + (x-x1)*(y2-y1)/(x2-x1))
-        if y > np.pi/3: y = np.pi/3 #disk value 90deg ceiling limit 
+        #if y > np.pi/3: y = np.pi/3 #disk value 90deg ceiling limit 
         return y
     
 def EECable_to_Disk2_from_LookUpTable(x):
@@ -353,8 +353,8 @@ def EECable_to_Disk2_from_LookUpTable(x):
         return 0
     else:
         y = (y1 + (x-x1)*(y2-y1)/(x2-x1))
-        if y <= -np.pi/2: y = -np.pi/2 #disk value 90deg floor limit
-        elif y >= np.pi/2: y = np.pi/2 #disk value 90deg ceiling limit 
+        #if y <= -np.pi/2: y = -np.pi/2 #disk value 90deg floor limit
+        #elif y >= np.pi/2: y = np.pi/2 #disk value 90deg ceiling limit 
         return y
     
 def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
@@ -390,7 +390,7 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     
     deltaL[deltaL<= ref] = 0
     #deltaL = deltaL - diff
-    print("Cables Delta: \n", deltaL)
+    #print("Cables Delta: \n", deltaL)
     
     if (deltaL[2] > 0):
         Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])

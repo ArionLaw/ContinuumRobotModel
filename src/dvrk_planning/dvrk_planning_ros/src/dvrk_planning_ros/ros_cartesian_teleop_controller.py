@@ -127,7 +127,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         # print(self.desired_output_jaw_angle)
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
         f = Wrench()
-        self.mtm_device.servo_cf(f)
+        # self.mtm_device.servo_cf(f)
 
     def _input_callback_twist(self, data):
         twist = data.twist

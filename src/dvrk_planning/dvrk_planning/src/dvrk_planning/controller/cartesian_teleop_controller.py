@@ -39,8 +39,8 @@ class CartesianTeleopController(TeleopController):
             return False
 
         desired_jaw = None
-        if(len(args) > 1):
-            desired_jaw = args[1]
+        # if(len(args) > 1):
+        #     desired_jaw = args[1]
         absolute_output_tf = self._update_impl(args)
         # print("self.input_current_output_js: ", np.around(self.current_output_js, 3))        
         # print("absolute_output_tf: ", np.around(absolute_output_tf, 3))

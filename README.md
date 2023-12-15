@@ -26,12 +26,12 @@ cd ContinuumRobotModel/
 
 source devel/setup.bash
 
-rosrun dvrk_planning_ros psm_teleop_keyboard.py
+rosrun dvrk_planning_ros dvrk_teleop_node.py -y config/keyboard_psm2_Fetal.yaml
 
 # Terminal 5
 cd ContinuumRobotModel/
 
 source devel/setup.bash
 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -y config/keyboard_psm2_Fetal.yaml
+rosrun dvrk_planning_ros psm_teleop_keyboard.py
 

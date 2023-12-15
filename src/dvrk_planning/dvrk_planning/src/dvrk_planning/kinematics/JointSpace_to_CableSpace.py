@@ -1,5 +1,5 @@
-test_cases = True
-#test_cases = False
+#test_cases = True
+test_cases = False
 if test_cases == True:
     from utils import *
     from plotting import *
@@ -25,14 +25,14 @@ def get_NotchAngle_from_TotalCableDeltas(h,TotalCableDeltas):
                                 [-dOuter_dTheta , -dInner_dTheta , -dOuter_dTheta],
                                 [-dOuter_dTheta , -dOuter_dTheta , -dInner_dTheta]])
     InvM_dcable_dTheta = np.linalg.inv(M_dcable_dTheta)
-    print(M_dcable_dTheta)
-    print(InvM_dcable_dTheta)
+    #print(M_dcable_dTheta)
+    #print(InvM_dcable_dTheta)
     divided_cable_deltas = 1/3*TotalCableDeltas
-    print("Divided Cable Displacements per Notch: ",divided_cable_deltas)
+    #print("Divided Cable Displacements per Notch: ",divided_cable_deltas)
     NotchAngles = InvM_dcable_dTheta@divided_cable_deltas
-    print(NotchAngles)
+    #print(NotchAngles)
     NotchAngles[NotchAngles<0] = 0
-    print(NotchAngles)
+    #print(NotchAngles)
     return NotchAngles
 
 def get_NotchAngle_from_CableDelta(h, y_, r ,deltaL_inner):
