@@ -88,6 +88,8 @@ class DvrkTeleopNode:
 if __name__ == '__main__':
     argv = rospy.myargv(argv=sys.argv)
 
+    np.set_printoptions(precision=4, suppress=True)
+
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--config_package', type=str, required=False,

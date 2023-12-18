@@ -63,12 +63,12 @@ class RosTeleopController:
         self.js_msg.position = harmonized_jp[0:6]
         self.extra_js_msg.position = np.array([harmonized_jp[6]]) # This is too hardcoded, need to know indexes from config
 
-        print("current_output_jps:\n", np.around(self.current_output_jps,3))
-        print("sending harmonized_jp:\n", np.around(harmonized_jp,3))
+        # print("current_output_jps:\n", np.around(self.current_output_jps,3))
+        # print("sending harmonized_jp:\n", np.around(harmonized_jp,3))
 
-        # self.output_pub.publish(self.js_msg)
-        # rospy.sleep(0.01) # Only for dvrk
-        # self.extra_output_pub.publish(self.extra_js_msg)
+        self.output_pub.publish(self.js_msg)
+        rospy.sleep(0.01) # Only for dvrk
+        self.extra_output_pub.publish(self.extra_js_msg)
 
     def _output_feedback_callback(self, js):
         self.js_msg.name =  js.name

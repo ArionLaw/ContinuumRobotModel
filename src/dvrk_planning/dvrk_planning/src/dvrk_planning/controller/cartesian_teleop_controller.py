@@ -42,19 +42,16 @@ class CartesianTeleopController(TeleopController):
         # Solving position wrt input ref frame (h) and output camera frame (e)
         input_diff_p_wrt_h = np.matmul(self.h2m_transform[0:3, 0:3], input_diff_p_wrt_m)
         output_diff_p_wrt_e = input_diff_p_wrt_h
-        output_diff_p_wrt_s = np.matmul(self.s2e_transform[0:3,0:3], output_diff_p_wrt_e)
+        output_diff_p_wrt_s = np.matmul(self.s2e_transform[0:3, 0:3], output_diff_p_wrt_e)
         output_p_wrt_s = cur_output_p_wrt_s + output_diff_p_wrt_s
 
         # Post multiply output to rotate about itself
         output_rot = np.matmul(cur_output_rot, input_diff_rot)
 
-        np.set_printoptions(precision=4, suppress=True)
-        print(current_output_tf)
         output_tf = np.copy(current_output_tf)
         output_tf[0:3, 0:3] = output_rot
         output_tf[0:3, 3] = output_p_wrt_s
 
-        print(output_tf)
         return output_tf
 
     def update(self, *args):
