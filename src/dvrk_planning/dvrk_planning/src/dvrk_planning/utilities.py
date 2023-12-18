@@ -93,10 +93,10 @@ def round_transform(mat, precision=4):
 
 
 def convert_frame_to_mat(frame):
-    np_mat = np.mat([[1, 0, 0, 0],
+    np_mat = np.array([[1, 0, 0, 0],
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
-                     [0, 0, 0, 1]], dtype=float)
+                     [0, 0, 0, 1]], np.float32)
     for i in range(3):
         for j in range(3):
             np_mat[i, j] = frame.M[(i, j)]

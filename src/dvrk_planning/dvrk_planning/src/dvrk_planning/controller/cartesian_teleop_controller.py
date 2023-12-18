@@ -7,15 +7,16 @@ from dvrk_planning.utilities import convert_frame_to_mat
 
 def get_rot_and_p(tf):
     rot = tf[0:3, 0:3]
-    p = tf[0:3,3]
-    return rot, p.flatten()
+    p = tf[0:3, 3]
+    return rot, p.flatten('F')
 
 class CartesianTeleopController(TeleopController):
     def __init__(self,
             input_type,
             kinematics_solver,
             input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
-            output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1)):
+            output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
+            desired_jaw_in_kinematics = False):
         super().__init__(input_type, ControllerType.CARTESIAN)
         # m: input base frame (master)
         # h: input reference frame
@@ -31,6 +32,7 @@ class CartesianTeleopController(TeleopController):
         self.kinematics_solver = kinematics_solver
         self.current_output_js = np.array([])
 
+        self.desired_jaw_in_kinematics = desired_jaw_in_kinematics
 
     def _update_output_tf(self, input_diff_tf, current_output_tf):
 
@@ -46,9 +48,13 @@ class CartesianTeleopController(TeleopController):
         # Post multiply output to rotate about itself
         output_rot = np.matmul(cur_output_rot, input_diff_rot)
 
+        np.set_printoptions(precision=4, suppress=True)
+        print(current_output_tf)
         output_tf = np.copy(current_output_tf)
         output_tf[0:3, 0:3] = output_rot
         output_tf[0:3, 3] = output_p_wrt_s
+
+        print(output_tf)
         return output_tf
 
     def update(self, *args):
@@ -56,9 +62,8 @@ class CartesianTeleopController(TeleopController):
             return False
 
         desired_jaw = None
-        # ARION : for keyboard control comment the next 2 lines
-        if(len(args) > 1):
-            desired_jaw = args[1]
+        if(self.desired_jaw_in_kinematics):
+            desired_jaw = args[-1]
         absolute_output_tf = self._update_impl(args)
         # print("self.input_current_output_js: ", np.around(self.current_output_js, 3))        
         #print("absolute_output_tf: ", np.around(absolute_output_tf, 3))
@@ -75,9 +80,11 @@ class CartesianFollowTeleopController(CartesianTeleopController):
     def __init__(self, kinematics_solver,
                  input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
                  output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
+                 desired_jaw_in_kinematics = False,
                  position_scale = 1.0):
         super().__init__(InputType.FOLLOW, kinematics_solver,
-                         input_2_input_reference_rot, output_2_output_reference_rot)
+                         input_2_input_reference_rot, output_2_output_reference_rot,
+                         desired_jaw_in_kinematics)
         self.start_input_tf = np.identity(4)
         self.start_output_tf = np.identity(4)
         self.position_scale = position_scale
@@ -115,9 +122,11 @@ class CartesianFollowTeleopController(CartesianTeleopController):
 class CartesianIncrementTeleopController(CartesianTeleopController):
     def __init__(self, kinematics_solver,
                  input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
-                 output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1)):
+                 output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
+                 desired_jaw_in_kinematics = False):
         super().__init__(InputType.INCREMENT, kinematics_solver,
-                         input_2_input_reference_rot, output_2_output_reference_rot)
+                         input_2_input_reference_rot, output_2_output_reference_rot,
+                         desired_jaw_in_kinematics)
         self.current_output_tf = np.identity(4)
 
     def enable(self, current_output_js):
@@ -131,9 +140,9 @@ class CartesianIncrementTeleopController(CartesianTeleopController):
     def __increment_input_tf(self, inc_position: Vector, inc_quaternion: Rotation):
         input_diff_tf = convert_frame_to_mat(Frame(inc_quaternion, inc_position))
 
-        print("current_output_tf: ", np.around(self.current_output_tf, 3))
+        # print("current_output_tf: ", np.around(self.current_output_tf, 3))
         self.current_output_tf = self._update_output_tf(input_diff_tf, self.current_output_tf)
         return self.current_output_tf
 
     def _update_impl(self, args):
-        return self.__increment_input_tf(*args) # Change to args[0], args[1] later
+        return self.__increment_input_tf(args[0], args[1])

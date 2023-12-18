@@ -6,6 +6,7 @@ import rospy
 import rospkg
 import sys
 import yaml
+import numpy as np
 
 from sensor_msgs.msg import  Joy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, CustomSphericalWristFromYaml
