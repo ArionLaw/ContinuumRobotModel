@@ -30,6 +30,7 @@ class CartesianTeleopController(TeleopController):
         self.h2m_transform = np.linalg.inv(m2h_transform)
         self.s2e_transform = convert_frame_to_mat(Frame(output_2_output_reference_rot, Vector(0.0, 0.0, 0.0)))
 
+        print(self.h2m_transform)
         self.kinematics_solver = kinematics_solver
         self.current_output_js = np.array([])
 

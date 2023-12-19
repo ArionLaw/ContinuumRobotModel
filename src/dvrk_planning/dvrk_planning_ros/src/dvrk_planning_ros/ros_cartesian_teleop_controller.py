@@ -57,11 +57,12 @@ class RosCartesiansTeleopController(RosTeleopController):
         if("is_half_hz" in input_yaml):
             self.is_half_hz = input_yaml["is_half_hz"]
         self._is_half_hz_trigger = False
+        self._is_half_hz_trigger_jaw = False
 
         self.is_mtm_hold_home_off = False
         if("is_mtm_hold_home_off" in input_yaml): # TODO, remove notion of MTM
             self.is_mtm_hold_home_off = input_yaml["is_mtm_hold_home_off"]
-            self.mtm_device = MTM("/MTMR/")
+            self.mtm_device = MTM(input_yaml["mtm_device_name"])
 
         input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("input_2_input_reference_rot" in input_yaml):
@@ -175,7 +176,7 @@ class RosCartesiansTeleopController(RosTeleopController):
 
     def _input_callback_tf(self, data):
         self._is_half_hz_trigger = not self._is_half_hz_trigger
-        if self._is_half_hz_trigger and not self._is_half_hz_trigger:
+        if self.is_half_hz and not self._is_half_hz_trigger:
             return
 
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
@@ -187,6 +188,10 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._debug_output_tf()
 
     def _input_jaw_mimic(self, data):
+        self._is_half_hz_trigger_jaw = not self._is_half_hz_trigger_jaw
+        if self.is_half_hz and not self._is_half_hz_trigger_jaw:
+            return
+
         self.input_jaw_js = data.position
         self._jaw_mimic_controller.update(self.input_jaw_js)
 
