@@ -31,7 +31,7 @@ class DvrkTeleopNode:
                         class_ = getattr(module, tool_yaml["type"])
                         scale = 1.0
                         if "scale" in tool_yaml:
-                            scale = tool_yaml["scale"] 
+                            scale = tool_yaml["scale"]
                             print("Choosing scale {}".format(scale))
                         kin_solver = PsmKinematicsSolver(class_(scale))
                 elif kin_yaml["robot"] == "fetal":

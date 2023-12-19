@@ -22,7 +22,7 @@ class RosTeleopController:
         self.js_msg = JointState()
         self.extra_js_msg = JointState()
         self.output_pub = rospy.Publisher(output_yaml["control_topic"], JointState, queue_size = 1)
-        self.extra_output_pub = rospy.Publisher(output_yaml["extra_control_topic"], JointState, queue_size = 1)
+        self.extra_output_pub = rospy.Publisher(output_yaml["extra_control_topic"], JointState, queue_size = 1) # TODO, this is not modular
 
         self.output_feedback_topic = output_yaml["feedback_topic"]
         self.extra_output_feedback_topic = output_yaml["extra_feedback_topic"]

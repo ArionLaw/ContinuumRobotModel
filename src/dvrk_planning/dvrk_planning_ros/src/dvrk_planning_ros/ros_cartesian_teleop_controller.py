@@ -15,7 +15,6 @@ from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
 from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
 
 import tf
-# import turtlesim.msg
 import rospy
 
 def quat_yaml_to_pykdl(quaternion_yaml):
@@ -41,21 +40,29 @@ def rotation_from_yaml(reference_rot):
 
 class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
-        self.is_half_hz = True
-        self.is_debug_output_tf = True
-        self.is_mtm_grav_off = False
-    
+
         output_yaml = controller_yaml["output"]
+        self.is_debug_output_tf = False
+        if("is_debug_output_tf" in output_yaml):
+            self.is_debug_output_tf = output_yaml["is_debug_output_tf"]
+
         output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("output_2_output_reference_rot" in output_yaml):
             output_2_output_reference_rot = rotation_from_yaml(output_yaml["output_2_output_reference_rot"])
 
         input_yaml = controller_yaml["input"]
-        if("is_mtm_grav_off" in input_yaml): # TODO, remove notion of MTM
-            self.is_mtm_grav_off = input_yaml["is_mtm_grav_off"]
+        self.is_half_hz = False
+        if("is_half_hz" in input_yaml):
+            self.is_half_hz = input_yaml["is_half_hz"]
+        self.is_mtm_hold_home_off = False
+        if("is_mtm_hold_home_off" in input_yaml): # TODO, remove notion of MTM
+            self.is_mtm_hold_home_off = input_yaml["is_mtm_hold_home_off"]
+            self.mtm_device = MTM("/MTMR/")
+
         input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("input_2_input_reference_rot" in input_yaml):
             input_2_input_reference_rot = rotation_from_yaml(input_yaml["input_2_input_reference_rot"])
+
         self.jaw_sub = None
         self.desired_output_jaw_angle = None
         desired_jaw_in_kinematics = False
@@ -86,7 +93,6 @@ class RosCartesiansTeleopController(RosTeleopController):
                 output_2_output_reference_rot = output_2_output_reference_rot,
                 desired_jaw_in_kinematics = desired_jaw_in_kinematics,
                 position_scale = position_scale)
-            self.mtm_device = MTM("/MTMR/")
         elif input_yaml["type"] == "increment":
             self._jaw_inc_controller = None
             if("jaw" in input_yaml):
@@ -119,7 +125,7 @@ class RosCartesiansTeleopController(RosTeleopController):
 
         self.current_input_tf = np.identity(4)
         self.current_output_tf = np.identity(4)
-        
+
         if self.is_debug_output_tf:
             self.br = tf.TransformBroadcaster()
         self._is_half_hz_trigger = False
@@ -177,11 +183,11 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._is_half_hz_trigger = not self._is_half_hz_trigger
         if self.is_half_hz and not self._is_half_hz_trigger:
             return
-        
+
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
         # print(self.desired_output_jaw_angle)
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
-        if self.is_mtm_grav_off: # How to take away notion of MTM in this case
+        if self.is_mtm_hold_home_off: # How to take away notion of MTM in this case
             f = Wrench()
             self.mtm_device.servo_cf(f)
         self._debug_output_tf()
@@ -213,7 +219,7 @@ class RosCartesiansTeleopController(RosTeleopController):
             Rotation.RPY(0, 0 ,0),
             self.desired_output_jaw_angle)
         # print(self.desired_output_jaw_angle)
-        self._debug_output_tf() # after the update     
+        self._debug_output_tf() # after the update
 
     def wait_for_input_sub_msg(self, is_print = False):
         super().wait_for_input_sub_msg(is_print)

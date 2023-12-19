@@ -13,6 +13,8 @@ cartesian_controllers:
 		jaw:
 			input_topic: "/MTML/gripper/measured_js"
 			scale: 1
+        is_half_hz: True
+        is_mtm_hold_home_off: True
 	output:
 		control_topic: "/PSM1/servo_jp"
 		extra_control_topic: "/PSM1/jaw/servo_jp"
@@ -24,10 +26,10 @@ cartesian_controllers:
 				y: 0
 				z: 0
 				w: 1
-		kinematics:
-			robot: "fetal"
-			tool:
-				type:
+    kinematics:
+        robot: "fetal"
+        tool:
+            type:
   - name: "MTMR-PSM2-PeterFrancis"
 	input:
 		position_scale: 0.5
@@ -42,6 +44,8 @@ cartesian_controllers:
 		jaw:
 			input_topic: "/MTMR/gripper/measured_js"
 			scale: 1
+        is_half_hz: True
+        is_mtm_hold_home_off: True
 	output:
 		control_topic: "/PSM2/servo_jp"
 		extra_control_topic: "/PSM2/jaw/servo_jp"
@@ -53,8 +57,8 @@ cartesian_controllers:
 				y: 0
 				z: 0
 				w: 1
-		kinematics:
-			robot: "fetal"
-			tool:
-				type:
+    kinematics:
+        robot: "fetal"
+        tool:
+            type:
 clutch_topic: "/console/clutch"
