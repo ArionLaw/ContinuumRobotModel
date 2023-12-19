@@ -36,20 +36,20 @@ rosrun dvrk_robot dvrk_console_json -j console-SUJ-ECM.json
 rosrun dvrk_robot dvrk_console_json -j custom-tools/console-MTMR-PSM2-Fetal.json
 ```
 In console:
-Under Arms/PSM2 tab, choose Tool: Peter Francis Design with da Vinci Classic (AT BOTTOM)
+Under Arms/PSM2 tab, tool should be loaded: Peter Francis Design with da Vinci Classic (AT BOTTOM)
 ('Power On', 'Home', Check 'Direct Control' under 'PSM2 PID' tab)
 
 Run the teleop in terminal 4:
 ```bash
 source devel/setup.bash
 # Keyboard control: 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/keyboard_psm2_fetal.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/keyboard_psm2.yaml
 # OR
 # Mtm control: 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_psm2_fetal.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_psm2.yaml
 # OR
 # Mtm control in camera frame: 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_psm2_fetal_cam.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_psm2_cam.yaml
 
 ```
 (Optional) To turn off the MTM homing force, set in your teleop config:
@@ -76,12 +76,12 @@ roslaunch dvrk_ctr_teleop debug_tf.launch
 
 For dual MTM PSM, redo terminal 3 with:
 ```bash
-rosrun dvrk_robot dvrk_console_json -j custom-tools/console-MTML-MTMR-PSM1-PSM2-Fetal.json
+rosrun dvrk_robot dvrk_console_json -j custom-tools/console-MTML-PSM1-MTMR-PSM2-Fetal.json -C
 ```
 and redo terminal 4 with:
 ```bash
 source devel/setup.bash
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm_mtmr_psm2_fetal_cam.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm1_mtmr_psm2_cam.yaml
 ```
 
 ## Setting up the camera perspective control config
@@ -126,7 +126,9 @@ roslaunch dvrk_ctr_teleop suj_ecm_rviz.launch
 ```
 
 Now move the setup joint arms to your desired location.
-Find the parent and child you are interested in, and run the tf obtainer with parent and chile arguments:
+IMPORTANT IF YOU USE NON STRAIGHT ENDOSCOPE. In the console go to tab Arms/ECM and set endoscope type to STRAIGHT. 
+Then while looking at RVIZ, set endoscope type to: HD_UP or HD_DOWN and determine from RViz which is correct.
+Find the parent and child you are interested in, and run the tf obtainer with parent and child arguments:
 
 ```bash
 source devel/setup.bash
