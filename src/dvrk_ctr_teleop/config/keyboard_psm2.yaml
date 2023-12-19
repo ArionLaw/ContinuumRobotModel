@@ -6,12 +6,6 @@ cartesian_controllers:
         jaw:
             input_topic: "/keyboard/joint_state"
             scale: 1
-        input_2_input_reference_rot:
-            quaternion:
-                x: 0.9659258
-                y: 0
-                z: 0
-                w: -0.258819
     output:
         control_topic: "/PSM2/servo_jp"
         extra_control_topic: "/PSM2/jaw/servo_jp"

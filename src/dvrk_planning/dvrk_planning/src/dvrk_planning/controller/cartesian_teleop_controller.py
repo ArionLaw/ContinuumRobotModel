@@ -46,7 +46,13 @@ class CartesianTeleopController(TeleopController):
         output_diff_p_wrt_s = np.matmul(self.s2e_transform[0:3, 0:3], output_diff_p_wrt_e)
         output_p_wrt_s = cur_output_p_wrt_s + output_diff_p_wrt_s
 
+        ## Uncomment to check camera perspective math
+        # print("------------------------------------")
+        # print("input_diff_p_wrt_m: ", input_diff_p_wrt_m)
+        # print("input_diff_p_wrt_h: ", input_diff_p_wrt_h)
+        # print("output_diff_p_wrt_e: ", output_diff_p_wrt_e)
         # print("output_diff_p_wrt_s: ", output_diff_p_wrt_s)
+
         # print("output_p_wrt_s: ", output_p_wrt_s)
 
         # Post multiply output to rotate about itself
