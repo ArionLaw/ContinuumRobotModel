@@ -2,6 +2,10 @@
 
 TODO: This readme could be in src/dvrk_ctr_teleop
 
+## Install 
+Install ubuntu 20.04 and ros noetic (http://wiki.ros.org/noetic/Installation/Ubuntu).
+Install catkin tools https://catkin-tools.readthedocs.io/en/latest/installing.html.
+
 ## Build
 
 ```bash
@@ -35,8 +39,7 @@ In console:
 Under Arms/PSM2 tab, choose Tool: Peter Francis Design with da Vinci Classic (AT BOTTOM)
 ('Power On', 'Home', Check 'Direct Control' under 'PSM2 PID' tab)
 
-If running teleop, continue: 
-Terminal 4:
+Run the teleop in terminal 4:
 ```bash
 source devel/setup.bash
 # Keyboard control: 
@@ -45,14 +48,40 @@ rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/keyboa
 # Mtm control: 
 rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_psm2_fetal.yaml
 # OR
-# Both mtm and psm control
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm_mtmr_psm2_fetal.yaml
+# Mtm control in camera frame: 
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_psm2_fetal_cam.yaml
+
 ```
+(Optional) To turn off the MTM homing force, set in your teleop config:
+```yaml
+is_mtm_hold_home_off: True
+```
+BUT REMEMBER!!! To hold the MTM with your hand when starting terminal 4.
 
 For keyboard only, terminal 5:
 ```bash
 source devel/setup.bash
 rosrun dvrk_planning_ros psm_teleop_keyboard.py
+```
+
+(Optional) For debugging the tool TF, set in your teleop config:
+```yaml
+  is_debug_output_tf: True
+```
+terminal 6:
+```bash
+source devel/setup.bash
+roslaunch dvrk_ctr_teleop debug_tf.launch 
+```
+
+For dual MTM PSM, redo terminal 3 with:
+```bash
+rosrun dvrk_robot dvrk_console_json -j custom-tools/console-MTML-MTMR-PSM1-PSM2-Fetal.json
+```
+and redo terminal 4 with:
+```bash
+source devel/setup.bash
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm_mtmr_psm2_fetal_cam.yaml
 ```
 
 ## Setting up the camera perspective control config
@@ -87,6 +116,7 @@ roscd dvrk_config/
 cd hsc-dVRK
 rosrun dvrk_robot dvrk_console_json -j console-SUJ-ECM.json 
 ```
+Move the arms to the desired location within camera view
 
 Open Rviz, Terminal 3:
 
@@ -114,5 +144,7 @@ Then put in your yaml file for the corresponding controller
           z:  0.13158294821796376
           w:  0.06409954712056945
 ```
+
+Do the same for PSM1_BASE and ECM
 
 
