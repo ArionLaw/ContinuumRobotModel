@@ -10,7 +10,6 @@ import numpy as np
 
 from sensor_msgs.msg import  Joy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, CustomSphericalWristFromYaml
-# from dvrk_planning.kinematics.Fetal_tool_FK_and_numerical_IK_solver import Peter_Francis_tool_Kinematics_Solver
 from dvrk_planning_ros.ros_joint_teleop_controller import RosJointTeleopController
 from dvrk_planning_ros.ros_cartesian_teleop_controller import RosCartesiansTeleopController
 

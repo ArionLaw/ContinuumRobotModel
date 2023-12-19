@@ -8,7 +8,7 @@ cartesian_controllers:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
         is_half_hz: True
-        is_mtm_hold_home_off: True
+        is_mtm_hold_home_off: False
     output:
         control_topic: "/PSM2/servo_jp"
         extra_control_topic: "/PSM2/jaw/servo_jp"
@@ -16,7 +16,7 @@ cartesian_controllers:
         extra_feedback_topic: "/PSM2/jaw/measured_js"
         is_debug_output_tf: True
     kinematics:
-        robot: "fetal"
-        tool:
-            type:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
+        class_name: "PeterFrancisToolKinematicsSolver"
 clutch_topic: "/console/clutch"

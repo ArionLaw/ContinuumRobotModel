@@ -45,6 +45,8 @@ class RosCartesiansTeleopController(RosTeleopController):
         self.is_debug_output_tf = False
         if("is_debug_output_tf" in output_yaml):
             self.is_debug_output_tf = output_yaml["is_debug_output_tf"]
+        if self.is_debug_output_tf:
+            self.br = tf.TransformBroadcaster()
 
         output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("output_2_output_reference_rot" in output_yaml):
@@ -54,6 +56,8 @@ class RosCartesiansTeleopController(RosTeleopController):
         self.is_half_hz = False
         if("is_half_hz" in input_yaml):
             self.is_half_hz = input_yaml["is_half_hz"]
+        self._is_half_hz_trigger = False
+
         self.is_mtm_hold_home_off = False
         if("is_mtm_hold_home_off" in input_yaml): # TODO, remove notion of MTM
             self.is_mtm_hold_home_off = input_yaml["is_mtm_hold_home_off"]
@@ -113,22 +117,12 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
-        """
-        kin_yaml = controller_yaml["kinematics"]
-        if kin_yaml["robot"] == "fetal":
-            do_nothing = 0
-        else:
-        """
         super().__init__(controller_yaml, input_topic_type)
         self.js_msg.name = kinematics_solver.get_active_joint_names()
         self._teleop_controller.register(self._output_callback)
 
         self.current_input_tf = np.identity(4)
         self.current_output_tf = np.identity(4)
-
-        if self.is_debug_output_tf:
-            self.br = tf.TransformBroadcaster()
-        self._is_half_hz_trigger = False
 
     def enable(self):
         self._wait_for_output_feedback_sub_msg(True)
@@ -181,7 +175,7 @@ class RosCartesiansTeleopController(RosTeleopController):
 
     def _input_callback_tf(self, data):
         self._is_half_hz_trigger = not self._is_half_hz_trigger
-        if self.is_half_hz and not self._is_half_hz_trigger:
+        if self._is_half_hz_trigger and not self._is_half_hz_trigger:
             return
 
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)

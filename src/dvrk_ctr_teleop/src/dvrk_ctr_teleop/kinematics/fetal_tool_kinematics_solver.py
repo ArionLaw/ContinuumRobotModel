@@ -2,21 +2,20 @@
 test_cases = False
 if test_cases == True:
         from utils import *
-        from TaskSpace_to_JointSpace import *
-        from JointSpace_to_CableSpace import *
-        from CableSpace_to_DiskSpace import *
+        from task_space_to_joint_space import *
+        from joint_space_to_cable_space import *
+        from cable_space_to_disk_space import *
         from plotting import *
-        from TestCaseReader import *
-        #from psm import *
+        from test_case_reader import *
 
 else:
         from dvrk_ctr_teleop.kinematics.utils import *
-        from dvrk_ctr_teleop.kinematics.TaskSpace_to_JointSpace import *
-        from dvrk_ctr_teleop.kinematics.JointSpace_to_CableSpace import *
-        from dvrk_ctr_teleop.kinematics.CableSpace_to_DiskSpace import *
+        from dvrk_ctr_teleop.kinematics.task_space_to_joint_space import *
+        from dvrk_ctr_teleop.kinematics.joint_space_to_cable_space import *
+        from dvrk_ctr_teleop.kinematics.cable_space_to_disk_space import *
         from dvrk_ctr_teleop.kinematics.plotting import *
-        from dvrk_ctr_teleop.kinematics.TestCaseReader import *
-        # from dvrk_planning.kinematics.psm import *
+        from dvrk_ctr_teleop.kinematics.test_case_reader import *
+        from dvrk_planning.kinematics.kinematics_solver import KinematicsSolver # TODO later
         
 import numpy as np
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -52,7 +51,7 @@ printout = False
 #getCabletoDiskMapping()
 #getEECabletoDisk2Mapping()
 
-class Peter_Francis_tool_Kinematics_Solver:
+class PeterFrancisToolKinematicsSolver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -246,7 +245,7 @@ def run_test_cases():
                         tf_desired = np.matrix(tf_matrices_list[i])
                         #print("tf Desired:\n",tf_desired)
 
-                        tool1 = Peter_Francis_tool_Kinematics_Solver()
+                        tool1 = PeterFrancisToolKinematicsSolver()
                         
                         #Transform, jaw angle and wrist joint angle as calculated from FK given input_current_output_js
                         Tf, jaw_angle, FK_joint_values = tool1.compute_all_fk(disk_positions)
@@ -296,7 +295,7 @@ gamma = 20*np.pi/180
 beta = 20*np.pi/180
 alpha = 0
 
-tool1 = Peter_Francis_tool_Kinematics_Solver()
+tool1 = PeterFrancisToolKinematicsSolver()
 
 joint_angles = [roll,gamma,beta,alpha]
 print("pseudojoint angles: \n [roll,gamma,beta,alpha]\n",joint_angles)

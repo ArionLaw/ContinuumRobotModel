@@ -3,12 +3,12 @@ test_cases = False
 if test_cases == True:
     from utils import *
     from plotting import *
-    from JointSpace_to_CableSpace import *
+    from joint_space_to_cable_space import *
 
 else:
     from dvrk_ctr_teleop.kinematics.utils import *
     from dvrk_ctr_teleop.kinematics.plotting import *
-    from dvrk_ctr_teleop.kinematics.JointSpace_to_CableSpace import *
+    from dvrk_ctr_teleop.kinematics.joint_space_to_cable_space import *
 
 import numpy as np
 import pandas as pd

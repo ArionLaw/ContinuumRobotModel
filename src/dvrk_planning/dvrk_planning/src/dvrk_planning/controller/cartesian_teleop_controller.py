@@ -24,6 +24,7 @@ class CartesianTeleopController(TeleopController):
         # e: output reference frame
 
         # p: position
+        self.current_output_tf = np.identity(4)
 
         m2h_transform = convert_frame_to_mat(Frame(input_2_input_reference_rot, Vector(0.0, 0.0, 0.0)))
         self.h2m_transform = np.linalg.inv(m2h_transform)
@@ -90,6 +91,7 @@ class CartesianFollowTeleopController(CartesianTeleopController):
         self.start_input_tf = np.copy(start_input_tf)
         self.current_output_js = np.copy(start_output_js)
         self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
+        self.current_output_tf = np.copy(self.start_output_tf)
         super()._enable()
 
     # When unclutching:
@@ -111,6 +113,7 @@ class CartesianFollowTeleopController(CartesianTeleopController):
 
         absolute_output_tf = np.copy(self.start_output_tf)
         absolute_output_tf = self._update_output_tf(input_tf_difference, absolute_output_tf)
+        self.current_output_tf = absolute_output_tf
         return absolute_output_tf
 
     def _update_impl(self, args):
@@ -124,7 +127,6 @@ class CartesianIncrementTeleopController(CartesianTeleopController):
         super().__init__(InputType.INCREMENT, kinematics_solver,
                          input_2_input_reference_rot, output_2_output_reference_rot,
                          desired_jaw_in_kinematics)
-        self.current_output_tf = np.identity(4)
 
     def enable(self, current_output_js):
         self.current_output_js = np.copy(current_output_js)
