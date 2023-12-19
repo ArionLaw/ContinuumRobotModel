@@ -5,8 +5,8 @@ if test_cases == True:
     from plotting import *
 
 else:
-    from dvrk_planning.kinematics.utils import *
-    from dvrk_planning.kinematics.plotting import *
+    from dvrk_ctr_teleop.kinematics.utils import *
+    from dvrk_ctr_teleop.kinematics.plotting import *
 
 import numpy as np
 

@@ -6,9 +6,9 @@ if test_cases == True:
     from JointSpace_to_CableSpace import *
 
 else:
-    from dvrk_planning.kinematics.utils import *
-    from dvrk_planning.kinematics.plotting import *
-    from dvrk_planning.kinematics.JointSpace_to_CableSpace import *
+    from dvrk_ctr_teleop.kinematics.utils import *
+    from dvrk_ctr_teleop.kinematics.plotting import *
+    from dvrk_ctr_teleop.kinematics.JointSpace_to_CableSpace import *
 
 import numpy as np
 import pandas as pd

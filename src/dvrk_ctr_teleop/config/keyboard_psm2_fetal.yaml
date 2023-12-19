@@ -14,6 +14,6 @@ cartesian_controllers:
         is_debug_output_tf: True
     kinematics:
         robot: "custom"
-        module_name: "dvrk_planning.kinematics.psm"
+        module_name: "dvrk_ctr_teleop.kinematics.Fetal_tool_FK_and_numerical_IK_solver"
         class_name: "Peter_Francis_tool_Kinematics_Solver"
 clutch_topic: "/console/clutch"

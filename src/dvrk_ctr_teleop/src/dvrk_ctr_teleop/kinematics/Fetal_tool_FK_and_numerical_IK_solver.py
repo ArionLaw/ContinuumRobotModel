@@ -10,15 +10,14 @@ if test_cases == True:
         #from psm import *
 
 else:
-        from dvrk_planning.kinematics.utils import *
-        from dvrk_planning.kinematics.TaskSpace_to_JointSpace import *
-        from dvrk_planning.kinematics.JointSpace_to_CableSpace import *
-        from dvrk_planning.kinematics.CableSpace_to_DiskSpace import *
-        from dvrk_planning.kinematics.plotting import *
-        from dvrk_planning.kinematics.TestCaseReader import *
-        from dvrk_planning.kinematics.psm import *
+        from dvrk_ctr_teleop.kinematics.utils import *
+        from dvrk_ctr_teleop.kinematics.TaskSpace_to_JointSpace import *
+        from dvrk_ctr_teleop.kinematics.JointSpace_to_CableSpace import *
+        from dvrk_ctr_teleop.kinematics.CableSpace_to_DiskSpace import *
+        from dvrk_ctr_teleop.kinematics.plotting import *
+        from dvrk_ctr_teleop.kinematics.TestCaseReader import *
+        # from dvrk_planning.kinematics.psm import *
         
-
 import numpy as np
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # Notes
