@@ -22,7 +22,7 @@ class RosTeleopController:
         self.js_msg = JointState()
         self.extra_js_msg = JointState()
         self.output_pub = rospy.Publisher(output_yaml["control_topic"], JointState, queue_size = 1)
-        self.extra_output_pub = rospy.Publisher(output_yaml["extra_control_topic"], JointState, queue_size = 1)
+        self.extra_output_pub = rospy.Publisher(output_yaml["extra_control_topic"], JointState, queue_size = 1) # TODO, this is not modular
 
         self.output_feedback_topic = output_yaml["feedback_topic"]
         self.extra_output_feedback_topic = output_yaml["extra_feedback_topic"]
@@ -61,14 +61,13 @@ class RosTeleopController:
     def _output_callback(self, joint_positions):
         harmonized_jp = get_harmonized_joint_positions(joint_positions, np.array(self.current_output_jps))
         self.js_msg.position = harmonized_jp[0:6]
-        self.extra_js_msg.position = np.array([harmonized_jp[6]])
+        self.extra_js_msg.position = np.array([harmonized_jp[6]]) # This is too hardcoded, need to know indexes from config
 
-        # print("np.array(self.current_output_jps):\n", np.around(np.array(self.current_output_jps),3))
-        #print("sending output js:\n", np.around(joint_positions,3))
-        # print("sending output js harmonized:\n", np.around(self.js_msg.position,3))
+        # print("current_output_jps:\n", np.around(self.current_output_jps,3))
+        # print("sending harmonized_jp:\n", np.around(harmonized_jp,3))
 
         self.output_pub.publish(self.js_msg)
-        rospy.sleep(0.01)
+        rospy.sleep(0.01) # Only for dvrk
         self.extra_output_pub.publish(self.extra_js_msg)
 
     def _output_feedback_callback(self, js):

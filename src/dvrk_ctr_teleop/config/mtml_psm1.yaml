@@ -1,0 +1,35 @@
+cartesian_controllers:
+  - name: "MTML-PSM1-PeterFrancis"
+    input:
+        position_scale: 0.5
+        type: "follow"
+        topic: "/MTML/measured_cp"
+        input_2_input_reference_rot:
+            quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        mtm_device_name: "/MTML/"
+        jaw:
+            input_topic: "/MTML/gripper/measured_js"
+            scale: 1
+        is_half_hz: True
+        is_mtm_hold_home_off: False
+    output:
+        control_topic: "/PSM1/servo_jp"
+        extra_control_topic: "/PSM1/jaw/servo_jp"
+        feedback_topic: "/PSM1/measured_js"
+        extra_feedback_topic: "/PSM1/jaw/measured_js"
+        output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
+            quaternion:
+                x: 0
+                y: 0
+                z: 0
+                w: 1
+        is_debug_output_tf: True
+    kinematics:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
+        class_name: "PeterFrancisToolKinematicsSolver"
+clutch_topic: "/console/clutch"

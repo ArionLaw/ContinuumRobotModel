@@ -8,8 +8,7 @@ import re
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
 def read_TestCaseFile(input_filename):
-    file_path = sys.path[0]+ "/test_cases/" + input_filename
-
+    file_path = "test_cases/" + input_filename
     try:
         with open(file_path, 'r') as file:
             content = file.read()

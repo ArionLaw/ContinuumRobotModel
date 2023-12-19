@@ -1,0 +1,35 @@
+cartesian_controllers:
+  - name: "MTMR-PSM2-PeterFrancis"
+    input:
+        position_scale: 0.5
+        type: "follow"
+        topic: "/MTMR/measured_cp"
+        input_2_input_reference_rot:
+            quaternion:
+                x: 0.9659258
+                y: 0
+                z: 0
+                w: -0.258819
+        jaw:
+            input_topic: "/MTMR/gripper/measured_js"
+            scale: 1
+        is_half_hz: True
+        is_mtm_hold_home_off: False
+        mtm_device_name: "/MTMR/"
+    output:
+        control_topic: "/PSM2/servo_jp"
+        extra_control_topic: "/PSM2/jaw/servo_jp"
+        feedback_topic: "/PSM2/measured_js"
+        extra_feedback_topic: "/PSM2/jaw/measured_js"
+        output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
+            quaternion:
+                x:  -0.7475933951292634
+                y:  0.5444053038874458
+                z:  0.1822981241649067
+                w:  0.3339077336395112
+        is_debug_output_tf: True
+    kinematics:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
+        class_name: "PeterFrancisToolKinematicsSolver"
+clutch_topic: "/console/clutch"

@@ -1,12 +1,5 @@
-#test_cases = True
-test_cases = False
-if test_cases == True:
-    from utils import *
-    from plotting import *
-
-else:
-    from dvrk_planning.kinematics.utils import *
-    from dvrk_planning.kinematics.plotting import *
+from dvrk_ctr_teleop.kinematics.utils import *
+from dvrk_ctr_teleop.kinematics.plotting import *
 
 import numpy as np
 

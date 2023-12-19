@@ -1,0 +1,19 @@
+cartesian_controllers:
+  - name: "Keyboard-PSM1_PeterFrancis"
+    input:
+        type: "increment"
+        topic: "/keyboard/twist"
+        jaw:
+            input_topic: "/keyboard/joint_state"
+            scale: 1
+    output:
+        control_topic: "/PSM1/servo_jp"
+        extra_control_topic: "/PSM1/jaw/servo_jp"
+        feedback_topic: "/PSM1/measured_js"
+        extra_feedback_topic: "/PSM1/jaw/measured_js"
+        is_debug_output_tf: True
+    kinematics:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
+        class_name: "PeterFrancisToolKinematicsSolver"
+clutch_topic: "/console/clutch"
