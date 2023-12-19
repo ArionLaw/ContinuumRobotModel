@@ -3,29 +3,16 @@ cartesian_controllers:
     input:
       type: "increment"
       topic: "/keyboard/twist"
-      input_2_input_reference_rot:
-        quaternion:
-          x: 0
-          y: 0
-          z: 0
-          w: 1
       jaw:
         input_topic: "/keyboard/joint_state"
         scale: 1
     output:
-      control_topic: "/PSM2/servo_jp"
-      extra_control_topic: "/PSM2/jaw/servo_jp"
-      feedback_topic: "/PSM2/measured_js"
-      extra_feedback_topic: "/PSM2/jaw/measured_js"
-      output_2_output_reference_rot:
-        quaternion:
-          x: 0
-          y: 0
-          z: 0 
-          w: 1
+        control_topic: "/PSM2/servo_jp"
+        extra_control_topic: "/PSM2/jaw/servo_jp"
+        feedback_topic: "/PSM2/measured_js"
+        extra_feedback_topic: "/PSM2/jaw/measured_js"
     kinematics:
-      robot: "fetal"
-      tool:
-        type: 
-
+        robot: "fetal"
+        tool:
+            type:
 clutch_topic: "/console/clutch"
