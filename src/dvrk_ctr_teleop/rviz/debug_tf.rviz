@@ -59,34 +59,33 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        Cart:
+        MTMR:
           Value: true
-        ECM:
+        MTMR_base:
           Value: true
-        ECM_base:
-          Value: true
-        PSM1_base:
+        PSM2:
           Value: true
         PSM2_base:
           Value: true
-        PSM3_base:
+        ee:
+          Value: true
+        world:
           Value: true
       Marker Alpha: 1
-      Marker Scale: 0.800000011920929
+      Marker Scale: 0.5
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: true
       Tree:
-        Cart:
-          ECM_base:
-            ECM:
-              {}
-          PSM1_base:
+        MTMR_base:
+          MTMR:
             {}
-          PSM2_base:
+        PSM2_base:
+          PSM2:
             {}
-          PSM3_base:
+        world:
+          ee:
             {}
       Update Interval: 0
       Value: true
@@ -94,7 +93,7 @@ Visualization Manager:
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: Cart
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -118,7 +117,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 4.227833271026611
+      Distance: 1.036160945892334
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -126,17 +125,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: -0.5956766605377197
-        Y: 0.5187245011329651
-        Z: 0.05536200478672981
+        X: 0.17191791534423828
+        Y: 0.23391352593898773
+        Z: -0.10709069669246674
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8903979063034058
+      Pitch: 0.6253981590270996
       Target Frame: <Fixed Frame>
-      Yaw: 0.905397891998291
+      Yaw: 0.8303979635238647
     Saved: ~
 Window Geometry:
   Displays:
@@ -154,5 +153,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 72
-  Y: 0
+  X: 522
+  Y: 131
