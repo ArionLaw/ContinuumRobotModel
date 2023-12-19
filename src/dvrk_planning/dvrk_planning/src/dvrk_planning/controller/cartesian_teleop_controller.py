@@ -30,7 +30,6 @@ class CartesianTeleopController(TeleopController):
         self.h2m_transform = np.linalg.inv(m2h_transform)
         self.s2e_transform = convert_frame_to_mat(Frame(output_2_output_reference_rot, Vector(0.0, 0.0, 0.0)))
 
-        print(self.h2m_transform)
         self.kinematics_solver = kinematics_solver
         self.current_output_js = np.array([])
 
@@ -46,6 +45,9 @@ class CartesianTeleopController(TeleopController):
         output_diff_p_wrt_e = input_diff_p_wrt_h
         output_diff_p_wrt_s = np.matmul(self.s2e_transform[0:3, 0:3], output_diff_p_wrt_e)
         output_p_wrt_s = cur_output_p_wrt_s + output_diff_p_wrt_s
+
+        # print("output_diff_p_wrt_s: ", output_diff_p_wrt_s)
+        # print("output_p_wrt_s: ", output_p_wrt_s)
 
         # Post multiply output to rotate about itself
         output_rot = np.matmul(cur_output_rot, input_diff_rot)
