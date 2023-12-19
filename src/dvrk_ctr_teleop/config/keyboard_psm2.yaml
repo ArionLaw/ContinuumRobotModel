@@ -1,32 +1,22 @@
 cartesian_controllers:
-  - name: "MTMR-PSM2-PeterFrancis"
+  - name: "Keyboard-PSM2_PeterFrancis"
     input:
-        position_scale: 0.5
-        type: "follow"
-        topic: "/MTMR/measured_cp"
+        type: "increment"
+        topic: "/keyboard/twist"
+        jaw:
+            input_topic: "/keyboard/joint_state"
+            scale: 1
         input_2_input_reference_rot:
             quaternion:
                 x: 0.9659258
                 y: 0
                 z: 0
                 w: -0.258819
-        jaw:
-            input_topic: "/MTMR/gripper/measured_js"
-            scale: 1
-        is_half_hz: True
-        is_mtm_hold_home_off: False
-        mtm_device_name: "/MTMR/"
     output:
         control_topic: "/PSM2/servo_jp"
         extra_control_topic: "/PSM2/jaw/servo_jp"
         feedback_topic: "/PSM2/measured_js"
         extra_feedback_topic: "/PSM2/jaw/measured_js"
-        output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
-            quaternion:
-                x: -0.8761096095306873
-                y: 0.35236605389216996
-                z: 0.24117335165870074
-                w: 0.22384264696915165
         is_debug_output_tf: True
     kinematics:
         robot: "custom"

@@ -35,7 +35,7 @@ Secondary parameters (e.g. for testing, visualization):
 Notes:
 - Model does not currently consider the introduced slack in Francis' thesis (when two cables are actuated)
 '''
-np.set_printoptions(precision=3)
+# np.set_printoptions(precision=3)
 printout = False
 #getCabletoDiskMapping()
 #getEECabletoDisk2Mapping()
