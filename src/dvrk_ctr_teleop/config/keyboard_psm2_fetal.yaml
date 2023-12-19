@@ -13,7 +13,7 @@ cartesian_controllers:
         extra_feedback_topic: "/PSM2/jaw/measured_js"
         is_debug_output_tf: True
     kinematics:
-        robot: "fetal"
-        tool:
-            type:
+        robot: "custom"
+        module_name: "dvrk_planning.kinematics.psm"
+        class_name: "Peter_Francis_tool_Kinematics_Solver"
 clutch_topic: "/console/clutch"

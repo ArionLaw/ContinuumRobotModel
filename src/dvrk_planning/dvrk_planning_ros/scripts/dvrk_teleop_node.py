@@ -10,7 +10,7 @@ import numpy as np
 
 from sensor_msgs.msg import  Joy
 from dvrk_planning.kinematics.psm import PsmKinematicsSolver, CustomSphericalWristFromYaml
-from dvrk_planning.kinematics.Fetal_tool_FK_and_numerical_IK_solver import Peter_Francis_tool_Kinematics_Solver
+# from dvrk_planning.kinematics.Fetal_tool_FK_and_numerical_IK_solver import Peter_Francis_tool_Kinematics_Solver
 from dvrk_planning_ros.ros_joint_teleop_controller import RosJointTeleopController
 from dvrk_planning_ros.ros_cartesian_teleop_controller import RosCartesiansTeleopController
 
@@ -34,10 +34,11 @@ class DvrkTeleopNode:
                             scale = tool_yaml["scale"]
                             print("Choosing scale {}".format(scale))
                         kin_solver = PsmKinematicsSolver(class_(scale))
-                elif kin_yaml["robot"] == "fetal":
-                    kin_solver = Peter_Francis_tool_Kinematics_Solver()
+                elif kin_yaml["robot"] == "custom":
+                    module = importlib.import_module(kin_yaml["module_name"])
+                    kin_solver = getattr(module, kin_yaml["class_name"])()
                 else:
-                    raise KeyError ("Only [psm] available now")
+                    raise KeyError ("key [robot]: Only [psm, custom] available now")
                 self.ros_teleop_controllers[controller_yaml["name"]] = RosCartesiansTeleopController(controller_yaml, kin_solver)
 
         if "joint_controllers" in config_yaml:
