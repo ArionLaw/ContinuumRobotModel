@@ -90,7 +90,7 @@ rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_p
 
 ### Setup the HSRV frame relative to the MTM base
 
-In your dvrk_teleop config, (e.g. dvrk_planning_ros/config):
+In your dvrk_teleop config, (e.g. dvrk_ctr_teleop/config):
 ```yaml
     input:
       # ... 
