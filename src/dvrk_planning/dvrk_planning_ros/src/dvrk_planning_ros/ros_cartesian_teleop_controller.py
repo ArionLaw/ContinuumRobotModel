@@ -12,7 +12,6 @@ from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopCo
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
 from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
 from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
-from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
 
 import tf
 import rospy
@@ -38,6 +37,22 @@ def rotation_from_yaml(reference_rot):
     else:
         raise KeyError ("output_to_camera in yaml looking for quaternion or lookup_tf")
 
+from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
+class InputDevice:
+    def __init__(name):
+        self.mtm_device = MTM(name)
+        self.is_enabled = False
+    def enable(self):
+        self.is_enabled = True
+
+    def disable(self, current_tf):
+        self.is_enabled = False
+        self.mtm_device.servo_cp(current_tf)
+
+    def update(self):
+        if self.is_enabled:
+            self.mtm_device.servo_cf(Wrench()) # empty wrench
+
 class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
 
@@ -59,10 +74,9 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._is_half_hz_trigger = False
         self._is_half_hz_trigger_jaw = False
 
-        self.is_mtm_hold_home_off = False
-        if("is_mtm_hold_home_off" in input_yaml): # TODO, remove notion of MTM
-            self.is_mtm_hold_home_off = input_yaml["is_mtm_hold_home_off"]
-            self.mtm_device = MTM(input_yaml["mtm_device_name"])
+        self.input_device = None
+        if("is_mtm_hold_home_off" in input_yaml and input_yaml["is_mtm_hold_home_off"]): # TODO, remove notion of MTM
+            self.input_device = InputDevice(input_yaml["mtm_device_name"])
 
         input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("input_2_input_reference_rot" in input_yaml):
@@ -139,11 +153,15 @@ class RosCartesiansTeleopController(RosTeleopController):
             if self._jaw_mimic_controller:
                 _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
                 self._jaw_mimic_controller.enable(self.input_jaw_js, np.array([current_output_jaw]))
+        if self.input_device: # FOLLOW only
+            self.input_device.enable()
 
     def disable(self):
         self._teleop_controller.disable()
         if self._jaw_controller:
             self._jaw_controller.disable()
+        if self.input_device:
+            self.input_device.disable(self.current_input_tf)
 
     def clutch(self):
         self._teleop_controller.clutch()
@@ -182,9 +200,8 @@ class RosCartesiansTeleopController(RosTeleopController):
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
         # print(self.desired_output_jaw_angle)
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
-        if self.is_mtm_hold_home_off: # How to take away notion of MTM in this case
-            f = Wrench()
-            self.mtm_device.servo_cf(f)
+        if self.input_device: # How to take away notion of MTM in this case
+            self.input_device.update()
         self._debug_output_tf()
 
     def _input_jaw_mimic(self, data):

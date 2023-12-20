@@ -21,3 +21,8 @@ cartesian_controllers:
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
 clutch_topic: "/console/clutch"
+enable_at_start: []
+switcher:
+  switch_topic: "/console/camera"
+  disable_list: []
+  enable_list: ["MTMR-PSM2-PeterFrancis"]
