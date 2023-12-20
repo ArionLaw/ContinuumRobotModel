@@ -144,47 +144,38 @@ def getEECabletoDisk2Mapping():
     else:
         
         zero_setpoint = 32.5*np.pi/180 #radians zero 
-        breakover = -51*np.pi/180 + zero_setpoint #radians breakover distance
-
-        #simple sinusoid arccos
-        single_sinusoid = True
-        vscale = 1.6
-        hscale = 1.1
-        vshift = -0.6
-        hshift = 0
-
-        #piecewise sinusoidal working range
-        pre_vscale = 4.8
-        pre_hscale = 0.35
-        pre_vshift = 1.6 
-        pre_hshift = 3.45 - zero_setpoint
-        
-        #piecewise sinusoidal breakover range
-        post_vscale = 1.1
-        post_hscale = 1.5
-        post_vshift = 3.1 
-        post_hshift = 2.7
-
+        breakover = -70*np.pi/180 + zero_setpoint #radians breakover distance
+        sinusoid_model = True
         thetaA = -np.pi/2
-        if single_sinusoid == True:
-            print("simple sinusoidal model for dial 2 mapping")
+
+        if sinusoid_model == True:
+            print("simple sinusoidal model for dial 2 mapping")  
+            vscale = 1.6
+            hscale = 1.1
+            vshift = -0.6
+            hshift = 0
             while thetaA < np.pi/2:
                 lengthEEDelta = vscale*np.arccos(hscale*thetaA + hshift) + vshift
                 entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
                 EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
-                
                 thetaA = thetaA + np.pi/360
-        else:
-            print("piecewise sinusoidal model for dial 2 mapping")
-            while thetaA < np.pi/2: 
-                if (thetaA > breakover): #working range 
-                    lengthEEDelta = pre_vscale*np.sin(pre_hscale*thetaA + pre_hshift) + pre_vshift
-                else: #thetaA <= breakover #breakover range
-                    lengthEEDelta = post_vscale*np.sin(post_hscale*thetaA + post_hshift) + post_vshift
 
+        else:
+            print("piecewise linear model for dial 2 mapping")
+            MaxDelta = 4.1
+            MinDelta = 0
+            vshift = 0 
+            hshift = -0.9
+            scale = (MinDelta-MaxDelta)/(-hshift - breakover)
+            while thetaA < np.pi/2: 
+                if (thetaA <= breakover): #max displacement
+                    lengthEEDelta = MaxDelta
+                elif (thetaA > breakover and thetaA < -(hshift)): #linear range
+                    lengthEEDelta = scale*(thetaA + hshift) + vshift
+                else: # zero displacement
+                    lengthEEDelta = MinDelta
                 entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
                 EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
-                
                 thetaA = thetaA + np.pi/360
 
     return EEmapping    
@@ -274,23 +265,23 @@ def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
     if DiskPositions[2] > 0:
         gamma = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
         #print("gamma")
-        beta = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
+        beta = 0
         #print("beta")
-        alpha = 0
+        alpha = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
         #print("unused\nalpha")
     elif DiskPositions[3] < 0:
         gamma = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
         #print("gamma")
-        beta = 0
+        beta = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
         #print("unused\nbeta")
-        alpha = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
+        alpha = 0
         #print("alpha")
     else:
         gamma = 0
         #print("gamma")
-        beta = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
+        beta = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
         #print("beta")
-        alpha = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
+        alpha = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
         #print("alpha")
     #print("\n")
 
@@ -403,19 +394,19 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     #deltaL = deltaL - diff
     #print("Cables Delta: \n", deltaL)
     
-    if (deltaL[2] > 0):
-        Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])
+    if (deltaL[1] > 0):
+        Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[1])
         if (deltaL[0] > 0):
             Disk4 = -Cable_to_Disk_from_LookUpTable(deltaL[0])
         else:
-            Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[1])
+            Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[2])
     
-    elif (deltaL[1] >= 0):
-        Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[1])
+    elif (deltaL[2] >= 0):
+        Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[2])
         if (deltaL[0] >= 0):
             Disk3 = Cable_to_Disk_from_LookUpTable(deltaL[0])
         else:
-            Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[2])
+            Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[1])
     else:
         print("whooosh")    
     Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
