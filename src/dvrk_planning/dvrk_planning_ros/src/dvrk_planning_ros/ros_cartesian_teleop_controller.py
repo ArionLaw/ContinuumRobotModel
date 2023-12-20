@@ -75,8 +75,8 @@ class RosCartesiansTeleopController(RosTeleopController):
         self._is_half_hz_trigger_jaw = False
 
         self.input_device = None
-        if("is_mtm_hold_home_off" in input_yaml and input_yaml["is_mtm_hold_home_off"]): # TODO, remove notion of MTM
-            self.input_device = InputDevice(input_yaml["mtm_device_name"])
+        if("is_input_device_hold_home_off" in input_yaml and input_yaml["is_input_device_hold_home_off"]): # TODO, remove notion of MTM
+            self.input_device = InputDevice(input_yaml["input_device_name"])
 
         input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("input_2_input_reference_rot" in input_yaml):

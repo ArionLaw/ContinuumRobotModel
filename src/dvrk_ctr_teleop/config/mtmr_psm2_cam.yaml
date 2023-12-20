@@ -14,8 +14,8 @@ cartesian_controllers:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
         is_half_hz: True
-        is_mtm_hold_home_off: False
-        mtm_device_name: "/MTMR/"
+        is_input_device_hold_home_off: False
+        input_device_name: "/MTMR/"
     output:
         control_topic: "/PSM2/servo_jp"
         extra_control_topic: "/PSM2/jaw/servo_jp"
