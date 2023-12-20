@@ -28,7 +28,7 @@ class RosJointTeleopController(RosTeleopController):
         self._teleop_controller.register(self._output_callback)
 
     def enable(self):
-        self._wait_for_output_feedback_sub_msg(True)
+        super().enable()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.enable(self.current_output_jps)
@@ -38,11 +38,14 @@ class RosJointTeleopController(RosTeleopController):
 
     def disable(self):
         self._teleop_controller.disable()
+        super().disable()
 
     def clutch(self):
         self._teleop_controller.clutch()
+        super().clutch()
 
     def unclutch(self):
+        super().unclutch()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()

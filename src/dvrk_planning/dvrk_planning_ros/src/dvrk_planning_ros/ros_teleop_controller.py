@@ -6,7 +6,7 @@ from dvrk_planning.kinematics.utilities import get_harmonized_joint_positions, T
 from dvrk_planning_ros.average_timer import AverageTimer
 
 class RosTeleopController:
-    def __init__(self, controller_yaml, ros_input_type):
+    def __init__(self, controller_yaml, ros_input_type, is_print_wait_msg = False):
         self.name = controller_yaml["name"]
         self.input_topic = controller_yaml["input"]["topic"]
         self.ros_input_type = ros_input_type
@@ -31,32 +31,32 @@ class RosTeleopController:
 
         self.current_output_jps = np.zeros(7)
 
+        self.is_print_wait_msg = is_print_wait_msg
     def _get_str_name(self):
         return "Teleop controller [" + self.name + "]"
 
     def enable(self):
-        raise NotImplementedError
+        self._wait_for_output_feedback_sub_msg(self.is_print_wait_msg)
 
     def disable(self):
-        raise NotImplementedError
+        pass
 
     def clutch(self):
-        raise NotImplementedError
+        pass
 
     def unclutch(self):
-        raise NotImplementedError
+        self._wait_for_output_feedback_sub_msg(self.is_print_wait_msg)
 
-    def _wait_for_output_feedback_sub_msg(self, always_print = False):
-        try:
-            if(always_print):
-                 raise
+    def _wait_for_output_feedback_sub_msg(self, print_msg = False):
+        if not print_msg:
             rospy.wait_for_message(self.output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
             rospy.wait_for_message(self.extra_output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
-        except:
-            print(self._get_str_name(), ": waiting for message from topic [" + self.output_feedback_topic +"] and " + self.extra_output_feedback_topic)
-            rospy.wait_for_message(self.output_feedback_topic, JointState)
-            rospy.wait_for_message(self.extra_output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
-            print(self._get_str_name(), ": finished for message from topic [" + self.output_feedback_topic +"] and " + self.extra_output_feedback_topic )
+            return
+        # else
+        print(self._get_str_name(), ": waiting for message from topic [" + self.output_feedback_topic +"] and " + self.extra_output_feedback_topic)
+        rospy.wait_for_message(self.output_feedback_topic, JointState)
+        rospy.wait_for_message(self.extra_output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
+        print(self._get_str_name(), ": finished for message from topic [" + self.output_feedback_topic +"] and " + self.extra_output_feedback_topic )
 
     def _output_callback(self, joint_positions):
         harmonized_jp = get_harmonized_joint_positions(joint_positions, np.array(self.current_output_jps))
