@@ -23,10 +23,10 @@ cartesian_controllers:
         extra_feedback_topic: "/PSM2/jaw/measured_js"
         output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
             quaternion:
-                x:  -0.7475933951292634
-                y:  0.5444053038874458
-                z:  0.1822981241649067
-                w:  0.3339077336395112
+                x:  1
+                y:  0
+                z:  0
+                w:  0
         is_debug_output_tf: True
     kinematics:
         robot: "custom"

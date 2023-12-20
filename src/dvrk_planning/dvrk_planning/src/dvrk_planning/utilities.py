@@ -96,7 +96,7 @@ def convert_frame_to_mat(frame):
     np_mat = np.array([[1, 0, 0, 0],
                      [0, 1, 0, 0],
                      [0, 0, 1, 0],
-                     [0, 0, 0, 1]], np.float32)
+                     [0, 0, 0, 1]], np.float64)
     for i in range(3):
         for j in range(3):
             np_mat[i, j] = frame.M[(i, j)]
