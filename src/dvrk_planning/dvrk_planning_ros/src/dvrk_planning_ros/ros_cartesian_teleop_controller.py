@@ -42,6 +42,7 @@ class InputDevice:
     def __init__(name):
         self.mtm_device = MTM(name)
         self.is_enabled = False
+        self.empty_wrench = Wrench()
     def enable(self):
         self.is_enabled = True
 
@@ -51,7 +52,7 @@ class InputDevice:
 
     def update(self):
         if self.is_enabled:
-            self.mtm_device.servo_cf(Wrench()) # empty wrench
+            self.mtm_device.servo_cf(self.empty_wrench)
 
 class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
@@ -132,8 +133,9 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
-        super().__init__(controller_yaml, input_topic_type, is_print_wait_msg=True)
-        self.js_msg.name = kinematics_solver.get_active_joint_names()
+        super().__init__(controller_yaml, input_topic_type,
+                         joint_state_names = kinematics_solver.get_active_joint_names(),
+                         is_print_wait_msg=True)
         self._teleop_controller.register(self._output_callback)
 
         self.current_input_tf = np.identity(4)
@@ -143,15 +145,15 @@ class RosCartesiansTeleopController(RosTeleopController):
         super().enable()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
-            self._teleop_controller.enable(self.current_output_jps)
+            self._teleop_controller.enable(self.get_current_output_jps())
             if self._jaw_inc_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self._jaw_inc_controller.enable(np.array([current_output_jaw]))
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg(True)
-            self._teleop_controller.enable(self.current_input_tf, self.current_output_jps)
+            self._teleop_controller.enable(self.current_input_tf, self.get_current_output_jps())
             if self._jaw_mimic_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self._jaw_mimic_controller.enable(self.input_jaw_js, np.array([current_output_jaw]))
         if self.input_device: # FOLLOW only
             self.input_device.enable()
@@ -174,13 +176,13 @@ class RosCartesiansTeleopController(RosTeleopController):
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
             if self._jaw_inc_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self.__jaw_inc_controller.unclutch(np.array([current_output_jaw]))
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg()
-            self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
+            self._teleop_controller.unclutch(self.current_input_tf, self.get_current_output_jps())
             if self._jaw_mimic_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self._jaw_mimic_controller.unclutch(self.input_jaw_js, np.array([current_output_jaw]))
 
     def _debug_output_tf(self):

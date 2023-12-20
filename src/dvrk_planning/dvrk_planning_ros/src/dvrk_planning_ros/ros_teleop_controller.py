@@ -1,15 +1,82 @@
 import rospy
 import numpy as np
+import threading
+
+from dataclasses import dataclass
 from sensor_msgs.msg import JointState
 
 from dvrk_planning.kinematics.utilities import get_harmonized_joint_positions, TWO_PI
 from dvrk_planning_ros.average_timer import AverageTimer
 
+class JointStateControlInterface:
+    def __init__(control_topic_name, feedback_topic_name, store_js_func, prev_jsci = None):
+        self.control_topic_name = control_topic_name
+        self.feedback_topic_name = feedback_topic_name
+        self.store_js_func = store_js_func
+        self.prev_jsci = prev_jsci
+
+        self.control_topic_name_pub = rospy.Publisher(control_topic_name, JointState, queue_size = 1)
+        self.feedback_topic_sub = rospy.Subscriber(self.output_feedback_topic, JointState, self._feedback_callback)
+
+        self.size_and_idx_obtained = False
+        self.size = -1
+        self.start_idx = -1
+
+        self.js_msg = JointState()
+        self.feedback_js_msg = None
+        self.is_enabled = False
+        self._enabled_condition = threading.Condition()
+
+    def enable(joint_state_names = None):
+        self.is_enabled = True
+        self._enabled_condition.wait() # To make sure caller() gets store_js_func() done at least 1x
+                                       # when enabled
+        if joint_state_names:
+            self.js_msg.name = joint_state_names[self.start_idx: self.start_idx + self.size]
+        else: # None
+            self.js_msg.name = self.feedback_js_msg.name
+
+    def _feedback_callback(self, js_msg):
+        self.feedback_js_msg =  js_msg
+        if self.size_and_idx_obtained and self.is_enabled:
+            self.store_js_func()[self.start_idx: self.start_idx + self.size] = js_msg.position
+            self._enabled_condition.notify() 
+
+    def wait_for_output_feedback_sub_msg(self, always_print = False, prepend_str = ""):
+        try:
+            if always_print:
+                rospy.wait_for_message(self.output_feedback_topic, JointState, timeout=0.1)
+                raise
+        except:
+            print(prepend_str, ": waiting for message from topic [" + self.control_topic_name +"]")
+            rospy.wait_for_message(self.output_feedback_topic, JointState)
+            print(prepend_str, ": finished for message from topic [" + self.feedback_topic +"]")
+
+    def obtain_size_and_index(self):
+        self.size = len(self.feedback_js_msg.position)
+        if not self.prev_jsci:
+            self.start_idx = 0
+            self.size_and_idx_obtained = True
+            return
+        # else
+        if not self.prev_jsci.size_and_idx_obtained: # if not called in for loop
+            self.prev_jsci.obtain_size_and_index() # recursiveness
+        self.start_idx = self.prev_jsci.start_idx + self.prev_jsci.size
+        self.size_and_idx_obtained = True
+        return
+
+    def publish(joint_state_positions):
+        self.js_msg.positions = joint_state_positions[self.start_idx: self.start_idx + self.size]
+        self.control_topic_name_pub.publish(js_msg)
+
 class RosTeleopController:
-    def __init__(self, controller_yaml, ros_input_type, is_print_wait_msg = False):
+    def __init__(self, controller_yaml, ros_input_type,
+                 joint_state_names = None, is_print_wait_msg = False):
         self.name = controller_yaml["name"]
         self.input_topic = controller_yaml["input"]["topic"]
         self.ros_input_type = ros_input_type
+        self.is_print_wait_msg = is_print_wait_msg
+        self.joint_state_names = joint_state_names
 
         if "is_timed" in controller_yaml and controller_yaml["is_timed"]:
             self._average_timer = AverageTimer()
@@ -19,24 +86,39 @@ class RosTeleopController:
             self.input_sub = rospy.Subscriber(self.input_topic, self.ros_input_type, self._input_callback_impl)
 
         output_yaml = controller_yaml["output"]
-        self.js_msg = JointState()
-        self.extra_js_msg = JointState()
-        self.output_pub = rospy.Publisher(output_yaml["control_topic"], JointState, queue_size = 1)
-        self.extra_output_pub = rospy.Publisher(output_yaml["extra_control_topic"], JointState, queue_size = 1) # TODO, this is not modular
+        self.js_control_interfaces = []
+        prev_jsci = None
+        for control_interface_yaml in output_yaml["control_interfaces"]:
+            jsci = JointStateControlInterface(
+                    control_interface_yaml["control_topic"],
+                    control_interface_yaml["feedback_topic"],
+                    self.get_current_output_jps,
+                    prev_jsci)
+            self.js_control_interfaces.append(jsci)
+            prev_jsci = jsci
 
-        self.output_feedback_topic = output_yaml["feedback_topic"]
-        self.extra_output_feedback_topic = output_yaml["extra_feedback_topic"]
-        self.output_feedback_sub = rospy.Subscriber(self.output_feedback_topic, JointState, self._output_feedback_callback)
-        self.extra_output_feedback_sub = rospy.Subscriber(self.extra_output_feedback_topic, JointState, self._extra_output_feedback_callback)
+        self.__current_output_jps = np.array([])
+        self.__is_currrent_output_jps_initialized = False
 
-        self.current_output_jps = np.zeros(7)
+    def get_current_output_jps(self):
+        if not self.__is_currrent_output_jps_initialized:
+            raise "__is_currrent_output_jps_initialized is False, enable the RosTeleopController() one time first"
+        return self.__current_output_jps
 
-        self.is_print_wait_msg = is_print_wait_msg
     def _get_str_name(self):
         return "Teleop controller [" + self.name + "]"
 
     def enable(self):
         self._wait_for_output_feedback_sub_msg(self.is_print_wait_msg)
+        if len(self.__current_output_jps) == 0:
+            total_size = 0
+            for js_ci in self.js_control_interfaces:
+                js_ci.obtain_size_and_index()
+                total_size += js_ci.size
+            self.__current_output_jps = np.zeros(total_size)
+            self.__is_currrent_output_jps_initialized = True
+            for js_ci in self.js_control_interfaces:
+                js_ci.enable(self.joint_state_names)
 
     def disable(self):
         pass
@@ -47,41 +129,22 @@ class RosTeleopController:
     def unclutch(self):
         self._wait_for_output_feedback_sub_msg(self.is_print_wait_msg)
 
-    def _wait_for_output_feedback_sub_msg(self, print_msg = False):
-        if not print_msg:
-            rospy.wait_for_message(self.output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
-            rospy.wait_for_message(self.extra_output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
-            return
-        # else
-        print(self._get_str_name(), ": waiting for message from topic [" + self.output_feedback_topic +"] and " + self.extra_output_feedback_topic)
-        rospy.wait_for_message(self.output_feedback_topic, JointState)
-        rospy.wait_for_message(self.extra_output_feedback_topic, JointState, timeout=0.1) # timeout 0.01s to see if publishing
-        print(self._get_str_name(), ": finished for message from topic [" + self.output_feedback_topic +"] and " + self.extra_output_feedback_topic )
+    def _wait_for_output_feedback_sub_msg(self, print_msg= False):
+        for js_ci in self.js_control_interfaces:
+            js_ci.wait_for_output_feedback_sub_msg(
+                print_msg= print_msg, prepend_str=self._get_str_name())
 
     def _output_callback(self, joint_positions):
-        harmonized_jp = get_harmonized_joint_positions(joint_positions, np.array(self.current_output_jps))
-        self.js_msg.position = harmonized_jp[0:6]
-        self.extra_js_msg.position = np.array([harmonized_jp[6]]) # This is too hardcoded, need to know indexes from config
-
-        # print("current_output_jps:\n", np.around(self.current_output_jps,3))
-        # print("sending harmonized_jp:\n", np.around(harmonized_jp,3))
-
-        self.output_pub.publish(self.js_msg)
-        rospy.sleep(0.01) # Only for dvrk
-        self.extra_output_pub.publish(self.extra_js_msg)
-
-    def _output_feedback_callback(self, js):
-        self.js_msg.name =  js.name
-        self.current_output_jps[0:6]= js.position
-
-    def _extra_output_feedback_callback(self, js):
-        self.current_output_jps[6]= js.position[0]
+        harmonized_jp = get_harmonized_joint_positions(joint_positions, np.array(self.__current_output_jps))
+        for js_ci in self.js_control_interfaces:
+            js_ci.publish(harmonized_jp)
+            rospy.sleep(0.01) # Delay needed for downstream to synchronize properly
 
     def wait_for_input_sub_msg(self, always_print=False):
         try:
-            if(always_print):
+            if always_print:
                  raise
-            rospy.wait_for_message(self.input_topic, self.ros_input_type, timeout=0.01) # timeout 0.01s to see if publishing
+            rospy.wait_for_message(self.input_topic, self.ros_input_type, timeout=0.1)
         except:
             print(self._get_str_name(), ": waiting for message from topic [" + self.input_topic +"]" )
             rospy.wait_for_message(self.input_topic, self.ros_input_type)

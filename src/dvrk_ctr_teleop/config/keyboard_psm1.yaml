@@ -7,10 +7,11 @@ cartesian_controllers:
             input_topic: "/keyboard/joint_state"
             scale: 1
     output:
-        control_topic: "/PSM1/servo_jp"
-        extra_control_topic: "/PSM1/jaw/servo_jp"
-        feedback_topic: "/PSM1/measured_js"
-        extra_feedback_topic: "/PSM1/jaw/measured_js"
+        control_interfaces:
+            - control_topic: "/PSM1/servo_jp"
+              feedback_topic: "/PSM1/measured_js"
+            - control_topic: "/PSM1/jaw/servo_jp"
+              feedback_topic: "/PSM1/jaw/measured_js"
         is_debug_output_tf: True
     kinematics:
         robot: "custom"
