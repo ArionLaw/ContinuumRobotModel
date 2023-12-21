@@ -14,8 +14,8 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
-        is_half_hz: True
-        is_input_device_hold_home_off: False
+        hz_divisor: 4
+        is_input_device_hold_home_off: True
     output:
         control_interfaces:
             - control_topic: "/PSM1/servo_jp"
@@ -34,3 +34,8 @@ cartesian_controllers:
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
 clutch_topic: "/console/clutch"
+switcher:
+  switch_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTML-PSM1-PeterFrancis"]
+enable_at_start: []

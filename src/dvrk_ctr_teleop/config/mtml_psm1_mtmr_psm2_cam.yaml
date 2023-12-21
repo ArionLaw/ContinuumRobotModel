@@ -13,14 +13,15 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
-        is_half_hz: True
-        is_input_device_hold_home_off: False
+        hz_divisor: 4
+        is_input_device_hold_home_off: True
         input_device_name: "/MTML/"
     output:
-        control_topic: "/PSM1/servo_jp"
-        extra_control_topic: "/PSM1/jaw/servo_jp"
-        feedback_topic: "/PSM1/measured_js"
-        extra_feedback_topic: "/PSM1/jaw/measured_js"
+        control_interfaces:
+            - control_topic: "/PSM1/servo_jp"
+              feedback_topic: "/PSM1/measured_js"
+            - control_topic: "/PSM1/jaw/servo_jp"
+              feedback_topic: "/PSM1/jaw/measured_js"
         output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
             quaternion:
                 x: 0
@@ -45,14 +46,15 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
-        is_half_hz: True
-        is_input_device_hold_home_off: False
+        hz_divisor: 4
+        is_input_device_hold_home_off: True
         input_device_name: "/MTMR/"
     output:
-        control_topic: "/PSM2/servo_jp"
-        extra_control_topic: "/PSM2/jaw/servo_jp"
-        feedback_topic: "/PSM2/measured_js"
-        extra_feedback_topic: "/PSM2/jaw/measured_js"
+        control_interfaces:
+            - control_topic: "/PSM2/servo_jp"
+              feedback_topic: "/PSM2/measured_js"
+            - control_topic: "/PSM2/jaw/servo_jp"
+              feedback_topic: "/PSM2/jaw/measured_js"
         output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
             quaternion:
                 x: 0
@@ -64,3 +66,8 @@ cartesian_controllers:
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
 clutch_topic: "/console/clutch"
+switcher:
+  switch_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTML-PSM1-PeterFrancis", MTMR-PSM2-PeterFrancis]
+enable_at_start: []
