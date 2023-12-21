@@ -87,17 +87,21 @@ class CartesianFollowTeleopController(CartesianTeleopController):
     def __init__(self, kinematics_solver,
                  input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
                  output_2_output_reference_rot = Rotation.Quaternion(0, 0, 0, 1),
+                 input_tf_appended_rotation = Rotation.Quaternion(0, 0, 0, 1),
                  desired_jaw_in_kinematics = False,
                  position_scale = 1.0):
         super().__init__(InputType.FOLLOW, kinematics_solver,
                          input_2_input_reference_rot, output_2_output_reference_rot,
                          desired_jaw_in_kinematics)
+        
+        self.input_tf_appended_rotation = convert_frame_to_mat(Frame(input_tf_appended_rotation, Vector(0.0, 0.0, 0.0)))
+
         self.start_input_tf = np.identity(4)
         self.start_output_tf = np.identity(4)
         self.position_scale = position_scale
 
     def enable(self, start_input_tf, start_output_js):
-        self.start_input_tf = np.copy(start_input_tf)
+        self.start_input_tf = np.matmul(start_input_tf, self.input_tf_appended_rotation)
         self.current_output_js = np.copy(start_output_js)
         self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
         self.current_output_tf = np.copy(self.start_output_tf)
@@ -108,12 +112,13 @@ class CartesianFollowTeleopController(CartesianTeleopController):
     # MTM adjusts rotation for current output rotation. Need to check, but that wont work for occulus, or haptic pen.
     # start_output_tf should be the current tf of the output when uncluthing
     def unclutch(self, start_input_tf, start_output_js):
-        self.start_input_tf = np.copy(start_input_tf)
+        self.start_input_tf = np.matmul(start_input_tf, self.input_tf_appended_rotation)
         self.current_output_js = np.copy(start_output_js)
         self.start_output_tf = self.kinematics_solver.compute_fk(start_output_js)
         super()._unclutch()
 
     def __update_input_tf(self, absolute_input_tf):
+        absolute_input_tf = np.matmul(absolute_input_tf, self.input_tf_appended_rotation)
         input_tf_rot_diff = np.matmul(np.linalg.inv(self.start_input_tf), absolute_input_tf)
 
         input_tf_difference = np.identity(4)
