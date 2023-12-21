@@ -145,17 +145,21 @@ def getEECabletoDisk2Mapping():
         
         zero_setpoint = 32.5*np.pi/180 #radians zero 
         breakover = -70*np.pi/180 #radians breakover distance
-        arccos_model = False
+        arccos_model = True
         thetaA = -np.pi/2
 
         if arccos_model == True:
             print("simple sinusoidal model for dial 2 mapping")  
-            vscale = 1.2 #1.6
-            hscale = 0.8 #1.1
-            vshift = -0.4 #-0.6
-            hshift = 0.25
+            vscale = 1.7 #1.6
+            hscale = 1 #1.1
+            vshift = -1.2 #-0.6
+            hshift = -0.1
+            Max = 4.1
+            Min = 0
             while thetaA < np.pi/2:
                 lengthEEDelta = vscale*np.arccos(hscale*thetaA + hshift) + vshift
+                if lengthEEDelta < Min: lengthEEDelta = Min
+                if lengthEEDelta > Max: lengthEEDelta = Max
                 entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
                 EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
                 thetaA = thetaA + np.pi/360
