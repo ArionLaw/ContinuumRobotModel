@@ -9,7 +9,7 @@ from dvrk_planning.kinematics.utilities import get_harmonized_joint_positions, T
 from dvrk_planning_ros.average_timer import AverageTimer
 
 class JointStateControlInterface:
-    def __init__(control_topic_name, feedback_topic_name, store_js_func, prev_jsci = None):
+    def __init__(self, control_topic_name, feedback_topic_name, store_js_func, prev_jsci = None):
         self.control_topic_name = control_topic_name
         self.feedback_topic_name = feedback_topic_name
         self.store_js_func = store_js_func
@@ -27,7 +27,7 @@ class JointStateControlInterface:
         self.is_enabled = False
         self._enabled_condition = threading.Condition()
 
-    def enable(joint_state_names = None):
+    def enable(self, joint_state_names = None):
         self.is_enabled = True
         self._enabled_condition.wait() # To make sure caller() gets store_js_func() done at least 1x
                                        # when enabled
@@ -65,9 +65,9 @@ class JointStateControlInterface:
         self.size_and_idx_obtained = True
         return
 
-    def publish(joint_state_positions):
+    def publish(self, joint_state_positions):
         self.js_msg.positions = joint_state_positions[self.start_idx: self.start_idx + self.size]
-        self.control_topic_name_pub.publish(js_msg)
+        self.control_topic_name_pub.publish(self.js_msg)
 
 class RosTeleopController:
     def __init__(self, controller_yaml, ros_input_type,

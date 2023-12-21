@@ -39,7 +39,7 @@ def rotation_from_yaml(reference_rot):
 
 from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
 class InputDevice:
-    def __init__(name):
+    def __init__(self, name):
         self.mtm_device = MTM(name)
         self.is_enabled = False
         self.empty_wrench = Wrench()
@@ -103,7 +103,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                 if "scale" in jaw_yaml:
                     scale = jaw_yaml["scale"]
                 self._jaw_mimic_controller = JointFollowTeleopController(scale)
-                self._jaw_mimic_controller.register(self._output_jaw_callback)
+                self._jaw_mimic_controller.register(self._output_jaw_callback_mimic)
                 self.jaw_input_topic = jaw_yaml["input_topic"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self._jaw_controller = self._jaw_mimic_controller
@@ -213,7 +213,7 @@ class RosCartesiansTeleopController(RosTeleopController):
         self.input_jaw_js = data.position
         self._jaw_mimic_controller.update(self.input_jaw_js)
 
-    def _output_jaw_callback(self, joint_positions):
+    def _output_jaw_callback_mimic(self, joint_positions):
         self.desired_output_jaw_angle = joint_positions[0]
 
     def _input_callback_twist(self, data):
