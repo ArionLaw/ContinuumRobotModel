@@ -44,7 +44,7 @@ class PeterFrancisToolKinematicsSolver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def __init__(self):
+        def __init__(self, yaml = None):
                 self.n = 3 # sets of 3 cuts
                 self.h = 0.66 #mm notch height
                 self.c = 0.66 #mm notch spacing
@@ -57,6 +57,10 @@ class PeterFrancisToolKinematicsSolver:
                 self.r = self.OD/2
                 self.w = self.r*np.sin(np.radians(30))
                 self.shaft_length = 400 #mm
+
+                # TODO Arion, yaml example
+                # model_str = yaml["model"]
+                # vscale = yaml["vscale"]
 
                 #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
                 #self.negate_joint_list = spherical_wrist_tool_params.negate_joint_list
