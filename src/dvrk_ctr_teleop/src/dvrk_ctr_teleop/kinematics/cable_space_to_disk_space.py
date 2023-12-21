@@ -142,20 +142,19 @@ def getEECabletoDisk2Mapping():
             
             thetaA = thetaA + np.pi/360
     else:
-        
-        zero_setpoint = 32.5*np.pi/180 #radians zero 
+        arccos_model = False
         breakover = -70*np.pi/180 #radians breakover distance
-        arccos_model = True
-        thetaA = -np.pi/2
+        Max = 5
+        Min = 0
 
         if arccos_model == True:
             print("simple sinusoidal model for dial 2 mapping")  
-            vscale = 1.7 #1.6
-            hscale = 1 #1.1
-            vshift = -1.2 #-0.6
-            hshift = -0.1
-            Max = 4.1
-            Min = 0
+            vscale = 1.8 #1.7 #1.6
+            hscale = 1 #1 #1.1
+            vshift = -0.8 #-1.2 #-0.6
+            hshift = 0.05 #-0.1
+            
+            thetaA = -np.pi/2
             while thetaA < np.pi/2:
                 lengthEEDelta = vscale*np.arccos(hscale*thetaA + hshift) + vshift
                 if lengthEEDelta < Min: lengthEEDelta = Min
@@ -166,18 +165,18 @@ def getEECabletoDisk2Mapping():
 
         else:
             print("piecewise linear model for dial 2 mapping")
-            MaxDelta = 4.1
-            MinDelta = 0
             vshift = 0 
-            hshift = -0.9
-            scale = (MinDelta-MaxDelta)/(-hshift - breakover)
+            hshift = -1
+            scale = (Min-Max)/(-hshift - breakover)
+
+            thetaA = -np.pi/2
             while thetaA < np.pi/2: 
                 if (thetaA <= breakover): #max displacement
-                    lengthEEDelta = MaxDelta
+                    lengthEEDelta = Max
                 elif (thetaA > breakover and thetaA < -(hshift)): #linear range
                     lengthEEDelta = scale*(thetaA + hshift) + vshift
                 else: # zero displacement
-                    lengthEEDelta = MinDelta
+                    lengthEEDelta = Min
                 entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
                 EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
                 thetaA = thetaA + np.pi/360

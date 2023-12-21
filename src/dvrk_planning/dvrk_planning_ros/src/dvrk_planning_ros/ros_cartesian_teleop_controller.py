@@ -107,10 +107,13 @@ class RosCartesiansTeleopController(RosTeleopController):
                 self.jaw_input_topic = jaw_yaml["input_topic"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self._jaw_controller = self._jaw_mimic_controller
+            if("input_tf_appended_rotation" in input_yaml):
+                input_tf_appended_rotation = rotation_from_yaml(input_yaml["input_tf_appended_rotation"])
             self._teleop_controller = CartesianFollowTeleopController(
                 kinematics_solver,
                 input_2_input_reference_rot = input_2_input_reference_rot,
                 output_2_output_reference_rot = output_2_output_reference_rot,
+                input_tf_appended_rotation = input_tf_appended_rotation,
                 desired_jaw_in_kinematics = desired_jaw_in_kinematics,
                 position_scale = position_scale)
         elif input_yaml["type"] == "increment":

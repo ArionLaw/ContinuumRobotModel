@@ -16,6 +16,12 @@ cartesian_controllers:
         hz_divisor: 4
         is_input_device_hold_home_off: True
         input_device_name: "/MTMR/"
+        input_tf_appended_rotation:
+            quaternion:
+                x: 0
+                y: 0
+                z: 0.7071068
+                w: 0.7071068
     output:
         control_interfaces:
             - control_topic: "/PSM2/servo_jp"
