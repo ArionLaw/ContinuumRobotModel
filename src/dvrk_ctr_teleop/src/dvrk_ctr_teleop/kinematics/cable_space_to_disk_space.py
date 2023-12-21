@@ -145,21 +145,17 @@ def getEECabletoDisk2Mapping():
         
         zero_setpoint = 32.5*np.pi/180 #radians zero 
         breakover = -70*np.pi/180 #radians breakover distance
-        arccos_model = True
+        arccos_model = False
         thetaA = -np.pi/2
 
         if arccos_model == True:
             print("simple sinusoidal model for dial 2 mapping")  
-            vscale = 1.7 #1.6
-            hscale = 1 #1.1
-            vshift = -1.2 #-0.6
-            hshift = -0.1
-            Max = 4.1
-            Min = 0
+            vscale = 1.2 #1.6
+            hscale = 0.8 #1.1
+            vshift = -0.4 #-0.6
+            hshift = 0.25
             while thetaA < np.pi/2:
                 lengthEEDelta = vscale*np.arccos(hscale*thetaA + hshift) + vshift
-                if lengthEEDelta < Min: lengthEEDelta = Min
-                if lengthEEDelta > Max: lengthEEDelta = Max
                 entry = pd.DataFrame([[thetaA,lengthEEDelta]] , columns = ['Disk2Angle','DeltaEECable'])
                 EEmapping = pd.concat([EEmapping,entry],ignore_index=True)
                 thetaA = thetaA + np.pi/360
@@ -385,7 +381,7 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     #print("TotalCableDelta: ", TotalCableDelta)
     return TotalCableDelta
 
-def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
+def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2, current_jaw_angle):
     """
     calculate Disk Angles from jointspace and cablespace inputs
     [roll (jointspace), end effector, (jointspace), Cable1 (cablespace), Cable2 (cablespace), Cable3 (cablespace)]
@@ -417,7 +413,7 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2):
     EECableWristComponent = max(deltaL)
     
     if EE_pinch_Angle is None:
-        Disk2 = 0
+        Disk2 = current_jaw_angle
     else:
         EECableDelta = GripperAngle_to_EECable(EE_pinch_Angle,EECableWristComponent)
         Disk2 = EECable_to_Disk2_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping

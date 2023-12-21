@@ -10,7 +10,7 @@ from PyKDL import Rotation, Vector, Wrench
 
 from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopController, JointIncrementTeleopController
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
-from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
+from dvrk_planning_ros.utils import gm_tf_to_numpy_mat, numpy_mat_to_gm_tf
 from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
 
 import tf
@@ -48,7 +48,7 @@ class InputDevice:
 
     def disable(self, current_tf):
         self.is_enabled = False
-        self.mtm_device.servo_cp(current_tf)
+        self.mtm_device.servo_cp(numpy_mat_to_gm_tf(current_tf))
 
     def update(self):
         if self.is_enabled:
@@ -69,11 +69,11 @@ class RosCartesiansTeleopController(RosTeleopController):
             output_2_output_reference_rot = rotation_from_yaml(output_yaml["output_2_output_reference_rot"])
 
         input_yaml = controller_yaml["input"]
-        self.is_half_hz = False
-        if("is_half_hz" in input_yaml):
-            self.is_half_hz = input_yaml["is_half_hz"]
-        self._is_half_hz_trigger = False
-        self._is_half_hz_trigger_jaw = False
+        self.hz_divisor = None
+        if("hz_divisor" in input_yaml):
+            self.hz_divisor = input_yaml["hz_divisor"]
+            self._hz_index_follow = 0
+            self._hz_index_follow_jaw = (self._hz_index_follow + 1) % self.hz_divisor
 
         self.input_device = None
         if("is_input_device_hold_home_off" in input_yaml and input_yaml["is_input_device_hold_home_off"]): # TODO, remove notion of MTM
@@ -195,22 +195,23 @@ class RosCartesiansTeleopController(RosTeleopController):
                                 "world")
 
     def _input_callback_tf(self, data):
-        self._is_half_hz_trigger = not self._is_half_hz_trigger
-        if self.is_half_hz and not self._is_half_hz_trigger:
-            return
-
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
+        if self.hz_divisor:
+            self._hz_index_follow = (self._hz_index_follow + 1) % self.hz_divisor
+            if self._hz_index_follow != 0:
+                return
+
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
         if self.input_device: # How to take away notion of MTM in this case
             self.input_device.update()
         self._debug_output_tf()
 
     def _input_jaw_mimic(self, data):
-        self._is_half_hz_trigger_jaw = not self._is_half_hz_trigger_jaw
-        if self.is_half_hz and not self._is_half_hz_trigger_jaw:
-            return
-
         self.input_jaw_js = data.position
+        if self.hz_divisor:
+            self._hz_index_follow_jaw = (self._hz_index_follow_jaw + 1) % self.hz_divisor
+            if self._hz_index_follow_jaw != 0:
+                return
         self._jaw_mimic_controller.update(self.input_jaw_js)
 
     def _output_jaw_callback_mimic(self, joint_positions):
