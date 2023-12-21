@@ -10,9 +10,8 @@ from PyKDL import Rotation, Vector, Wrench
 
 from dvrk_planning.controller.joint_teleop_controller import JointFollowTeleopController, JointIncrementTeleopController
 from dvrk_planning.controller.cartesian_teleop_controller import CartesianFollowTeleopController, CartesianIncrementTeleopController, InputType
-from dvrk_planning_ros.utils import gm_tf_to_numpy_mat
+from dvrk_planning_ros.utils import gm_tf_to_numpy_mat, numpy_mat_to_gm_tf
 from dvrk_planning_ros.ros_teleop_controller import RosTeleopController
-from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
 
 import tf
 import rospy
@@ -38,6 +37,23 @@ def rotation_from_yaml(reference_rot):
     else:
         raise KeyError ("output_to_camera in yaml looking for quaternion or lookup_tf")
 
+from dvrk_planning_ros.mtm_device_crtk import MTM # TODO take away notion of mtm
+class InputDevice:
+    def __init__(self, name):
+        self.mtm_device = MTM(name)
+        self.is_enabled = False
+        self.empty_wrench = Wrench()
+    def enable(self):
+        self.is_enabled = True
+
+    def disable(self, current_tf):
+        self.is_enabled = False
+        self.mtm_device.servo_cp(numpy_mat_to_gm_tf(current_tf))
+
+    def update(self):
+        if self.is_enabled:
+            self.mtm_device.servo_cf(self.empty_wrench)
+
 class RosCartesiansTeleopController(RosTeleopController):
     def __init__(self, controller_yaml, kinematics_solver):
 
@@ -53,16 +69,15 @@ class RosCartesiansTeleopController(RosTeleopController):
             output_2_output_reference_rot = rotation_from_yaml(output_yaml["output_2_output_reference_rot"])
 
         input_yaml = controller_yaml["input"]
-        self.is_half_hz = False
-        if("is_half_hz" in input_yaml):
-            self.is_half_hz = input_yaml["is_half_hz"]
-        self._is_half_hz_trigger = False
-        self._is_half_hz_trigger_jaw = False
+        self.hz_divisor = None
+        if("hz_divisor" in input_yaml):
+            self.hz_divisor = input_yaml["hz_divisor"]
+            self._hz_index_follow = 0
+            self._hz_index_follow_jaw = (self._hz_index_follow + 1) % self.hz_divisor
 
-        self.is_mtm_hold_home_off = False
-        if("is_mtm_hold_home_off" in input_yaml): # TODO, remove notion of MTM
-            self.is_mtm_hold_home_off = input_yaml["is_mtm_hold_home_off"]
-            self.mtm_device = MTM(input_yaml["mtm_device_name"])
+        self.input_device = None
+        if("is_input_device_hold_home_off" in input_yaml and input_yaml["is_input_device_hold_home_off"]): # TODO, remove notion of MTM
+            self.input_device = InputDevice(input_yaml["input_device_name"])
 
         input_2_input_reference_rot = Rotation.Quaternion(0, 0, 0, 1)
         if("input_2_input_reference_rot" in input_yaml):
@@ -88,7 +103,7 @@ class RosCartesiansTeleopController(RosTeleopController):
                 if "scale" in jaw_yaml:
                     scale = jaw_yaml["scale"]
                 self._jaw_mimic_controller = JointFollowTeleopController(scale)
-                self._jaw_mimic_controller.register(self._output_jaw_callback)
+                self._jaw_mimic_controller.register(self._output_jaw_callback_mimic)
                 self.jaw_input_topic = jaw_yaml["input_topic"]
                 self.jaw_sub = rospy.Subscriber(self.jaw_input_topic, JointState, self._input_jaw_mimic)
                 self._jaw_controller = self._jaw_mimic_controller
@@ -118,51 +133,56 @@ class RosCartesiansTeleopController(RosTeleopController):
             self._input_callback_impl = self._input_callback_twist
         else:
             raise KeyError ("controller: type: must be follow or increment")
-        super().__init__(controller_yaml, input_topic_type)
-        self.js_msg.name = kinematics_solver.get_active_joint_names()
+        super().__init__(controller_yaml, input_topic_type,
+                         joint_state_names = kinematics_solver.get_active_joint_names(),
+                         is_print_wait_msg=True)
         self._teleop_controller.register(self._output_callback)
 
         self.current_input_tf = np.identity(4)
         self.current_output_tf = np.identity(4)
 
     def enable(self):
-        self._wait_for_output_feedback_sub_msg(True)
+        super().enable()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
-            self._teleop_controller.enable(self.current_output_jps)
+            self._teleop_controller.enable(self.get_current_output_jps())
             if self._jaw_inc_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self._jaw_inc_controller.enable(np.array([current_output_jaw]))
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg(True)
-            self._teleop_controller.enable(self.current_input_tf, self.current_output_jps)
+            self._teleop_controller.enable(self.current_input_tf, self.get_current_output_jps())
             if self._jaw_mimic_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self._jaw_mimic_controller.enable(self.input_jaw_js, np.array([current_output_jaw]))
+        if self.input_device: # FOLLOW only
+            self.input_device.enable()
 
     def disable(self):
         self._teleop_controller.disable()
         if self._jaw_controller:
             self._jaw_controller.disable()
-
+        if self.input_device:
+            self.input_device.disable(self.current_input_tf)
+        super().disable()
     def clutch(self):
         self._teleop_controller.clutch()
         if self._jaw_controller:
             self._jaw_controller.clutch()
+        super().clutch()
 
     def unclutch(self):
-        # TODO, this is not good oop
+        super().unclutch()
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
             if self._jaw_inc_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self.__jaw_inc_controller.unclutch(np.array([current_output_jaw]))
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self.wait_for_input_sub_msg()
-            self._wait_for_output_feedback_sub_msg()
-            self._teleop_controller.unclutch(self.current_input_tf, self.current_output_jps)
+            self._teleop_controller.unclutch(self.current_input_tf, self.get_current_output_jps())
             if self._jaw_mimic_controller:
-                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.current_output_jps)
+                _, current_output_jaw, _ = self.kinematics_solver.compute_all_fk(self.get_current_output_jps())
                 self._jaw_mimic_controller.unclutch(self.input_jaw_js, np.array([current_output_jaw]))
 
     def _debug_output_tf(self):
@@ -175,27 +195,26 @@ class RosCartesiansTeleopController(RosTeleopController):
                                 "world")
 
     def _input_callback_tf(self, data):
-        self._is_half_hz_trigger = not self._is_half_hz_trigger
-        if self.is_half_hz and not self._is_half_hz_trigger:
-            return
-
         self.current_input_tf = gm_tf_to_numpy_mat(data.transform)
-        # print(self.desired_output_jaw_angle)
+        if self.hz_divisor:
+            self._hz_index_follow = (self._hz_index_follow + 1) % self.hz_divisor
+            if self._hz_index_follow != 0:
+                return
+
         self._teleop_controller.update(self.current_input_tf, self.desired_output_jaw_angle)
-        if self.is_mtm_hold_home_off: # How to take away notion of MTM in this case
-            f = Wrench()
-            self.mtm_device.servo_cf(f)
+        if self.input_device: # How to take away notion of MTM in this case
+            self.input_device.update()
         self._debug_output_tf()
 
     def _input_jaw_mimic(self, data):
-        self._is_half_hz_trigger_jaw = not self._is_half_hz_trigger_jaw
-        if self.is_half_hz and not self._is_half_hz_trigger_jaw:
-            return
-
         self.input_jaw_js = data.position
+        if self.hz_divisor:
+            self._hz_index_follow_jaw = (self._hz_index_follow_jaw + 1) % self.hz_divisor
+            if self._hz_index_follow_jaw != 0:
+                return
         self._jaw_mimic_controller.update(self.input_jaw_js)
 
-    def _output_jaw_callback(self, joint_positions):
+    def _output_jaw_callback_mimic(self, joint_positions):
         self.desired_output_jaw_angle = joint_positions[0]
 
     def _input_callback_twist(self, data):

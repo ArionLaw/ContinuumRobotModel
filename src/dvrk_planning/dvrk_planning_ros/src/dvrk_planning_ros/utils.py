@@ -1,4 +1,6 @@
 import numpy as np
+from geometry_msgs.msg import TransformStamped
+from dvrk_planning.utilities import convert_mat_to_frame
 
 # q0 is qw. qx, qy, qz
 def quaternion_rotation_matrix(q0, q1, q2, q3):
@@ -42,3 +44,15 @@ def gm_tf_to_numpy_mat(gm_transform):
         gm_transform.rotation.x, gm_transform.rotation.y, gm_transform.rotation.z)
     np_transform[0:3, 3] = [gm_transform.translation.x, gm_transform.translation.y, gm_transform.translation.z]
     return np_transform
+
+def numpy_mat_to_gm_tf(mat):
+    tf_stamped = TransformStamped()
+    tf_stamped.transform.translation.x = mat[0, 3]
+    tf_stamped.transform.translation.y = mat[1, 3]
+    tf_stamped.transform.translation.z = mat[2, 3]
+    q = convert_mat_to_frame(mat).M.GetQuaternion()
+    tf_stamped.transform.rotation.x = q[0]
+    tf_stamped.transform.rotation.y = q[1]
+    tf_stamped.transform.rotation.z = q[2]
+    tf_stamped.transform.rotation.w = q[3]
+    return tf_stamped

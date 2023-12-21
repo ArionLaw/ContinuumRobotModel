@@ -23,33 +23,36 @@ class RosJointTeleopController(RosTeleopController):
         self._input_callback_impl = self._input_callback_js
         self.current_input_jps = np.array([])
 
-        super().__init__(controller_yaml, JointState)
+        super().__init__(controller_yaml, JointState, is_print_wait_msg = True)
         self._teleop_controller = teleop_controller
         self._teleop_controller.register(self._output_callback)
 
     def enable(self):
-        self._wait_for_output_feedback_sub_msg(True)
+        super().enable()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
-            self._teleop_controller.enable(self.current_output_jps)
+            self._teleop_controller.enable(self.get_current_output_jps())
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg(True)
-            self._teleop_controller.enable(self.current_input_jps, self.current_output_jps)
+            self._teleop_controller.enable(self.current_input_jps, self.get_current_output_jps())
 
     def disable(self):
         self._teleop_controller.disable()
+        super().disable()
 
     def clutch(self):
         self._teleop_controller.clutch()
+        super().clutch()
 
     def unclutch(self):
+        super().unclutch()
         # TODO, this is not good oop
         if self._teleop_controller.input_type == InputType.INCREMENT:
             self._teleop_controller.unclutch()
         elif self._teleop_controller.input_type == InputType.FOLLOW:
             self._wait_for_input_sub_msg()
             self._wait_for_output_feedback_sub_msg()
-            self._teleop_controller.unclutch(self.current_input_jps, self.current_output_jps)
+            self._teleop_controller.unclutch(self.current_input_jps, self.get_current_output_jps())
 
     def _input_callback_js(self, data):
         self.current_input_jps = data.position

@@ -54,7 +54,7 @@ rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtmr_p
 ```
 (Optional) To turn off the MTM homing force, set in your teleop config:
 ```yaml
-is_mtm_hold_home_off: True
+is_input_device_hold_home_off: True
 ```
 BUT REMEMBER!!! To hold the MTM with your hand when starting terminal 4.
 

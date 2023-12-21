@@ -4,6 +4,12 @@ cartesian_controllers:
         position_scale: 0.5
         type: "follow"
         topic: "/MTML/measured_cp"
+        input_2_input_reference_rot:
+            quaternion:
+                x: 0.9659258
+                y: 0
+                z: 0
+                w: -0.258819
         input_device_name: "/MTML/"
         jaw:
             input_topic: "/MTML/gripper/measured_js"
@@ -16,6 +22,12 @@ cartesian_controllers:
               feedback_topic: "/PSM1/measured_js"
             - control_topic: "/PSM1/jaw/servo_jp"
               feedback_topic: "/PSM1/jaw/measured_js"
+        output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
+            quaternion:
+                x:  0.7994483177248634
+                y:  0.3137414214925128
+                z:  0.25268528256632056
+                w:  0.44564431523483194
         is_debug_output_tf: True
     kinematics:
         robot: "custom"

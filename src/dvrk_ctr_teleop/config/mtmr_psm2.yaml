@@ -7,17 +7,24 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
-        is_half_hz: True
-        is_mtm_hold_home_off: False
-        mtm_device_name: "/MTMR/"
+        hz_divisor: 4
+        is_input_device_hold_home_off: True
+        input_device_name: "/MTMR/"
     output:
-        control_topic: "/PSM2/servo_jp"
-        extra_control_topic: "/PSM2/jaw/servo_jp"
-        feedback_topic: "/PSM2/measured_js"
-        extra_feedback_topic: "/PSM2/jaw/measured_js"
+        control_interfaces:
+            - control_topic: "/PSM2/servo_jp"
+              feedback_topic: "/PSM2/measured_js"
+            - control_topic: "/PSM2/jaw/servo_jp"
+              feedback_topic: "/PSM2/jaw/measured_js"
         is_debug_output_tf: True
     kinematics:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
 clutch_topic: "/console/clutch"
+enable_at_start: []
+switcher:
+  switch_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTMR-PSM2-PeterFrancis"]
+enable_at_start: []

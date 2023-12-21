@@ -44,7 +44,7 @@ class PeterFrancisToolKinematicsSolver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def __init__(self):
+        def __init__(self, yaml = None):
                 self.n = 3 # sets of 3 cuts
                 self.h = 0.66 #mm notch height
                 self.c = 0.66 #mm notch spacing
@@ -57,6 +57,10 @@ class PeterFrancisToolKinematicsSolver:
                 self.r = self.OD/2
                 self.w = self.r*np.sin(np.radians(30))
                 self.shaft_length = 400 #mm
+
+                # TODO Arion, yaml example
+                # model_str = yaml["model"]
+                # vscale = yaml["vscale"]
 
                 #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
                 #self.negate_joint_list = spherical_wrist_tool_params.negate_joint_list
@@ -176,7 +180,9 @@ class PeterFrancisToolKinematicsSolver:
 
                 """ convert cable displacements to dial positions """
                 """ [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)] """
-                DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2])
+                DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2],
+                                             disk_positions[1])
+                
                 joints_list = psm_joints + DiskAngles
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list, joint_angles
