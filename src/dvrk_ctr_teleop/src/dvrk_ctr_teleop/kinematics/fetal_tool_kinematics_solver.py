@@ -40,7 +40,7 @@ printout = False
 #getCabletoDiskMapping()
 #getEECabletoDisk2Mapping()
 
-class PeterFrancisToolKinematicsSolver:
+class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -102,8 +102,8 @@ class PeterFrancisToolKinematicsSolver:
 
                 return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch_angle, joint_values
 
-        def compute_fk(self, joints):
-                tf, _, _ = self.compute_all_fk(joints)
+        def compute_fk(self, joint_positions):
+                tf, _, _ = self.compute_all_fk(joint_positions)
                 return tf
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -187,8 +187,11 @@ class PeterFrancisToolKinematicsSolver:
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list, joint_angles
 
-        def compute_ik(self, tf_desired, direct_joint_positions, desired_EE_pinch_angle):
-                joints_list, _ = self.compute_all_ik(tf_desired, direct_joint_positions, desired_EE_pinch_angle)
+        def compute_ik(self, T_tip_0_mat, current_joint_positions, ee_metadata):
+                if len(ee_metadata) > 0:
+                    joints_list, _ = self.compute_all_ik(T_tip_0_mat, current_joint_positions, ee_metadata[0])
+                else:
+                    joints_list, _ = self.compute_all_ik(T_tip_0_mat, current_joint_positions, None)
                 return joints_list
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#

@@ -10,7 +10,7 @@ Install catkin tools https://catkin-tools.readthedocs.io/en/latest/installing.ht
 
 ```bash
 cd ContinuumRobotModel
-catkin build
+catkin build dvrk_ctr_teleop
 ```
 
 ## Running the controller
