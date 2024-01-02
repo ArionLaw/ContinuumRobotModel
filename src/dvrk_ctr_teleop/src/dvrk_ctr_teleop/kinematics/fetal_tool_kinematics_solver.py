@@ -67,7 +67,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def compute_all_fk(self, joints):
+        def _compute_all_fk(self, joints):
                 """
                 compute from disk space angles to cable space displacements
                         from cable space displacements to joint space angles 
@@ -103,13 +103,13 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 return ConvertToTransformMatrix(R_currentFK,EE_pos_FK),EE_pinch_angle, joint_values
 
         def compute_fk(self, joint_positions):
-                tf, _, _ = self.compute_all_fk(joint_positions)
+                tf, _, _ = self._compute_all_fk(joint_positions)
                 return tf
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def compute_all_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle):
+        def _compute_all_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle):
                 """
                 compute from task space poses to joint space angles
                         from joint space angles to cable space displacements
@@ -189,10 +189,17 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 
         def compute_ik(self, T_tip_0_mat, current_joint_positions, ee_metadata):
                 if len(ee_metadata) > 0:
-                    joints_list, _ = self.compute_all_ik(T_tip_0_mat, current_joint_positions, ee_metadata[0])
+                    joints_list, _ = self._compute_all_ik(T_tip_0_mat, current_joint_positions, ee_metadata[0])
                 else:
-                    joints_list, _ = self.compute_all_ik(T_tip_0_mat, current_joint_positions, None)
+                    joints_list, _ = self._compute_all_ik(T_tip_0_mat, current_joint_positions, None)
                 return joints_list
+
+        def actuator_to_joint(self, actuator_positions):
+            _, jaw_angle, joint_values = self._compute_all_fk(actuator_positions)
+            joint_positions = np.copy(actuator_positions)
+            joint_positions[5] = jaw_angle
+            # TODO, put rest of joint values in correct place
+            return joint_positions
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### setup ###
