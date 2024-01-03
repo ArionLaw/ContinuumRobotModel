@@ -8,6 +8,7 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
+            idx: 4
         hz_divisor: 4
         is_input_device_hold_home_off: True
         input_tf_appended_rotation:

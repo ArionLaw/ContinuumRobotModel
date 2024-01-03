@@ -6,6 +6,7 @@ cartesian_controllers:
         jaw:
             input_topic: "/keyboard/joint_state"
             scale: 1
+            idx: 4
     output:
         control_topic: "/PSM2/servo_jp"
         extra_control_topic: "/PSM2/jaw/servo_jp"
