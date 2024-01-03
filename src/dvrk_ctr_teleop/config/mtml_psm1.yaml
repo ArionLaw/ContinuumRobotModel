@@ -4,7 +4,6 @@ cartesian_controllers:
         position_scale: 0.5
         type: "follow"
         topic: "/MTML/measured_cp"
-        input_device_name: "/MTML/"
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
