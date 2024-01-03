@@ -187,7 +187,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list, joint_angles
 
-        def compute_ik(self, T_tip_0_mat, current_joint_positions, ee_metadata):
+        def compute_ik(self, T_tip_0_mat, current_joint_positions, ee_metadata = ()):
                 if len(ee_metadata) > 0:
                     joints_list, _ = self._compute_all_ik(T_tip_0_mat, current_joint_positions, ee_metadata[0])
                 else:

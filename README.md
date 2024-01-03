@@ -6,6 +6,13 @@ TODO: This readme could be in src/dvrk_ctr_teleop
 Install ubuntu 20.04 and ros noetic (http://wiki.ros.org/noetic/Installation/Ubuntu).
 Install catkin tools https://catkin-tools.readthedocs.io/en/latest/installing.html.
 
+clone:
+```bash
+git clone https://github.com/ArionLaw/ContinuumRobotModel.git
+cd ContinuumRobotModel
+git submodule init && git submodule update
+```
+
 ## Build
 
 ```bash
