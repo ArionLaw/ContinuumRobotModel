@@ -4,12 +4,14 @@ cartesian_controllers:
         position_scale: 0.5
         type: "follow"
         topic: "/MTML/measured_cp"
-        input_device_name: "/MTML/"
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
+            idx: 4
         hz_divisor: 4
         is_input_device_hold_home_off: True
+        servo_cp_topic: "/MTML/servo_cp"
+        servo_cf_topic: "/MTML/body/servo_cf"
         input_tf_appended_rotation:
             quaternion:
                 x: 0

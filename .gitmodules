@@ -1,0 +1,4 @@
+[submodule "src/dvrk_planning"]
+	path = src/dvrk_planning
+	url = https://mcsgitlab.utm.utoronto.ca/medcvr/dvrk_planning.git
+    branch = feature/python_ctr_robot

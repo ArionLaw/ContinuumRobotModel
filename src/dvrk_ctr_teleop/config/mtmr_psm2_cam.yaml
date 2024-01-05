@@ -13,9 +13,11 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
+            idx: 4
         hz_divisor: 4
         is_input_device_hold_home_off: True
-        input_device_name: "/MTMR/"
+        servo_cp_topic: "/MTMR/servo_cp"
+        servo_cf_topic: "/MTMR/body/servo_cf"
         input_tf_appended_rotation:
             quaternion:
                 x: 0

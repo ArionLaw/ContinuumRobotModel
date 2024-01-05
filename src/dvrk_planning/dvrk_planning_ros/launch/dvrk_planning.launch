@@ -1,3 +1,0 @@
-<launch>
-    <node name="dvrk_planning" pkg="dvrk_planning_ros" type="dvrk_planning_node.py" args="--wait" output="screen" respawn="true" />
-</launch>
