@@ -31,15 +31,16 @@ cartesian_controllers:
             - control_topic: "/PSM1/jaw/servo_jp"
               feedback_topic: "/PSM1/jaw/measured_js"
         output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
-             quaternion:
-                x:  0.7994483177248634
-                y:  0.3137414214925128
-                z:  0.25268528256632056
-                w:  0.44564431523483194
+            quaternion:
+              x:  0.7849058151113708
+              y:  0.4459146270015447
+              z:  0.21360452738631358
+              w:  0.37343823145266974
     kinematics:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
+        config: "../config/mapping/psm1_tool.yaml"
   - name: "MTMR-PSM2-PeterFrancis"
     input:
         position_scale: 0.5
@@ -54,6 +55,7 @@ cartesian_controllers:
         jaw:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
+            idx: 4
         hz_divisor: 4
         is_input_device_hold_home_off: True
         servo_cp_topic: "/MTMR/servo_cp"
@@ -72,15 +74,15 @@ cartesian_controllers:
               feedback_topic: "/PSM2/jaw/measured_js"
         output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
             quaternion:
-                x: 0
-                y: 0
-                z: 0
-                w: 1
+                x:  0.5759636677225696
+                y:  -0.6633578754614509
+                z:  -0.31181933480986546
+                w:  0.36192662925732555
     kinematics:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
-        config: "../config/mapping/psm1_tool.yaml"
+        config: "../config/mapping/psm2_tool.yaml"
 clutch_topic: "/console/clutch"
 switcher:
   switch_topic: "/console/operator_present"

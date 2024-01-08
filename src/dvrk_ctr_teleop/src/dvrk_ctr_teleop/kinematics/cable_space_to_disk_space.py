@@ -149,9 +149,9 @@ def getEECabletoDisk2Mapping(yaml):
     else:
         # arccos_model = False
         arccos_model = yaml["arccos_model"]
-        breakover = -70*np.pi/180 #radians breakover distance
-        Max = 5
-        Min = 0
+        breakover = yaml["breakover"]*np.pi/180 #radians breakover distance
+        Max = yaml["max"]
+        Min = yaml["min"]
 
         if arccos_model == True:
             print("simple sinusoidal model for dial 2 mapping")  
@@ -176,8 +176,8 @@ def getEECabletoDisk2Mapping(yaml):
 
         else:
             print("piecewise linear model for dial 2 mapping")
-            vshift = 0 
-            hshift = -1
+            vshift = yaml["piecewise_vshift"]
+            hshift = yaml["piecewise_hshift"]*np.pi/180
             scale = (Min-Max)/(-hshift - breakover)
 
             thetaA = -np.pi/2
@@ -380,7 +380,7 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     """
     R = 1.4 #mm EE scissor linkage arm lengths
     Max_EE_pinch_angle = 45*np.pi/180  #max EE jaw angle
-    Min_EE_pinch_angle = -10*np.pi/180  #min EE jaw angle
+    Min_EE_pinch_angle = -15*np.pi/180  #min EE jaw angle
 
     if EE_pinch_angle > Max_EE_pinch_angle: EE_pinch_angle = Max_EE_pinch_angle #EE pinch angle joint limit, not able to open further
     elif EE_pinch_angle < Min_EE_pinch_angle: EE_pinch_angle = Min_EE_pinch_angle #EE pinch angle joint limit, cannot clamp further
