@@ -1,0 +1,13 @@
+cable_to_disk_map:
+  approximation: True
+  vscale: 4.55 #1.7 #1.6
+  hscale: 0.9 #1 #1.1
+  vshift: 4.55 #-1.2 #-0.6
+  hshift: -1.5 #-0.1
+ee_cable_to_disk_map:
+  approximation: True
+  arccos_model: False
+  vscale: 1.8 #1.7 #1.6
+  hscale: 1 #1 #1.1
+  vshift: -0.8 #-1.2 #-0.6
+  hshift: 0.05 #-0.1
