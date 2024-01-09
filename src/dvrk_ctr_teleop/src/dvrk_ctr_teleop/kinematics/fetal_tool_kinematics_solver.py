@@ -75,6 +75,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 
                 self.cable_to_disk_map = getCabletoDiskMapping(config_yaml["cable_to_disk_map"])
                 self.eecable_to_disk_map = getEECabletoDisk2Mapping(config_yaml["ee_cable_to_disk_map"])
+                self.config_yaml = config_yaml
 
                 #print(file_path)
                 #self.cable_to_disk_map.to_csv(file_path +'/dialmapping.csv')
@@ -96,7 +97,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 
                 """ from disk space angles to joint space angles """
                 joint_values = DiskPosition_To_JointSpace(disk_positions, self.h, self.y_, self.r,
-                                                          self.cable_to_disk_map, self.eecable_to_disk_map)
+                                                          self.cable_to_disk_map, self.eecable_to_disk_map,self.config_yaml)
                 if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
                 if printout is True: print("Instrument Joint Values(roll, EE jaw, gamma, beta, alpha):  \n" , joint_values)
                 roll = joint_values[0]
@@ -143,7 +144,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 
                 """ FK calculate wrist pseudojoints of current pose using """ 
                 joint_values = DiskPosition_To_JointSpace(disk_positions, self.h, self.y_, self.r,
-                                                          self.cable_to_disk_map, self.eecable_to_disk_map)
+                                                          self.cable_to_disk_map, self.eecable_to_disk_map,self.config_yaml)
                 if printout is True: print("Current Wrist Joint Values: \n(roll, EE jaw, gamma, beta, alpha):\n" , joint_values) 
                 
                 roll = joint_values[0]
@@ -201,7 +202,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 DiskAngles = get_Disk_Angles(joint_angles[0], desired_EE_pinch_angle,
                                              deltaCablesTotal[0], deltaCablesTotal[1], deltaCablesTotal[2],
                                              disk_positions[1],
-                                             self.cable_to_disk_map, self.eecable_to_disk_map)
+                                             self.cable_to_disk_map, self.eecable_to_disk_map, self.config_yaml)
                 
                 joints_list = psm_joints + DiskAngles
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
