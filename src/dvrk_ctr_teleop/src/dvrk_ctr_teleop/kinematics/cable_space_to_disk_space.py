@@ -382,7 +382,7 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta,yaml):
     compensation_factor = yaml["wrist_bending_compensation"]  #factor for considering cable slack take-up due to wrist bending 
     R = 1.4 #mm EE scissor linkage arm lengths
     Max_EE_pinch_angle = 45*np.pi/180  #max EE jaw angle
-    Min_EE_pinch_angle = -15*np.pi/180  #min EE jaw angle
+    Min_EE_pinch_angle = -20*np.pi/180  #min EE jaw angle
 
     if EE_pinch_angle > Max_EE_pinch_angle: EE_pinch_angle = Max_EE_pinch_angle #EE pinch angle joint limit, not able to open further
     elif EE_pinch_angle < Min_EE_pinch_angle: EE_pinch_angle = Min_EE_pinch_angle #EE pinch angle joint limit, cannot clamp further
