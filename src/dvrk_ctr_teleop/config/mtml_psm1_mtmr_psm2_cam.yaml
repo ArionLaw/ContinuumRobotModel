@@ -32,10 +32,11 @@ cartesian_controllers:
               feedback_topic: "/PSM1/jaw/measured_js"
         output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
             quaternion:
-              x:  0.8310071340558562 #0.7849058151113708
-              y:  0.4366131071559704 #0.4459146270015447
-              z:  0.18750956527854326 #0.21360452738631358
-              w:  0.28919941344500166
+              x: 0.8434879353433754
+              y: 0.41486388788676554
+              z: 0.17562183502837217 
+              w: 0.2925286798228752
+
     kinematics:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
@@ -74,8 +75,8 @@ cartesian_controllers:
               feedback_topic: "/PSM2/jaw/measured_js"
         output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
             quaternion:
-                x:  .7668914150011531
-                y:  -0.5299644702185793 #-0.6633578754614509
+                x:  .76339054150011531
+                y:  -0.53537144702185793 #-0.6633578754614509
                 z: -0.1876093208104334 #-0.31181933480986546
                 w:  0.30954476356177874 #0.36192662925732555
     kinematics:

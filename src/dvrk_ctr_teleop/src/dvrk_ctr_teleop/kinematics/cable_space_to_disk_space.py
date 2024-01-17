@@ -382,7 +382,7 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta,yaml):
     compensation_factor = yaml["wrist_bending_compensation"]  #factor for considering cable slack take-up due to wrist bending 
     R = 1.4 #mm EE scissor linkage arm lengths
     Max_EE_pinch_angle = 45*np.pi/180  #max EE jaw angle
-    Min_EE_pinch_angle = -20*np.pi/180  #min EE jaw angle
+    Min_EE_pinch_angle = -30*np.pi/180  #min EE jaw angle
 
     if EE_pinch_angle > Max_EE_pinch_angle: EE_pinch_angle = Max_EE_pinch_angle #EE pinch angle joint limit, not able to open further
     elif EE_pinch_angle < Min_EE_pinch_angle: EE_pinch_angle = Min_EE_pinch_angle #EE pinch angle joint limit, cannot clamp further
@@ -442,25 +442,25 @@ def get_Disk_Angles(roll, EE_pinch_Angle, deltaL0, deltaL1, deltaL2, current_jaw
     lowerLimitDial_2 = -90*np.pi/180
     if Disk2 > upperLimitDial_2: 
         Disk2 = upperLimitDial_2
-        print("Disk2 upper limit")
+        #print("Disk2 upper limit")
     elif Disk2 < lowerLimitDial_2: 
         Disk2 = lowerLimitDial_2
-        print("Disk2 lower limit")
+        #print("Disk2 lower limit")
 
-    upperLimitDial_3_4 = 45*np.pi/180
-    lowerLimitDial_3_4 = -45*np.pi/180
+    upperLimitDial_3_4 = 40*np.pi/180
+    lowerLimitDial_3_4 = -40*np.pi/180
     if Disk3 > upperLimitDial_3_4: 
         Disk3 = upperLimitDial_3_4
-        print("Disk3 upper limit")
+        #print("Disk3 upper limit")
     elif Disk3 < lowerLimitDial_3_4: 
         Disk3 = lowerLimitDial_3_4
-        print("Disk3 lower limit")
+        #print("Disk3 lower limit") 
     if Disk4 > upperLimitDial_3_4: 
         Disk4 = upperLimitDial_3_4
-        print("Disk4 upper limit")
+        #print("Disk4 upper limit")
     elif Disk4 < lowerLimitDial_3_4: 
         Disk4 = lowerLimitDial_3_4
-        print("Disk4 lower limit")
+        #print("Disk4 lower limit")
     
     return [Disk1,Disk2,Disk3,Disk4]
 
