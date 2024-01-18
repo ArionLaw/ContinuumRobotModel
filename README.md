@@ -22,6 +22,8 @@ catkin build dvrk_ctr_teleop
 
 ## Running the controller
 
+During physical tool installation, ensure dial 5 has the nut pointing towards the screw
+
 Terminal 1:
 ```bash
 roscore
@@ -135,6 +137,7 @@ Move the arms to the desired location within camera view
 Open Rviz, Terminal 3:
 
 ```bash
+go to ContinuumRobotModel
 source devel/setup.bash
 roslaunch dvrk_ctr_teleop suj_ecm_rviz.launch
 ```
@@ -145,11 +148,15 @@ Then while looking at RVIZ, set endoscope type to: HD_UP or HD_DOWN and determin
 Find the parent and child you are interested in, and run the tf obtainer with parent and child arguments:
 
 ```bash
+Go to ContinuumRobotModel
 source devel/setup.bash
 rosrun dvrk_planning_ros generate_tf_mat.py PSM1_base ECM
 ```
 
 Then put in your yaml file for the corresponding controller
+Go to \ContinuumRobotModel\src\dvrk_ctr_teleop\config
+The yaml files are located in this folder
+
 ```yaml
     output:
       # ... 

@@ -1,5 +1,5 @@
 cartesian_controllers:
-  - name: "Keyboard-PSM2_PeterFrancis"
+  - name: "Keyboard-PSM1_PeterFrancis"
     input:
         type: "increment"
         topic: "/keyboard/twist"
@@ -9,14 +9,12 @@ cartesian_controllers:
             idx: 4
     output:
         control_interfaces:
-            - control_topic: "/PSM2/servo_jp"
-              feedback_topic: "/PSM2/measured_js"
-            - control_topic: "/PSM2/jaw/servo_jp"
-              feedback_topic: "/PSM2/jaw/measured_js"
+            - control_topic: "/PSM1/servo_jp"
+              feedback_topic: "/PSM1/measured_js"
         is_debug_output_tf: True
     kinematics:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
-        config: "../config/mapping/psm2_tool.yaml"
+        config: "../config/mapping/psm1_tool.yaml"
 clutch_topic: "/console/clutch"

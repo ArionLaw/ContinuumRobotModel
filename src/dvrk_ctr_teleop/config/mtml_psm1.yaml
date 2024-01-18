@@ -29,6 +29,7 @@ cartesian_controllers:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
+        config: "../config/mapping/psm1_tool.yaml"
 clutch_topic: "/console/clutch"
 switcher:
   switch_topic: "/console/operator_present"

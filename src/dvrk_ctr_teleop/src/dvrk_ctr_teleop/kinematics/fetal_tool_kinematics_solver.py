@@ -1,4 +1,6 @@
+import os
 import numpy as np
+import yaml
 
 from dvrk_ctr_teleop.kinematics.utils import *
 from dvrk_ctr_teleop.kinematics.task_space_to_joint_space import *
@@ -44,7 +46,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-        def __init__(self, yaml = None):
+        def __init__(self, config_path):
                 self.n = 3 # sets of 3 cuts
                 self.h = 0.66 #mm notch height
                 self.c = 0.66 #mm notch spacing
@@ -62,8 +64,23 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 # model_str = yaml["model"]
                 # vscale = yaml["vscale"]
 
-                #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
-                #self.negate_joint_list = spherical_wrist_tool_params.negate_joint_list
+                new_path = os.path.join(sys.path[0], config_path)
+                yaml_file = open(new_path)
+                config_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+                # print(sys.path[0])
+                # print(config_yaml)
+                # file_path = sys.path[0]
+                # file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
+
+                self.cable_to_disk_map = getCabletoDiskMapping(config_yaml["cable_to_disk_map"])
+                self.eecable_to_disk_map = getEECabletoDisk2Mapping(config_yaml["ee_cable_to_disk_map"])
+                self.config_yaml = config_yaml
+
+                #print(file_path)
+                #self.cable_to_disk_map.to_csv(file_path +'/dialmapping.csv')
+                #self.eecable_to_disk_map.to_csv(file_path +'/EEmapping.csv')
+
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -79,7 +96,8 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 #if printout is True: print("joints", joints)
 
                 """ from disk space angles to joint space angles """
-                joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
+                joint_values = DiskPosition_To_JointSpace(disk_positions, self.h, self.y_, self.r,
+                                                          self.cable_to_disk_map, self.eecable_to_disk_map,self.config_yaml)
                 if printout is True: print("PSM Joint Values(yaw,pitch,insertion): \n",psm_joints)
                 if printout is True: print("Instrument Joint Values(roll, EE jaw, gamma, beta, alpha):  \n" , joint_values)
                 roll = joint_values[0]
@@ -125,7 +143,8 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 #print("disk_positions:\n", disk_positions)
 
                 """ FK calculate wrist pseudojoints of current pose using """ 
-                joint_values = DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r)
+                joint_values = DiskPosition_To_JointSpace(disk_positions, self.h, self.y_, self.r,
+                                                          self.cable_to_disk_map, self.eecable_to_disk_map,self.config_yaml)
                 if printout is True: print("Current Wrist Joint Values: \n(roll, EE jaw, gamma, beta, alpha):\n" , joint_values) 
                 
                 roll = joint_values[0]
@@ -180,8 +199,10 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
 
                 """ convert cable displacements to dial positions """
                 """ [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)] """
-                DiskAngles = get_Disk_Angles(joint_angles[0],desired_EE_pinch_angle,deltaCablesTotal[0],deltaCablesTotal[1],deltaCablesTotal[2],
-                                             disk_positions[1])
+                DiskAngles = get_Disk_Angles(joint_angles[0], desired_EE_pinch_angle,
+                                             deltaCablesTotal[0], deltaCablesTotal[1], deltaCablesTotal[2],
+                                             disk_positions[1],
+                                             self.cable_to_disk_map, self.eecable_to_disk_map, self.config_yaml)
                 
                 joints_list = psm_joints + DiskAngles
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))

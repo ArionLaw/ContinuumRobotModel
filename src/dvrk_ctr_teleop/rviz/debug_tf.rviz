@@ -59,17 +59,13 @@ Visualization Manager:
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        MTMR:
+        MTML:
           Value: true
-        MTMR_base:
+        MTML_base:
           Value: true
-        PSM2:
+        PSM1:
           Value: true
-        PSM2_base:
-          Value: true
-        ee:
-          Value: true
-        world:
+        PSM1_base:
           Value: true
       Marker Alpha: 1
       Marker Scale: 0.5
@@ -78,14 +74,11 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        MTMR_base:
-          MTMR:
+        MTML_base:
+          MTML:
             {}
-        PSM2_base:
-          PSM2:
-            {}
-        world:
-          ee:
+        PSM1_base:
+          PSM1:
             {}
       Update Interval: 0
       Value: true
@@ -153,5 +146,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 522
-  Y: 131
+  X: 2054
+  Y: 166
