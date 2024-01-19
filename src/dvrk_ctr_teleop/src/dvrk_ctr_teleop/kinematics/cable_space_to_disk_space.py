@@ -20,8 +20,8 @@ class CableToDiskSpaceSolver:
         self.Min_EE_linkage_length = self.two_times_ee_R * np.cos(self.Max_EE_pinch_angle) #length of scissor linkage when EE fully open
         self.Max_EE_linkage_length = self.two_times_ee_R #length of scissor linkage when EE fully closed
 
-        self.dial_upper_limits = np.ndarray([1000, 135*np.pi/180, 40*np.pi/180, 40*np.pi/180])
-        self.dial_lower_limits = np.ndarray([-1000, -90*np.pi/180, -40*np.pi/180, -40*np.pi/180])
+        self.dial_upper_limits = np.array([ 1000.0, 135.0*np.pi/180.0,  40.0*np.pi/180.0,  40.0*np.pi/180.0])
+        self.dial_lower_limits = np.array([-1000.0, -90.0*np.pi/180.0, -40.0*np.pi/180.0, -40.0*np.pi/180.0])
 
     def _get_cable_disk_mapping(self, yaml):
         """
@@ -140,14 +140,14 @@ class CableToDiskSpaceSolver:
 
             ### cable zero displacement reference length
             thetaA = 0*np.pi/180 #radians disk2 position for zero cable displacement (configuration with no wrist angle and fully open jaws)
-            xAnchorRef,yAnchorRef = _calculate_ee_linkage_anchor_pos(thetaA)
+            xAnchorRef,yAnchorRef = self._calculate_ee_linkage_anchor_pos(thetaA)
             xCableDeltaRef = xAnchorRef - xRef
             yCableDeltaRef = yAnchorRef - yRef
 
             """ calculating mapping """
             thetaA = -np.pi*3/4
             while thetaA < np.pi*3/4:
-                xAnchor,yAnchor = _calculate_ee_linkage_anchor_pos(-thetaA)
+                xAnchor,yAnchor = self._calculate_ee_linkage_anchor_pos(-thetaA)
                 xCableDelta = xAnchor - xRef
                 yCableDelta = yAnchor - yRef
 
@@ -274,10 +274,10 @@ class CableToDiskSpaceSolver:
         linkage_length = self.Min_EE_linkage_length + EECableDelta #length of actuated scissor linkage
 
         if linkage_length <= self.Max_EE_linkage_length: # for EE pinch angles 0deg and greater
-            EE_pinch_angle = np.arccos(linkage_length/2/R)
+            EE_pinch_angle = np.arccos(linkage_length/2/self.ee_R)
         else: # for EE pinch angles < 0deg when applying gripping force
             Equivalent_Length = self.Max_EE_linkage_length - (linkage_length - self.Max_EE_linkage_length)
-            EE_pinch_angle = -abs(np.arccos(((Equivalent_Length)/2/R))) #excess cable delta for actuation past 0 deg results in linkage_length/2/R > 1 
+            EE_pinch_angle = -abs(np.arccos(((Equivalent_Length)/2/self.ee_R))) #excess cable delta for actuation past 0 deg results in linkage_length/2/R > 1 
             # domain of arccos func. is from -1 to 1 // addition of -1 accounts for spill over
             # -abs(arccos) ensures negative value which should always be the case due to if else condition checking
         return EE_pinch_angle
@@ -287,34 +287,34 @@ class CableToDiskSpaceSolver:
         #print(DiskPositions)
 
         if DiskPositions[2] > 0:
-            gamma = _disk_to_cable_from_lookup_table(abs(DiskPositions[2]))
+            gamma = self._disk_to_cable_from_lookup_table(abs(DiskPositions[2]))
             #print("gamma")
             beta = 0
             #print("beta")
-            alpha = _disk_to_cable_from_lookup_table(abs(DiskPositions[3]))
+            alpha = self._disk_to_cable_from_lookup_table(abs(DiskPositions[3]))
             #print("unused\nalpha")
         elif DiskPositions[3] < 0:
-            gamma = _disk_to_cable_from_lookup_table(abs(DiskPositions[3]))
+            gamma = self._disk_to_cable_from_lookup_table(abs(DiskPositions[3]))
             #print("gamma")
-            beta = _disk_to_cable_from_lookup_table(abs(DiskPositions[2]))
+            beta = self._disk_to_cable_from_lookup_table(abs(DiskPositions[2]))
             #print("unused\nbeta")
             alpha = 0
             #print("alpha")
         else:
             gamma = 0
             #print("gamma")
-            beta = _disk_to_cable_from_lookup_table(abs(DiskPositions[2]))
+            beta = self._disk_to_cable_from_lookup_table(abs(DiskPositions[2]))
             #print("beta")
-            alpha = _disk_to_cable_from_lookup_table(abs(DiskPositions[3]))
+            alpha = self._disk_to_cable_from_lookup_table(abs(DiskPositions[3]))
             #print("alpha")
         #print("\n")
 
         wrist_cable_deltas = np.array([gamma,beta,alpha])
         #print("Total Wrist Cable Deltas: \n [gamma,beta,alpha]\n" , wrist_cable_deltas)
         EECableWristComponent = max(wrist_cable_deltas)
-        EECableDelta = _disk_to_ee_cable_from_lookup_table(DiskPositions[1])
+        EECableDelta = self._disk_to_ee_cable_from_lookup_table(DiskPositions[1])
         #print("EECableDelta: ", EECableDelta)
-        EE_jaw = _ee_cable_to_gripper_angle(EECableDelta, EECableWristComponent) #linear interpolation from EE gripper linkage mapping
+        EE_jaw = self._ee_cable_to_gripper_angle(EECableDelta, EECableWristComponent) #linear interpolation from EE gripper linkage mapping
         WristJointAngles = get_NotchAngle_from_TotalCableDeltas(h,wrist_cable_deltas)
         #gamma = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[0])
         #beta = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[1])
@@ -326,7 +326,7 @@ class CableToDiskSpaceSolver:
     ### IK ###
     #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-    def _cable_to_disk_from_lookup_table(x):
+    def _cable_to_disk_from_lookup_table(self, x):
         """
         interpolation of Wiper Disk Angle output from Cable Displacement input from lookup table
         """
@@ -354,15 +354,15 @@ class CableToDiskSpaceSolver:
             #if y > np.pi/3: y = np.pi/3 #disk value 90deg ceiling limit 
             return y
         
-    def _ee_cable_to_disk2_from_lookup_table(x):
+    def _ee_cable_to_disk2_from_lookup_table(self, x):
         """
         interpolation of Wiper Disk Angle output from Cable Displacement input from lookup table
         """
-        mask_lower = self.eecable_to_disk_map['DeltaEECable'].lt(x)
-        mask_lower = self.eecable_to_disk_map.loc[mask_lower]
+        mask_lower = self.ee_cable_to_disk_map['DeltaEECable'].lt(x)
+        mask_lower = self.ee_cable_to_disk_map.loc[mask_lower]
         #print("lower: \n" , mask_lower)
-        mask_upper = self.eecable_to_disk_map['DeltaEECable'].gt(x)
-        mask_upper = self.eecable_to_disk_map.loc[mask_upper]
+        mask_upper = self.ee_cable_to_disk_map['DeltaEECable'].gt(x)
+        mask_upper = self.ee_cable_to_disk_map.loc[mask_upper]
         #print("upper: \n" , mask_upper)
 
         x1 = mask_lower['DeltaEECable'].max()
@@ -394,7 +394,7 @@ class CableToDiskSpaceSolver:
         if EE_pinch_angle >= 0: #normal actuation range open to closed
             EECableDelta = self.two_times_ee_R*np.cos(EE_pinch_angle) - self.Min_EE_linkage_length # scissor linkage length - scissor linkage min length
         else: #clamping actuation range <0 deg for gripping
-            EECableDelta = self.two_times_ee_R*np.cos(0) - self.Min_EE_linkage_length - self.two_times_ee_R*np.sin(EE_pinch_angle) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
+            EECableDelta = self.two_times_ee_R - self.Min_EE_linkage_length - self.two_times_ee_R*np.sin(EE_pinch_angle) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
 
         TotalCableDelta = EECableDelta + WristBendingCableDelta * self.compensation_factor
         #print("EECableDelta: ", EECableDelta)
@@ -402,7 +402,7 @@ class CableToDiskSpaceSolver:
         #print("TotalCableDelta: ", TotalCableDelta)
         return TotalCableDelta
 
-    def get_disk_angles(roll, EE_pinch_Angle, deltaL0, deltaL1, deltaL2, current_jaw_angle):
+    def get_disk_angles(self, roll, EE_pinch_Angle, deltaL0, deltaL1, deltaL2, current_jaw_angle):
         """
         calculate Disk Angles from jointspace and cablespace inputs
         [roll (jointspace), end effector, (jointspace), Cable1 (cablespace), Cable2 (cablespace), Cable3 (cablespace)]
@@ -418,18 +418,18 @@ class CableToDiskSpaceSolver:
         # disk 1 from dVRK 8mm needle driver coupling matrix
         disk_angles_rad = np.array([-1.56323325*roll, 0, 0, 0], dtype=float)
         if (deltaL[1] > 0):
-            disk_angles_rad[2] = -_cable_to_disk_from_lookup_table(deltaL[1])
+            disk_angles_rad[2] = -self._cable_to_disk_from_lookup_table(deltaL[1])
             if (deltaL[0] > 0):
-                disk_angles_rad[3] = -_cable_to_disk_from_lookup_table(deltaL[0])
+                disk_angles_rad[3] = -self._cable_to_disk_from_lookup_table(deltaL[0])
             else:
-                disk_angles_rad[3] = _cable_to_disk_from_lookup_table(deltaL[2])
+                disk_angles_rad[3] = self._cable_to_disk_from_lookup_table(deltaL[2])
 
         elif (deltaL[2] >= 0):
-            disk_angles_rad[3] = _cable_to_disk_from_lookup_table(deltaL[2])
+            disk_angles_rad[3] = self._cable_to_disk_from_lookup_table(deltaL[2])
             if (deltaL[0] >= 0):
-                disk_angles_rad[2] = _cable_to_disk_from_lookup_table(deltaL[0])
+                disk_angles_rad[2] = self._cable_to_disk_from_lookup_table(deltaL[0])
             else:
-                disk_angles_rad[2] = -_cable_to_disk_from_lookup_table(deltaL[1])
+                disk_angles_rad[2] = -self._cable_to_disk_from_lookup_table(deltaL[1])
         else:
             print("whooosh")
 
@@ -437,8 +437,8 @@ class CableToDiskSpaceSolver:
             disk_angles_rad[1] = current_jaw_angle
         else:
             EECableWristComponent = max(deltaL)
-            EECableDelta = _gripper_angle_to_ee_cable(EE_pinch_Angle, EECableWristComponent)
-            disk_angles_rad[1] = _ee_cable_to_disk2_from_lookup_table(EECableDelta) #linear interpolation from EE gripper linkage mapping
+            EECableDelta = self._gripper_angle_to_ee_cable(EE_pinch_Angle, EECableWristComponent)
+            disk_angles_rad[1] = self._ee_cable_to_disk2_from_lookup_table(EECableDelta) #linear interpolation from EE gripper linkage mapping
         #print("D1,D2,D3,D4:\n", [Disk1, Disk2, Disk3, Disk4])
         disk_angles_rad = np.clip(disk_angles_rad, self.dial_lower_limits, self.dial_upper_limits)
         return disk_angles_rad

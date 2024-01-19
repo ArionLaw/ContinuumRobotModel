@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import yaml
+import sys
 
 from dvrk_ctr_teleop.kinematics.utils import *
 from dvrk_ctr_teleop.kinematics.task_space_to_joint_space import *
@@ -198,7 +199,8 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                                              deltaCablesTotal[0], deltaCablesTotal[1], deltaCablesTotal[2],
                                              disk_positions[1])
                 
-                joints_list = psm_joints + DiskAngles
+                joints_list = np.hstack([psm_joints, DiskAngles])
+                
                 if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 return joints_list, joint_angles
 
