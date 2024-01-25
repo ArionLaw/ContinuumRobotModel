@@ -1,5 +1,6 @@
-from dvrk_ctr_teleop.kinematics.utils import *
-from dvrk_ctr_teleop.kinematics.plotting import *
+from utils import *
+
+#from dvrk_ctr_teleop.kinematics.utils import *
 
 import numpy as np
 import time
@@ -69,26 +70,17 @@ def get_R_shaft(psm_joints):
     R = R1@R2@R3
     return R
 
-def get_R_fullwristmodel(roll,gamma,beta,alpha):
+def get_R_wrist(outer_roll,pitch_angle,inner_roll):
     """
-    calculates rotation matrix of instrument wrist starting from the roll joint
+    calculates rotation matrix of wrist relative to shaft
+    based on modified DH convention 
     """
-    R4 = RotMtx('x',0)@RotMtx('z',roll) # dVRK DH frame 4
-    R5 = RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',np.pi) # dVRK DH frame 5
-    Rnotches = get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha) #serial chain of 3 (3 phase, 3 notch segments)
-    R7 = RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',-np.pi/2) #correction to align frame 7 end effector orientation
-    R = R4@R5@Rnotches@R7
-    return R
-
-def get_R_segment3notch(gamma,beta,alpha):
-    """
-    calculates the rotation matrix of a repeating segment of square cut wrist notches
-    3 notch segment, 120 degree out of phase
-    """
-    phase_offset = 120*np.pi/180
-   
-    #based off modified DH-Convention
-    R = RotMtx('z',gamma)@RotMtx('x',phase_offset)@RotMtx('z',beta)@RotMtx('x',phase_offset)@RotMtx('z',alpha)@RotMtx('x',phase_offset)
+    R4 = RotMtx('x',0)@RotMtx('z',outer_roll) # dVRK DH frame 4
+    R5 = RotMtx('x',-np.pi/2)@RotMtx('z',pitch_angle) # dVRK DH frame 5
+    R6 = RotMtx('x',np.pi/2)@RotMtx('z',inner_roll) # dVRK DH frame 6
+    R7 = RotMtx('z',np.pi/2) # dVRK DH frame 7
+    R = R4@R5@R6@R7
+    
     return R
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -107,7 +99,7 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired):
     psm_yaw = np.arcsin(x/np.cos(psm_pitch)/psm_insertion)
     return [psm_yaw,psm_pitch,psm_insertion]
 
-def IK_update(R_desired,roll,gamma,beta,alpha,printout):
+def IK_update(R_desired,outer_roll,pitch_angle,inner_roll,printout):
     """
     IK numerical soln for taskspace to joint space roll and notch angles
     """
@@ -120,26 +112,23 @@ def IK_update(R_desired,roll,gamma,beta,alpha,printout):
     while (i<12) and (orientation_error>0.005) and exit == False:
         i=i+1
         #if printout is True: print("i: ",i)
-        orientation_error = get_O_error(R_desired,roll,gamma,beta,alpha)
+        orientation_error = get_O_error(R_desired,outer_roll,pitch_angle,inner_roll)
         #if printout is True: print("orientation error: ", orientation_error)
 
         delta = 0.25*orientation_error #empirically obtained coeefficient 0.25 optimal for stability and settling time
         if (abs(previous_error - orientation_error)) < 0.0001:
             exit = True
         
-        d_roll = [get_O_error(R_desired,roll+delta,gamma,beta,alpha),get_O_error(R_desired,roll-delta,gamma,beta,alpha)]
-        d_gamma = [get_O_error(R_desired,roll,gamma+delta,beta,alpha),get_O_error(R_desired,roll,gamma-delta,beta,alpha)]
-        d_beta = [get_O_error(R_desired,roll,gamma,beta+delta,alpha),get_O_error(R_desired,roll,gamma,beta-delta,alpha)]
-        d_alpha = [get_O_error(R_desired,roll,gamma,beta,alpha+delta),get_O_error(R_desired,roll,gamma,beta,alpha-delta)]
+        d_outer_roll = [get_O_error(R_desired,outer_roll+delta,pitch_angle,inner_roll),get_O_error(R_desired,outer_roll-delta,pitch_angle,inner_roll)]
+        d_pitch_angle = [get_O_error(R_desired,outer_roll,pitch_angle+delta,inner_roll),get_O_error(R_desired,outer_roll,pitch_angle-delta,inner_roll)]
+        d_inner_roll = [get_O_error(R_desired,outer_roll,pitch_angle,inner_roll+delta),get_O_error(R_desired,outer_roll,pitch_angle,inner_roll-delta)]
         
-        roll = roll_update(d_roll,orientation_error,roll,delta)
-        gamma = angle_update(d_gamma,orientation_error,gamma,delta)
-        beta = angle_update(d_beta,orientation_error,beta,delta)
-        alpha = angle_update(d_alpha,orientation_error,alpha,delta)
-        #if printout is True: print([roll,gamma,beta,alpha])
+        outer_roll = roll_update(d_outer_roll,orientation_error,outer_roll,delta)
+        pitch_angle = angle_update(d_pitch_angle,orientation_error,pitch_angle,delta)
+        inner_roll = roll_update(d_inner_roll,orientation_error,inner_roll,delta)
         previous_error = orientation_error
 
-    joint_angles = [roll,gamma,beta,alpha]
+    joint_angles = [outer_roll,pitch_angle,inner_roll]
     if printout is True:
         print("\n--- %s seconds ---" % (time.time() - start_time))
         print("i: ",i)
@@ -168,7 +157,7 @@ def roll_update(d_roll,orientation_error,roll,delta):
     else:
         return roll
 
-def get_O_error(R_desired,roll,gamma,beta,alpha):
+def get_O_error(R_desired,outer_roll,pitch_angle,inner_roll):
     """
     calculates orientation error of current configuration relative to R_desired 
     
@@ -178,7 +167,7 @@ def get_O_error(R_desired,roll,gamma,beta,alpha):
     angles_error = getEulerAngles(get_R_error(R_desired,roll,gamma,beta,alpha))
     E = np.sqrt(abs(angles_error[0])**2 + abs(angles_error[1])**2 + abs(angles_error[2])**2)
     """
-    R_error = get_R_error(R_desired,roll,gamma,beta,alpha)
+    R_error = get_R_error(R_desired,outer_roll,pitch_angle,inner_roll)
     trace_R = np.trace(R_error)
     if trace_R > 3: trace_R = 3
     elif trace_R < -1: trace_R = -1
@@ -189,10 +178,10 @@ def get_O_error(R_desired,roll,gamma,beta,alpha):
     #print("orientation error: ", E)
     return E
 
-def get_R_error(R_desired,roll,gamma,beta,alpha):
+def get_R_error(R_desired,outer_roll,pitch_angle,inner_roll):
     """
     calculates matrix representing orientation error
     if there is no orientation error, matrix should be an identity matrix
     """
-    R = R_desired@np.transpose(get_R_fullwristmodel(roll,gamma,beta,alpha))
+    R = R_desired@np.transpose(get_R_wrist(outer_roll,pitch_angle,inner_roll))
     return R
