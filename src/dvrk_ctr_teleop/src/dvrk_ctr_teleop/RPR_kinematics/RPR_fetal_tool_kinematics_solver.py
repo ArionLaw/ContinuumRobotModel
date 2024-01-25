@@ -1,12 +1,12 @@
-from RPR_task_space_to_joint_space import *
-from RPR_joint_space_to_cable_space import *
-from RPR_cable_space_to_disk_space import *
-from utils import *
+#from RPR_task_space_to_joint_space import *
+#from RPR_joint_space_to_cable_space import *
+#from RPR_cable_space_to_disk_space import *
+#from utils import *
 
-#from dvrk_ctr_teleop.kinematics.RPR_task_space_to_joint_space import *
-#from dvrk_ctr_teleop.kinematics.RPR_joint_space_to_cable_space import *
-#from dvrk_ctr_teleop.kinematics.RPR_cable_space_to_disk_space import *
-#from dvrk_ctr_teleop.kinematics.utils import *
+from dvrk_ctr_teleop.RPR_kinematics.RPR_task_space_to_joint_space import *
+from dvrk_ctr_teleop.RPR_kinematics.RPR_joint_space_to_cable_space import *
+from dvrk_ctr_teleop.RPR_kinematics.RPR_cable_space_to_disk_space import *
+from dvrk_ctr_teleop.RPR_kinematics.utils import *
 
 import numpy as np
 

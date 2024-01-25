@@ -1,6 +1,6 @@
-from utils import *
+#from utils import *
 
-#from dvrk_ctr_teleop.kinematics.utils import *
+from dvrk_ctr_teleop.RPR_kinematics.utils import *
 
 import numpy as np
 
