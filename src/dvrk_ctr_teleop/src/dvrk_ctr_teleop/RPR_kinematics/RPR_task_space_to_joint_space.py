@@ -103,36 +103,9 @@ def IK_update(R_desired,outer_roll,pitch_angle,inner_roll,printout):
     """
     IK numerical soln for taskspace to joint space roll and notch angles
     """
-    start_time = time.time()
-    i=0
-    orientation_error = 1 #arbitrary value to enter loop
-    previous_error = 2 #arbitrary value to prevent triggering exit condition(stuck in local minima)
-    exit = False
-
-    while (i<12) and (orientation_error>0.005) and exit == False:
-        i=i+1
-        #if printout is True: print("i: ",i)
-        orientation_error = get_O_error(R_desired,outer_roll,pitch_angle,inner_roll)
-        #if printout is True: print("orientation error: ", orientation_error)
-
-        delta = 0.25*orientation_error #empirically obtained coeefficient 0.25 optimal for stability and settling time
-        if (abs(previous_error - orientation_error)) < 0.0001:
-            exit = True
-        
-        d_outer_roll = [get_O_error(R_desired,outer_roll+delta,pitch_angle,inner_roll),get_O_error(R_desired,outer_roll-delta,pitch_angle,inner_roll)]
-        d_pitch_angle = [get_O_error(R_desired,outer_roll,pitch_angle+delta,inner_roll),get_O_error(R_desired,outer_roll,pitch_angle-delta,inner_roll)]
-        d_inner_roll = [get_O_error(R_desired,outer_roll,pitch_angle,inner_roll+delta),get_O_error(R_desired,outer_roll,pitch_angle,inner_roll-delta)]
-        
-        outer_roll = roll_update(d_outer_roll,orientation_error,outer_roll,delta)
-        pitch_angle = angle_update(d_pitch_angle,orientation_error,pitch_angle,delta)
-        inner_roll = roll_update(d_inner_roll,orientation_error,inner_roll,delta)
-        previous_error = orientation_error
-
-    joint_angles = [outer_roll,pitch_angle,inner_roll]
-    if printout is True:
-        print("\n--- %s seconds ---" % (time.time() - start_time))
-        print("i: ",i)
-        print("orientation error: ", orientation_error)
+    
+    #new geometric IK soln 
+    
     return joint_angles
 
 def angle_update(d_theta,orientation_error,theta,delta):

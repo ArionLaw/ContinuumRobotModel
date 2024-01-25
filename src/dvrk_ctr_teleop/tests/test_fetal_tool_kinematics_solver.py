@@ -2,6 +2,7 @@ import numpy as np
 import sys
 
 from dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver import PeterFrancisToolKinematicsSolver
+from dvrk_ctr_teleop.RPR_kinematics.RPR_fetal_tool_kinematics_solver import ArionLawToolKinematicsSolver
 from test_case_reader import read_TestCaseFile
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -43,6 +44,7 @@ def run_test_cases():
                         #print("tf Desired:\n",tf_desired)
 
                         tool1 = PeterFrancisToolKinematicsSolver()
+                        tool1 = ArionLawToolKinematicsSolver()
                         
                         #Transform, jaw angle and wrist joint angle as calculated from FK given input_current_output_js
                         Tf, jaw_angle, FK_joint_values = tool1.compute_all_fk(disk_positions)

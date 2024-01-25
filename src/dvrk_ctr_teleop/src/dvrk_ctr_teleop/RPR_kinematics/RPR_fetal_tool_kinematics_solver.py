@@ -19,7 +19,7 @@ import numpy as np
 np.set_printoptions(precision=3)
 printout = False
 
-class Peter_Francis_tool_Kinematics_Solver:
+class Arion_Law_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -98,7 +98,7 @@ class Peter_Francis_tool_Kinematics_Solver:
             R_shaft = get_R_shaft(psm_joints)
 
             """ FK calculate current wrist orientation of current pose """
-            R_wrist = get_R_fullwristmodel(roll,gamma,beta,alpha)
+            R_wrist = get_R_fullwristmodel(outer_roll,pitch_angle,inner_roll)
             R_currentFK = R_shaft@R_wrist
 
             return joints_list
