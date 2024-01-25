@@ -42,6 +42,8 @@ cartesian_controllers:
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
         config: "../config/mapping/psm1_tool.yaml"
+        log_periodic_hz: 1
+        name: "MTML-PSM1-PeterFrancis"
   - name: "MTMR-PSM2-PeterFrancis"
     input:
         position_scale: 0.5
@@ -84,6 +86,8 @@ cartesian_controllers:
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
         class_name: "PeterFrancisToolKinematicsSolver"
         config: "../config/mapping/psm2_tool.yaml"
+        log_periodic_hz: 1
+        name: "MTMR-PSM2-PeterFrancis"
 clutch_topic: "/console/clutch"
 switcher:
   switch_topic: "/console/operator_present"

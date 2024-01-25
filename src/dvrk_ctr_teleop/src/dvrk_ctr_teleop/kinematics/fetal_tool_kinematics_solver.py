@@ -7,6 +7,7 @@ from dvrk_ctr_teleop.kinematics.utils import *
 from dvrk_ctr_teleop.kinematics.task_space_to_joint_space import *
 from dvrk_ctr_teleop.kinematics.joint_space_to_cable_space import *
 from dvrk_ctr_teleop.kinematics.cable_space_to_disk_space import CableToDiskSpaceSolver
+from dvrk_ctr_teleop.kinematics.periodic_log import PeriodicLogger
 # from dvrk_ctr_teleop.kinematics.plotting import *
 from dvrk_planning.kinematics.kinematics_solver import KinematicsSolver # TODO later
         
@@ -74,6 +75,13 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 # print(config_yaml)
                 # file_path = sys.path[0]
                 # file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
+                if "log_periodic_hz" in config_yaml:
+                       self.name = config_yaml["name"]
+                       self.is_at_singularity = False
+                       self.periodic_logger = PeriodicLogger(config_yaml["log_periodic_hz"])
+                       self.periodic_logger.start()
+
+                self.config_yaml = config_yaml
 
                 #print(file_path)
                 #self.cable_to_disk_map.to_csv(file_path +'/dialmapping.csv')
@@ -192,6 +200,13 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 if printout is True: print("cable deltas for notch 2: ", deltaCablesBeta)
                 if printout is True: print("cable deltas for notch 3: ", deltaCablesAlpha)
                 if printout is True: print("total cable delta: ", deltaCablesTotal)
+
+                if (self.periodic_logger):
+                        max_alpha_beta = max(deltaCablesAlpha, deltaCablesBeta)
+                        if abs(deltaCablesGamma / max_alpha_beta) > 10:
+                                self.periodic_logger.set(self.name + " singularity:", True)
+                        else:
+                                self.periodic_logger.set(self.name + " singularity:", False)
 
                 """ convert cable displacements to dial positions """
                 """ [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)] """
