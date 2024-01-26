@@ -17,3 +17,4 @@ ee_cable_to_disk_map:
   piecewise_hshift: -25.0
   piecewise_vshift: 0
 wrist_bending_compensation: 0.9
+simulation: True
