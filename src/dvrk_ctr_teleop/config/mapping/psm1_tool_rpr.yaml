@@ -1,0 +1,20 @@
+cable_to_disk_map:
+  approximation: True
+  vscale: 4.55 #1.7 #1.6
+  hscale: 1.2 #1 #1.1
+  vshift: 4.55 #-1.2 #-0.6
+  hshift: -1.5 #-0.1
+ee_cable_to_disk_map:
+  approximation: True
+  arccos_model: False # piecewise
+  # vscale: 1.8 #1.7 #1.6
+  # hscale: 1 #1 #1.1
+  # vshift: -0.8 #-1.2 #-0.6
+  # hshift: 0.05 #-0.1
+  breakover: -40
+  max: 5
+  min: 0
+  piecewise_hshift: -25.0
+  piecewise_vshift: 0
+wrist_bending_compensation: 0.9
+wrist_length: 10 #change this 
