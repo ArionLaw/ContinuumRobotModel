@@ -75,7 +75,7 @@ def get_deltaCable_at_Notch(h, y_, r, w, notch_angle, phase):
         deltaCable_L1 = L2 - h
         deltaCable_L2 = L0 - h
     
-    deltaCable = np.array([deltaCable_L0, deltaCable_L1, deltaCable_L2])
+    #deltaCable = np.array([deltaCable_L0, deltaCable_L1, deltaCable_L2])
 
     return(np.array([deltaCable_L0, deltaCable_L1, deltaCable_L2]))
 
