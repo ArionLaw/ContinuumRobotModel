@@ -3,60 +3,20 @@
 from dvrk_ctr_teleop.RPR_kinematics.utils import *
 
 import numpy as np
-import time
-
-
-#----------------------------------------------------------------------------------------------------------------------------------------------#
-#desired end effector orientation rotation matrix description
-#----------------------------------------------------------------------------------------------------------------------------------------------#
-
-
-#angle = getAngleTwoVectors(pos_des,vec_z) #acos(dot(vec_des,vec_z)/norm(vec_z)/norm(vec_des))
-#angle_degrees = np.degrees(angle) #angle*180/pi
-#axis = getRotationAxis(pos_des, vec_z, angle)#cross(vec_des,vec_z)/norm(vec_z)/norm(vec_des)/sin(angle)
-
-def calc_R_desired(EE_orientation_desired, tip_desired):
-    """
-    DEPRECATED, given Tf matrix from controller
-    obtain rotation matrix of desired end effector orientation  
-    """
-    vec_x = np.array([1,0,0])
-    vec_z = np.array([0,0,1])
-
-    # azimuth about z axis
-    phi = EE_orientation_desired[1]/abs(EE_orientation_desired[1])*np.arccos(np.dot(EE_orientation_desired[:2],vec_x[:2])/np.linalg.norm(vec_x[:2])/np.linalg.norm(EE_orientation_desired[:2]))
-    phi_degrees = phi*180/np.pi
-    #print("phi(azimuth): \n", round(phi_degrees,3))
-
-    # altitude about y axis
-    proj_des = [np.sqrt(EE_orientation_desired[0]**2 + EE_orientation_desired[1]**2) , EE_orientation_desired[2]]
-    proj_z = np.array([0,1])
-    theta = np.arccos(np.dot(proj_des,proj_z)/np.linalg.norm(proj_z)/np.linalg.norm(proj_des))
-    theta_degrees = theta*180/np.pi
-    #print("theta(elevation): \n", round(theta_degrees,3))
-
-    # tool tip roll about z axis
-    tip_roll = tip_desired*np.pi/180
-    #print("tool tip roll: \n", round(tip_desired,3))
-
-    R_desired = RotMtx('z',phi)@RotMtx('y',theta)@RotMtx('z',tip_roll)
-    #print("desired Rotation matrix: \n", R_desired)
-
-    return R_desired
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-def get_wristPosition_from_PSMjoints(psm_joints):
+def get_wristPosition_from_PSMjoints(psm_joints,wristlength):
     """
     obtain position of wrist before notches from yaw, pitch and insertion joint values
     joint[0] = yaw
     joint[1] = pitch
     joint[2] = insertion
     """
-    EE_x = psm_joints[2]*np.sin(psm_joints[0])*np.cos(psm_joints[1])
-    EE_y = -psm_joints[2]*np.sin(psm_joints[1])
-    EE_z = -psm_joints[2]*np.cos(psm_joints[0])*np.cos(psm_joints[1])
+    EE_x = (psm_joints[2]+wristlength/2)*np.sin(psm_joints[0])*np.cos(psm_joints[1])
+    EE_y = (-psm_joints[2]+wristlength/2)*np.sin(psm_joints[1])
+    EE_z = (-psm_joints[2]+wristlength/2)*np.cos(psm_joints[0])*np.cos(psm_joints[1])
     return [EE_x,EE_y,EE_z]
 
 def get_R_shaft(psm_joints):
@@ -87,14 +47,14 @@ def get_R_wrist(outer_roll,pitch_angle,inner_roll):
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def get_PSMjoints_from_wristPosition(EE_pos_desired):
+def get_PSMjoints_from_wristPosition(EE_pos_desired,wristlength):
     """
     obtain initial yaw, pitch and insertion joint values of PSM kinematic chain from desired EE_position
     """
     x = float(EE_pos_desired[0])
     y = float(EE_pos_desired[1])
     z = float(EE_pos_desired[2])
-    psm_insertion = np.sqrt(x**2 + y**2 + z**2); #magnitude = psm_insertion
+    psm_insertion = np.sqrt(x**2 + y**2 + z**2) - wristlength/2; #magnitude = psm_insertion
     psm_pitch = np.arcsin(-y/psm_insertion)
     psm_yaw = np.arcsin(x/np.cos(psm_pitch)/psm_insertion)
     return [psm_yaw,psm_pitch,psm_insertion]
@@ -107,54 +67,3 @@ def IK_update(R_desired,outer_roll,pitch_angle,inner_roll,printout):
     #new geometric IK soln 
     
     return joint_angles
-
-def angle_update(d_theta,orientation_error,theta,delta):
-    """
-    decision making for notch angle updates from numerical soln
-    """
-    if (d_theta[0] < d_theta[1]) and (d_theta[0] < orientation_error):
-        return theta+delta
-    elif (d_theta[1] < d_theta[0]) and (d_theta[1] < orientation_error) and (theta-delta > 0):
-        return theta-delta
-    else:
-        return theta
-
-def roll_update(d_roll,orientation_error,roll,delta):
-    """
-    decision making for roll angle update from numerical soln
-    """
-    if (d_roll[0] < d_roll[1]) and (d_roll[0] < orientation_error):
-        return roll+delta
-    elif (d_roll[1] < d_roll[0]) and (d_roll[1] < orientation_error):
-        return roll-delta
-    else:
-        return roll
-
-def get_O_error(R_desired,outer_roll,pitch_angle,inner_roll):
-    """
-    calculates orientation error of current configuration relative to R_desired 
-    
-    error is expressed as the angle of difference between rotations 
-
-    ### old method ### error is expressed as a pythagorean magnitude of 3 euler angle errors
-    angles_error = getEulerAngles(get_R_error(R_desired,roll,gamma,beta,alpha))
-    E = np.sqrt(abs(angles_error[0])**2 + abs(angles_error[1])**2 + abs(angles_error[2])**2)
-    """
-    R_error = get_R_error(R_desired,outer_roll,pitch_angle,inner_roll)
-    trace_R = np.trace(R_error)
-    if trace_R > 3: trace_R = 3
-    elif trace_R < -1: trace_R = -1
-    E = np.arccos((trace_R-1)/2)
-    #print("angle error : " , angles_error)
-    #print("R_error: \n", R_error)
-    #print("traceR: ", np.trace(R_error))
-    #print("orientation error: ", E)
-    return E
-
-def get_R_error(R_desired,outer_roll,pitch_angle,inner_roll):
-    """
-    calculates matrix representing orientation error
-    if there is no orientation error, matrix should be an identity matrix
-    """
-    R = R_desired@np.transpose(get_R_wrist(outer_roll,pitch_angle,inner_roll))
-    return R
