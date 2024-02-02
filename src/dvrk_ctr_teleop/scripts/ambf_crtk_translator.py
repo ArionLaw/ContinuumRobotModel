@@ -138,6 +138,7 @@ class PSMTranslator:
             self.base_handle.set_pos(-0.75,0,2)
         
         self.base_handle.set_rpy(0,0,3.14)
+        #self.base_handle.set_rpy(0,0,0)
 
         for i in range(0,14):
             self.base_handle.set_joint_pos(i,0.0)
@@ -146,6 +147,9 @@ class PSMTranslator:
         
         
     def update_jaw_links(self, jaw_pos):
+        if jaw_pos <0:
+            jaw_pos =0
+        
         self.base_handle.set_joint_pos('gripper_1_joint', jaw_pos)
         self.base_handle.set_joint_pos('gripper_2_joint', jaw_pos)
 

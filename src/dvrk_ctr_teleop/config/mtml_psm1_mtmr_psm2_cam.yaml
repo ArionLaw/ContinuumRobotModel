@@ -4,16 +4,16 @@ cartesian_controllers:
         position_scale: 0.5
         type: "follow"
         topic: "/MTML/measured_cp"
-        input_2_input_reference_rot:
-            quaternion:
-                x: 0.9659258 #0
-                y: 0
-                z: 0
-                w: -0.258819 #1
+        # input_2_input_reference_rot:
+        #     quaternion:
+        #         x: 0.9659258 #0
+        #         y: 0
+        #         z: 0
+        #         w: -0.258819 #1
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
-            idx: 4
+            idx: 13
         hz_divisor: 5
         is_input_device_hold_home_off: True
         servo_cp_topic: "/MTML/servo_cp"
@@ -28,14 +28,14 @@ cartesian_controllers:
         control_interfaces:
             - control_topic: "/PSM1/servo_jp"
               feedback_topic: "/PSM1/measured_js"
-            - control_topic: "/PSM1/jaw/servo_jp"
-              feedback_topic: "/PSM1/jaw/measured_js"
-        output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
-            quaternion:
-              x: 0.8434879353433754
-              y: 0.41486388788676554
-              z: 0.17562183502837217 
-              w: 0.2925286798228752
+            #- control_topic: "/PSM1/jaw/servo_jp"
+              #feedback_topic: "/PSM1/jaw/measured_js"
+        # output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
+        #     quaternion:
+        #       x: 0.8434879353433754
+        #       y: 0.41486388788676554
+        #       z: 0.17562183502837217 
+        #       w: 0.2925286798228752
 
     kinematics:
         robot: "custom"
@@ -47,16 +47,16 @@ cartesian_controllers:
         position_scale: 0.5
         type: "follow"
         topic: "/MTMR/measured_cp"
-        input_2_input_reference_rot:
-            quaternion:
-                x: 0.9659258 #0
-                y: 0
-                z: 0
-                w: -0.258819 #1
+        # input_2_input_reference_rot:
+        #     quaternion:
+        #         x: 0.9659258 #0
+        #         y: 0
+        #         z: 0
+        #         w: -0.258819 #1
         jaw:
             input_topic: "/MTMR/gripper/measured_js"
             scale: 1
-            idx: 4
+            idx: 13
         hz_divisor: 5
         is_input_device_hold_home_off: True
         servo_cp_topic: "/MTMR/servo_cp"
@@ -71,14 +71,15 @@ cartesian_controllers:
         control_interfaces:
             - control_topic: "/PSM2/servo_jp"
               feedback_topic: "/PSM2/measured_js"
-            - control_topic: "/PSM2/jaw/servo_jp"
-              feedback_topic: "/PSM2/jaw/measured_js"
-        output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
-            quaternion:
-                x:  .76339054150011531
-                y:  -0.53537144702185793 #-0.6633578754614509
-                z: -0.1876093208104334 #-0.31181933480986546
-                w:  0.30954476356177874 #0.36192662925732555
+            #- control_topic: "/PSM2/jaw/servo_jp"
+             # feedback_topic: "/PSM2/jaw/measured_js"
+        # output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
+        #     quaternion:
+        #         x:  .76339054150011531
+        #         y:  -0.53537144702185793 #-0.6633578754614509
+        #         z: -0.1876093208104334 #-0.31181933480986546
+        #         w:  0.30954476356177874 #0.36192662925732555
+        is_debug_output_tf: True
     kinematics:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"

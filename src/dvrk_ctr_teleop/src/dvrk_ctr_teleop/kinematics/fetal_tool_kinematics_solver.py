@@ -151,6 +151,7 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 #print("tf_p:\n", PSM_wrist_pos_desired)
                 R_desired = tf_desired[0:3, 0:3]
                 #print("tf_R:\n", R_desired)
+                # print("desired_EE_pinch_angle:\n", desired_EE_pinch_angle)
 
                 if self.simulation:
                         roll = direct_joint_positions[3]
@@ -237,7 +238,8 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                         if printout is True: print("Disk Angles: \n", np.around(joints_list,4))
                 
                 '''print('IK JOINTS:')
-                print(joints_list)'''                
+                print(joints_list)'''      
+                joint_angles[2] *=10          
                 return joints_list, joint_angles
 
         def compute_ik(self, T_tip_0_mat, current_joint_positions, ee_metadata = ()):
