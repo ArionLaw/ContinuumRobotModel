@@ -3,6 +3,7 @@
 from dvrk_ctr_teleop.RPR_kinematics.utils import *
 
 import numpy as np
+import math
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
@@ -59,11 +60,92 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired,wristlength):
     psm_yaw = np.arcsin(x/np.cos(psm_pitch)/psm_insertion)
     return [psm_yaw,psm_pitch,psm_insertion]
 
-def IK_update(R_desired,outer_roll,pitch_angle,inner_roll,printout):
+
+def wrist_analytical_ik(R_wrist_desired):
     """
-    IK numerical soln for taskspace to joint space roll and notch angles
+    calculates wrist joint solutions given desired rotation matrix for the wrist
+    returns 2 possible IK solutions 
     """
+
+    r33 = R_wrist_desired[2,2]
+    r31 = R_wrist_desired[2,0]
+    r32 = R_wrist_desired[2,1]
+    r13 = R_wrist_desired[0,2]
+    r23 = R_wrist_desired[1,2]
+
+    if r33 == 1:
+        r33 = 0.9995 #small offset to avoid singularity
+
+    q5_1 = math.acos(r33)
+    q5_2 = -math.acos(r33)
+
+    q4_1 = math.atan2(r23, r13)
+    q6_1 = math.atan2(r31, r32)
+
+    q4_2 = math.atan2(-r23, -r13)
+    q6_2 = math.atan2(-r31, -r32)
+
+    wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+                        [q4_2, q5_2, q6_2]])
     
-    #new geometric IK soln 
+    return wrist_ik_sol
+
+class WristIKSolutionSelector:
+    '''selects best IK solution based on wrist pitch joint limits and effort'''
+
+    def __init__(self, wrist_pitch_joint_limits):
+        self.wrist_pitch_joint_limits = np.array(wrist_pitch_joint_limits)
     
-    return joint_angles
+    def normalize_angle(self,angles):
+        """ Normalize angles to the range [0, 2*pi] """
+        return np.mod(angles, 2 * np.pi)
+    
+    def calculate_effort(self,q_current, q_target):
+        """ Calculate the effort required to move from q_current to q_target"""
+        q_current = self.normalize_angle(q_current)
+        q_target = self.normalize_angle(q_target)
+
+        # Calculate the difference and account for the circular nature of angles
+        diff = np.abs(q_current - q_target)
+        diff = np.where(diff > np.pi, 2 * np.pi - diff, diff)
+
+        return np.sum(diff)
+
+    def is_within_limits(self, angles):
+        """ Check if the wrist pitch joint angle is within the joint limits"""
+        q5 = angles[1] 
+        # Normalize q5 to be within -pi to pi
+        q5 = np.arctan2(np.sin(q5), np.cos(q5))
+
+        return self.wrist_pitch_joint_limits[0] <= q5 <= self.wrist_pitch_joint_limits[1]
+
+
+    def select_best_solution(self, q_current, solutions):
+        """ Select the IK solution that requires the smallest change in angles and is within joint limits"""
+
+        q_current = np.array(q_current)
+        valid_solutions = [sol for sol in solutions if self.is_within_limits(sol)]
+
+        if not valid_solutions:
+
+            # Set q5 to its nearest joint limit for each solution
+            adjusted_solutions = []
+
+            for sol in solutions:
+                q5 = sol[1]
+                if q5 < self.joint_limits[0]:
+                    q5 = self.joint_limits[0]
+                elif q5 > self.joint_limits[1]:
+                    q5 = self.joint_limits[1]
+                adjusted_sol = sol.copy()
+                adjusted_sol[1] = q5
+                adjusted_solutions.append(adjusted_sol)
+
+            valid_solutions = adjusted_solutions
+
+        efforts = [(self.calculate_effort(q_current, np.array(sol)), sol) for sol in valid_solutions]
+        return min(efforts, key=lambda x: x[0])[1]
+    
+
+
+

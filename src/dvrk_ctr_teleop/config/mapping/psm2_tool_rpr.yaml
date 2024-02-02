@@ -18,3 +18,4 @@ ee_cable_to_disk_map:
   piecewise_vshift: 0
 wrist_bending_compensation: 0.9
 wrist_length: 10 #CHANGE THIS 
+wrist_pitch_joint_limits: [-1.57, 1.57]

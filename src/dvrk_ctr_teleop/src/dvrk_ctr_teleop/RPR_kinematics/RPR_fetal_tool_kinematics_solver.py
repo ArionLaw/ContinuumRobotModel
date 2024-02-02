@@ -9,6 +9,8 @@ from dvrk_ctr_teleop.RPR_kinematics.RPR_cable_space_to_disk_space import *
 from dvrk_ctr_teleop.RPR_kinematics.utils import *
 
 import numpy as np
+import yaml
+import os
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # Notes
@@ -23,7 +25,7 @@ class Arion_Law_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-    def __init__(self):
+    def __init__(self, config_path):
             self.n = 3 # sets of 3 cuts
             self.h = 0.66 #mm notch height
             self.c = 0.66 #mm notch spacing
@@ -36,6 +38,14 @@ class Arion_Law_tool_Kinematics_Solver:
             self.r = self.OD/2
             self.w = self.r*np.sin(np.radians(30))
             self.shaft_length = 400 #mm
+
+
+            new_path = os.path.join(sys.path[0], config_path)
+            yaml_file = open(new_path)
+            config_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
+
+            self.wrist_length = config_yaml["wrist_length"]
+            self.WristIKSolutionSelector = WristIKSolutionSelector(config_yaml["wrist_pitch_joint_limits"])
 
             #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
             #self.negate_joint_list = spherical_wrist_tool_params.negate_joint_list
@@ -58,7 +68,7 @@ class Arion_Law_tool_Kinematics_Solver:
             outer_roll,pitch,inner_roll = get()
 
             """ wrist position FK """
-            EE_pos_FK = get_wristPosition_from_PSMjoints(psm_joints)
+            EE_pos_FK = get_wristPosition_from_PSMjoints(psm_joints, self.wrist_length)
             #if printout is True: print("Wrist Position: \n", EE_pos_FK)
 
             """ orientation FK """
@@ -82,25 +92,27 @@ class Arion_Law_tool_Kinematics_Solver:
             """
             if printout is True: print("------------------------------------------- IK -------------------------------------------")     
             
-            PSM_wrist_pos_desired = tf_desired[0:3, 3]
+            ee_position_desired = tf_desired[0:3,3]
             R_desired = tf_desired[0:3, 0:3]
             disk_positions = direct_psm_and_disk_joint_positions[3:]
-
+            
             """ FK calculate wrist pseudojoints of current pose using """ 
-            joint_values = DiskPositions_To_JointSpace(disk_positions,self.h,self.y_,self.r)
+            current_wrist_angles = DiskPositions_To_JointSpace(disk_positions,self.h,self.y_,self.r)
 
             """ IK calculate psm joints to obtain wrist cartesian position """
+            PSM_wrist_pos_desired = ee_position_desired - self.wrist_length/2*R_desired@np.array([0,0,1])
             psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired)
             #if printout is True: print("PSM Joint Values(yaw,pitch,insertion):\n", psm_joints)
 
             """ FK calculate current shaft orientation given wrist cartesian position """
-            # R_desired = calc_R_desired(EE_orientation_desired)
             R_shaft = get_R_shaft(psm_joints)
 
-            """ FK calculate current wrist orientation of current pose """
-            R_wrist = get_R_fullwristmodel(outer_roll,pitch_angle,inner_roll)
-            R_currentFK = R_shaft@R_wrist
-
+            """IK calculate wrist joint solutions and select the best solution"""
+            R_wrist = np.linalg.inv(R_shaft)@R_desired
+            wrist_ik_sols = wrist_analytical_ik(R_wrist)
+            wrist_joint_angles = self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
+            
+        
             return joints_list
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
