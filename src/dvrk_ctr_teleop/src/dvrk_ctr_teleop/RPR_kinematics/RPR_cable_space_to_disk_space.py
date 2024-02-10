@@ -191,43 +191,18 @@ def EECable_to_GripperAngle(TotalCableDelta,WristBendingCableDelta):
     return EE_pinch_angle
 
 def DiskPosition_To_JointSpace(DiskPositions,h,y_,r):
-    roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix    
-    #print(DiskPositions)
+    inner_roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix    
+    outer_roll = DiskPositions[2]/-1.56323325 #from dVRK 8mm needle driver coupling matrix
+    SmallCapstanRadius = 15 #mm
+    pitch_cable_delta = DiskPositions[1]*SmallCapstanRadius
     
-    if DiskPositions[2] > 0:
-        gamma = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
-        #print("gamma")
-        beta = 0
-        #print("beta")
-        alpha = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
-        #print("unused\nalpha")
-    elif DiskPositions[3] < 0:
-        gamma = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
-        #print("gamma")
-        beta = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
-        #print("unused\nbeta")
-        alpha = 0
-        #print("alpha")
-    else:
-        gamma = 0
-        #print("gamma")
-        beta = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[2]))
-        #print("beta")
-        alpha = Disk_to_Cable_from_LookUpTable(abs(DiskPositions[3]))
-        #print("alpha")
-    #print("\n")
-
-    wrist_cable_deltas = np.array([gamma,beta,alpha])
-    #print("Total Wrist Cable Deltas: \n [gamma,beta,alpha]\n" , wrist_cable_deltas)
-    EECableWristComponent = max(wrist_cable_deltas)
-    EECableDelta = Disk2_to_EECable_from_LookUpTable(DiskPositions[1])
-    #print("EECableDelta: ", EECableDelta)
+    EECableWristComponent = pitch_cable_delta
+    EECableDelta = Disk2_to_EECable_from_LookUpTable(DiskPositions[3])
     EE_jaw = EECable_to_GripperAngle(EECableDelta,EECableWristComponent) #linear interpolation from EE gripper linkage mapping
-    WristJointAngles = get_NotchAngle_from_TotalCableDeltas(h,wrist_cable_deltas)
-    #gamma = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[0])
-    #beta = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[1])
-    #alpha = get_NotchAngle_from_CableDelta(h, y_, r, allocated_cable_deltas[2])
-    joint_values = [roll,EE_jaw,WristJointAngles[0],WristJointAngles[1],WristJointAngles[2]]
+    
+    pitch_angle = get_PitchAngle_from_PitchCableDelta(h, y_, r, pitch_cable_delta)
+
+    joint_values = [outer_roll,pitch_angle,inner_roll,EE_jaw]
     return joint_values
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -284,75 +259,36 @@ def GripperAngle_to_EECable(EE_pinch_angle,WristBendingCableDelta):
     #print("TotalCableDelta: ", TotalCableDelta)
     return TotalCableDelta
 
-def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2, current_jaw_angle):
+def get_Disk_Angles(outer_roll,pitch_angle,inner_roll,EE_pinch_Angle,current_jaw_angle,h,y_,r,w):
     """
     calculate Disk Angles from jointspace and cablespace inputs
     [roll (jointspace), end effector, (jointspace), Cable1 (cablespace), Cable2 (cablespace), Cable3 (cablespace)]
-    """
-    deltaL = np.array([deltaL0,deltaL1,deltaL2])
-    deltaL[deltaL<0] = 0 # not possible to extend length of cable, set to 0 displacement
-    ref = (min(deltaL)) # set smallest cable displacement as reference length
-    
-    deltaL[deltaL<= ref] = 0
-    #deltaL = deltaL - diff
-    #print("Cables Delta: \n", deltaL)
-    
-    if (deltaL[1] > 0):
-        Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[1])
-        if (deltaL[0] > 0):
-            Disk4 = -Cable_to_Disk_from_LookUpTable(deltaL[0])
-        else:
-            Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[2])
-    
-    elif (deltaL[2] >= 0):
-        Disk4 = Cable_to_Disk_from_LookUpTable(deltaL[2])
-        if (deltaL[0] >= 0):
-            Disk3 = Cable_to_Disk_from_LookUpTable(deltaL[0])
-        else:
-            Disk3 = -Cable_to_Disk_from_LookUpTable(deltaL[1])
-    else:
-        print("whooosh")    
-    Disk1 = -1.56323325*roll #from dVRK 8mm needle driver coupling matrix
-    EECableWristComponent = max(deltaL)
+    """ 
+    Disk1 = -1.56323325*outer_roll #from dVRK 8mm needle driver coupling matrix
+    Disk3 = -1.56323325*inner_roll #from dVRK 8mm needle driver coupling matrix
+    PitchCableDelta = get_PitchCableDelta_from_PitchAngle(h,y_,r,w,pitch_angle)
+    SmallCapstanRadius = 15 #mm
+    Disk2 = PitchCableDelta/SmallCapstanRadius
+    EECableWristComponent = PitchCableDelta
     
     if EE_pinch_Angle is None:
-        Disk2 = current_jaw_angle
+        Disk4 = current_jaw_angle
     else:
         EECableDelta = GripperAngle_to_EECable(EE_pinch_Angle,EECableWristComponent)
-        Disk2 = EECable_to_Disk2_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping
-    
+        Disk4 = EECable_to_Disk2_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping
     #print("D1,D2,D3,D4:\n", [Disk1, Disk2, Disk3, Disk4])
-
     # dial limits
-    upperLimitDial_2 = 135*np.pi/180
-    lowerLimitDial_2 = -90*np.pi/180
-    if Disk2 > upperLimitDial_2: 
-        Disk2 = upperLimitDial_2
-        print("Disk2 upper limit")
-    elif Disk2 < lowerLimitDial_2: 
-        Disk2 = lowerLimitDial_2
-        print("Disk2 lower limit")
-
-    upperLimitDial_3_4 = 60*np.pi/180
-    lowerLimitDial_3_4 = -60*np.pi/180
-    if Disk3 > upperLimitDial_3_4: 
-        Disk3 = upperLimitDial_3_4
-        print("Disk3 upper limit")
-    elif Disk3 < lowerLimitDial_3_4: 
-        Disk3 = lowerLimitDial_3_4
-        print("Disk3 lower limit")
-    if Disk4 > upperLimitDial_3_4: 
-        Disk4 = upperLimitDial_3_4
+    upperLimitDial_4 = 135*np.pi/180
+    lowerLimitDial_4 = -90*np.pi/180
+    if Disk4 > upperLimitDial_4: 
+        Disk4 = upperLimitDial_4
         print("Disk4 upper limit")
-    elif Disk4 < lowerLimitDial_3_4: 
-        Disk4 = lowerLimitDial_3_4
+    elif Disk4 < lowerLimitDial_4: 
+        Disk4 = lowerLimitDial_4
         print("Disk4 lower limit")
-    
     return [Disk1,Disk2,Disk3,Disk4]
 
-getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
-
 file_path = sys.path[0]
 file_path = file_path.replace('\src\dvrk_planning\dvrk_planning\src\dvrk_planning\kinematics','')
 #print(file_path)

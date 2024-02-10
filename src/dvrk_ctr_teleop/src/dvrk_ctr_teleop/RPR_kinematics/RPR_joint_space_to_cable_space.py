@@ -23,17 +23,17 @@ def get_PitchAngle_from_PitchCableDelta(h, y_, r ,deltaL_inner):
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def get_deltaCable_at_Notch(h, y_, r, w, pitch_angle, phase):
+def get_PitchCableDelta_from_PitchAngle(h, y_, r, w, pitch_angle):
     """
     gets cable displacements of all cables given the angle at a notch
     """
     if (pitch_angle > 0):
         R = abs(h/pitch_angle)
         K = 1/R
-        delta_pitch_cable = np.sqrt(2*(R-y_-r)**2*(1-np.cos(pitch_angle)))
+        delta_pitch_cable = h - np.sqrt(2*(R-y_-r)**2*(1-np.cos(pitch_angle)))
 
     else:
-        delta_pitch_cable = h
+        delta_pitch_cable = 0
 
     return(delta_pitch_cable)
 
