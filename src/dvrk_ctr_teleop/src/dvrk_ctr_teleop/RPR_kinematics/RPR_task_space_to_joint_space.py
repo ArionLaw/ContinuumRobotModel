@@ -94,7 +94,7 @@ class WristIKSolutionSelector:
     '''selects best IK solution based on wrist pitch joint limits and effort'''
 
     def __init__(self, wrist_pitch_joint_limits):
-        self.wrist_pitch_joint_limits = np.array(wrist_pitch_joint_limits)
+        self.joint_limits = np.array(wrist_pitch_joint_limits)
     
     def normalize_angle(self,angles):
         """ Normalize angles to the range [0, 2*pi] """
@@ -117,7 +117,7 @@ class WristIKSolutionSelector:
         # Normalize q5 to be within -pi to pi
         q5 = np.arctan2(np.sin(q5), np.cos(q5))
 
-        return self.wrist_pitch_joint_limits[0] <= q5 <= self.wrist_pitch_joint_limits[1]
+        return self.joint_limits[0] <= q5 <= self.joint_limits[1]
 
 
     def select_best_solution(self, q_current, solutions):

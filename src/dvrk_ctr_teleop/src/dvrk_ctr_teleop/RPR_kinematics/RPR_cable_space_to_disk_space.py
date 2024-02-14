@@ -350,7 +350,7 @@ def get_Disk_Angles(roll,EE_pinch_Angle,deltaL0,deltaL1,deltaL2, current_jaw_ang
     
     return [Disk1,Disk2,Disk3,Disk4]
 
-getCabletoDiskMapping()
+#getCabletoDiskMapping()
 getEECabletoDisk2Mapping()
 
 file_path = sys.path[0]

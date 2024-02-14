@@ -45,6 +45,7 @@ class Arion_Law_tool_Kinematics_Solver:
             config_yaml = yaml.load(yaml_file, Loader=yaml.FullLoader)
 
             self.wrist_length = config_yaml["wrist_length"]
+            self.simulation = config_yaml['simulation']
             self.WristIKSolutionSelector = WristIKSolutionSelector(config_yaml["wrist_pitch_joint_limits"])
 
             #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
@@ -52,7 +53,7 @@ class Arion_Law_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-    def compute_all_fk(self, joints):
+    def _compute_all_fk(self, joints):
             """
             compute from disk space angles to cable space displacements
                     from cable space displacements to joint space angles 
@@ -60,26 +61,44 @@ class Arion_Law_tool_Kinematics_Solver:
             """        
             if printout is True: print("------------------------------------------- FK -------------------------------------------")
             psm_joints = joints[0:3]
-            disk_positions = joints[3:]
-            #if printout is True: print("joints", joints)
 
-            """ from disk space angles to cable space displacements to joint space angles """
+            if self.simulation:
+                  q4 = joints[3] 
+                  q5 = joints[4]*6
+                  q6 = joints[10] 
+                  #psm_joints[2] = psm_joints[2]/10 #scale down insertion
+                  EE_pinch_angle = joints[11]
 
-            outer_roll,pitch,inner_roll = get()
+        #     else:
+                  
+        #           disk_positions = joints[3:]
+        #           #if printout is True: print("joints", joints)
 
-            """ wrist position FK """
-            EE_pos_FK = get_wristPosition_from_PSMjoints(psm_joints, self.wrist_length)
+        #           """ from disk space angles to cable space displacements to joint space angles """
+        #           q4,q5,q6= get_Disk_Angles()
+
             #if printout is True: print("Wrist Position: \n", EE_pos_FK)
 
             """ orientation FK """
             R_shaft = get_R_shaft(psm_joints)
-            R_wrist = get_R_wrist(outer_roll,pitch,inner_roll)
+            R_wrist = get_R_wrist(q4,q5,q6)
             R_currentFK = R_shaft@R_wrist
             if printout is True: print("Shaft Orientation: \n", R_shaft)
             if printout is True: print("Wrist Orientation: \n", R_wrist)
             if printout is True: print("Current EE Orientation: \n", R_currentFK)
 
-            return ConvertToTransformMatrix(R_currentFK,EE_pos_FK)
+            """ wrist position FK """
+            wrist_pos_FK = get_wristPosition_from_PSMjoints(psm_joints, self.wrist_length)
+            EE_pos_FK = wrist_pos_FK + self.wrist_length/2*R_wrist@np.array([0,0,1])
+
+            #print('FK JOINTS:', joints)
+
+            return ConvertToTransformMatrix(R_currentFK,EE_pos_FK), EE_pinch_angle
+
+    def compute_fk(self, joint_positions):
+            tf, _ = self._compute_all_fk(joint_positions)
+            return tf
+        
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
@@ -94,25 +113,72 @@ class Arion_Law_tool_Kinematics_Solver:
             
             ee_position_desired = tf_desired[0:3,3]
             R_desired = tf_desired[0:3, 0:3]
-            disk_positions = direct_psm_and_disk_joint_positions[3:]
-            
-            """ FK calculate wrist pseudojoints of current pose using """ 
-            current_wrist_angles = DiskPositions_To_JointSpace(disk_positions,self.h,self.y_,self.r)
 
+            if self.simulation:
+                q4 = direct_psm_and_disk_joint_positions[3]
+                q5 = direct_psm_and_disk_joint_positions[4]*6 #pitch
+                q6 = direct_psm_and_disk_joint_positions[10] #inner roll
+                current_wrist_angles = [q4,q5,q6]
+
+                if desired_EE_pinch_angle[0] <0.0:
+                       desired_EE_pinch_angle = 0.0
+
+            else:
+                ###NOTES###
+                ####NOTCHES IN SIMULATION FACING AWAY FROM YOU TO MATCH DH DIAGRAM ORIENTATION####
+                ####SUBTRACT/ADD PI IF NOTCHES ARE FACING YOU FOR THE INITIAL POSITION######
+
+
+                disk_positions = direct_psm_and_disk_joint_positions[3:]
+
+                """ FK calculate wrist pseudojoints of current pose using """ 
+                current_wrist_angles = DiskPositions_To_JointSpace(disk_positions,self.h,self.y_,self.r)
+
+            
             """ IK calculate psm joints to obtain wrist cartesian position """
             PSM_wrist_pos_desired = ee_position_desired - self.wrist_length/2*R_desired@np.array([0,0,1])
-            psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired)
+            psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired,self.wrist_length)
             #if printout is True: print("PSM Joint Values(yaw,pitch,insertion):\n", psm_joints)
 
-            """ FK calculate current shaft orientation given wrist cartesian position """
+            """ FK calculate current shaft orientation given wrist cartesian position"""
             R_shaft = get_R_shaft(psm_joints)
 
             """IK calculate wrist joint solutions and select the best solution"""
             R_wrist = np.linalg.inv(R_shaft)@R_desired
             wrist_ik_sols = wrist_analytical_ik(R_wrist)
-            wrist_joint_angles = self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
-            
-        
+            q4,q5,q6= self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
+            #print('wrist_ik',wrist_ik_sols)
+
+            if self.simulation: 
+                psm_joints.append(q4) #outer_roll
+                wrist_joints = []
+                for _ in range(0,6):
+                    wrist_joints.append(q5/6) #pitch
+                wrist_joints.append(q6) #inner_roll
+                joints_list = psm_joints + wrist_joints
+                joints_list.append(desired_EE_pinch_angle[0])
+                #joints_list[2] *=10  #scale up insertion
+            #else:
+
+                # """ convert from pseudojoint values to cable displacements """
+                #     deltaCables = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, q5, "0")
+                #     q6 = q4+q6 ###adjust inner roll since not coupled####
+                    
+                #    """ convert cable displacements to dial positions """
+                #    """ [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)] """
+                #    DiskAngles = get_Disk_Angles(q4, desired_EE_pinch_angle,
+                #                         deltaCablesTotal[0], deltaCablesTotal[1], deltaCablesTotal[2],
+                #                         disk_positions[1],
+                #                         self.cable_to_disk_map, self.eecable_to_disk_map, self.config_yaml)
+                
+                #    joints_list = psm_joints + DiskAngles
+                   
+                   #print('Direct PSM JOINTS', direct_psm_and_disk_joint_positions)
+                
+                   #print("IK JOINTS", joints_list)
+
+                   #print('desired_pinch', desired_EE_pinch_angle)
+      
             return joints_list
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -125,6 +191,14 @@ class Arion_Law_tool_Kinematics_Solver:
 
     def get_link_names(self):
             return list(self.kinematics_data.link_name_to_dh.keys())
+    
+    def actuator_to_joint(self, actuator_positions):
+            tf,jaw_angle = self._compute_all_fk(actuator_positions)
+            joint_positions = np.copy(actuator_positions)
+            joint_positions[11] = jaw_angle
+            # TODO, put rest of joint values in correct place
+            return joint_positions
+
         
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### Test Case Debugging ###
