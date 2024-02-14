@@ -46,6 +46,7 @@ class Arion_Law_tool_Kinematics_Solver:
 
             self.wrist_length = config_yaml["wrist_length"]
             self.simulation = config_yaml['simulation']
+            self.scale = config_yaml['scale']
             self.WristIKSolutionSelector = WristIKSolutionSelector(config_yaml["wrist_pitch_joint_limits"])
 
             #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
@@ -66,7 +67,7 @@ class Arion_Law_tool_Kinematics_Solver:
                   q4 = joints[3] 
                   q5 = joints[4]*6
                   q6 = joints[10] 
-                  #psm_joints[2] = psm_joints[2]/10 #scale down insertion
+                  psm_joints[2] = psm_joints[2]/10 #scale down insertion
                   EE_pinch_angle = joints[11]
 
         #     else:
@@ -120,7 +121,10 @@ class Arion_Law_tool_Kinematics_Solver:
                 q6 = direct_psm_and_disk_joint_positions[10] #inner roll
                 current_wrist_angles = [q4,q5,q6]
 
-                if desired_EE_pinch_angle[0] <0.0:
+                if not isinstance(desired_EE_pinch_angle,float):
+                       desired_EE_pinch_angle = desired_EE_pinch_angle[0]
+
+                if desired_EE_pinch_angle <0.0:
                        desired_EE_pinch_angle = 0.0
 
             else:
@@ -156,8 +160,8 @@ class Arion_Law_tool_Kinematics_Solver:
                     wrist_joints.append(q5/6) #pitch
                 wrist_joints.append(q6) #inner_roll
                 joints_list = psm_joints + wrist_joints
-                joints_list.append(desired_EE_pinch_angle[0])
-                #joints_list[2] *=10  #scale up insertion
+                joints_list.append(desired_EE_pinch_angle)
+                joints_list[2] *=self.scale  #scale up insertion
             #else:
 
                 # """ convert from pseudojoint values to cable displacements """

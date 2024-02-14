@@ -135,8 +135,8 @@ class PSMTranslator:
         elif crtk_namespace =='/PSM2':
             self.base_handle.set_pos(-0.75,0,2)
         
-        #self.base_handle.set_rpy(0,0,3.14)
-        self.base_handle.set_rpy(0,0,0)
+        self.base_handle.set_rpy(0,0,3.14)
+        #self.base_handle.set_rpy(0,0,0)
 
         for i in range(0,13):
             self.base_handle.set_joint_pos(i,0.0)
