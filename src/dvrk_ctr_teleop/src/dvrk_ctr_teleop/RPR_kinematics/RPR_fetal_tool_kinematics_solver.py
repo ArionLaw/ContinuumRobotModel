@@ -26,20 +26,17 @@ class Arion_Law_tool_Kinematics_Solver:
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
     def __init__(self, config_path):
-            self.n = 3 # sets of 3 cuts
-            self.h = 0.66 #mm notch height
-            self.c = 0.66 #mm notch spacing
-            self.prevStraightLength = 5 #mm
-            self.postStraightLength = 1 #mm
-            self.y_ = 0.56 #mm neutral bending plane
-            self.g = 1.16 #mm notch depth
-            self.OD = 1.37 #mm
-            self.ID = 0.94 #mm
+            self.OD = 1.7 #mm
+            self.ID = 1.3 #mm
             self.r = self.OD/2
+            self.n = 9 # sets of 3 cuts
+            self.h = 0.7 #mm notch height
+            self.c = 0.4 #mm notch spacing
+            self.y_ = 0.716 #mm neutral bending plane
+            self.g = self.r + 0.721 #mm notch depth
             self.w = self.r*np.sin(np.radians(30))
             self.shaft_length = 400 #mm
             self.R_wrist_previous = get_R_wrist(0,0,0)
-
 
             new_path = os.path.join(sys.path[0], config_path)
             yaml_file = open(new_path)
