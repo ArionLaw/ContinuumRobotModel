@@ -61,11 +61,20 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired,wristlength):
     return [psm_yaw,psm_pitch,psm_insertion]
 
 
-def wrist_analytical_ik(R_wrist_desired):
+def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
     """
     calculates wrist joint solutions given desired rotation matrix for the wrist
     returns 2 possible IK solutions 
     """
+
+    # q5 = math.acos(R_wrist_desired[2,2])
+    # min_deg_limit = 5
+    # rotation_add_deg = 10
+    # print(q5)
+    # print(min_deg_limit*np.pi/180)
+    # if abs(q5) < min_deg_limit*np.pi/180:
+    #      R_wrist_desired = R_wrist_desired@RotMtx('x',rotation_add_deg*np.pi/180)@RotMtx('y',rotation_add_deg*np.pi/180)
+    #      print("SINGULARITY")
 
     r33 = R_wrist_desired[2,2]
     r31 = R_wrist_desired[2,0]
@@ -73,11 +82,13 @@ def wrist_analytical_ik(R_wrist_desired):
     r13 = R_wrist_desired[0,2]
     r23 = R_wrist_desired[1,2]
 
+
     if r33 == 1:
-        r33 = 0.9995 #small offset to avoid singularity
+         r33 = 0.9995 #small offset to avoid singularity
 
     q5_1 = math.acos(r33)
     q5_2 = -math.acos(r33)
+    
 
     q4_1 = math.atan2(r23, r13)
     q6_1 = math.atan2(r31, r32)

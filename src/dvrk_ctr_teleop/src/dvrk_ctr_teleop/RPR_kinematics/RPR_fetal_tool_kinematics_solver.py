@@ -38,6 +38,7 @@ class Arion_Law_tool_Kinematics_Solver:
             self.r = self.OD/2
             self.w = self.r*np.sin(np.radians(30))
             self.shaft_length = 400 #mm
+            self.R_wrist_previous = get_R_wrist(0,0,0)
 
 
             new_path = os.path.join(sys.path[0], config_path)
@@ -146,12 +147,15 @@ class Arion_Law_tool_Kinematics_Solver:
 
             """ FK calculate current shaft orientation given wrist cartesian position"""
             R_shaft = get_R_shaft(psm_joints)
+            R_wrist_current = get_R_wrist(q4,q5,q6)
 
             """IK calculate wrist joint solutions and select the best solution"""
             R_wrist = np.linalg.inv(R_shaft)@R_desired
-            wrist_ik_sols = wrist_analytical_ik(R_wrist)
+            wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous)
             q4,q5,q6= self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
-            #print('wrist_ik',wrist_ik_sols)
+            print('wrist_ik',wrist_ik_sols)
+            print('current_configuration:', current_wrist_angles)
+            print('best_solution', [q4,q5,q6])
 
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll

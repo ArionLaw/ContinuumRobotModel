@@ -18,6 +18,6 @@ ee_cable_to_disk_map:
   piecewise_vshift: 0
 wrist_bending_compensation: 0.9
 wrist_length: 0.0015 #change this 
-wrist_pitch_joint_limits: [-1.57, 1.57]
+wrist_pitch_joint_limits: [0.0, 1.57]
 simulation: True
 scale: 10 #scaling factor for insertion ambf
