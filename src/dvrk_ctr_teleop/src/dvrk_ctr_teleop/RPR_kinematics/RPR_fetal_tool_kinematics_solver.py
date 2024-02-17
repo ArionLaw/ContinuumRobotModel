@@ -46,6 +46,7 @@ class Arion_Law_tool_Kinematics_Solver:
             self.simulation = config_yaml['simulation']
             self.scale = config_yaml['scale']
             self.WristIKSolutionSelector = WristIKSolutionSelector(config_yaml["wrist_pitch_joint_limits"])
+            self.CableToDiskSpaceSolver = CableToDiskSpaceSolver(config_yaml)
 
             #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
             #self.negate_joint_list = spherical_wrist_tool_params.negate_joint_list
@@ -68,15 +69,16 @@ class Arion_Law_tool_Kinematics_Solver:
                   psm_joints[2] = psm_joints[2]/10 #scale down insertion
                   EE_pinch_angle = joints[11]
 
-        #     else:
+            else:
                   
-        #           disk_positions = joints[3:]
-        #           #if printout is True: print("joints", joints)
+                  disk_positions = joints[3:]
+                 
+                  """ from disk space angles to joint space angles """
+                  q4, q5, q6, EE_pinch_angle = self.CableToDiskSpaceSolver.DiskPosition_To_JointSpace(disk_positions,self.h,
+                                                                                                      self.y_,self.r,self.n)
 
-        #           """ from disk space angles to cable space displacements to joint space angles """
-        #           q4,q5,q6= get_Disk_Angles()
 
-            #if printout is True: print("Wrist Position: \n", EE_pos_FK)
+            if printout is True: print("Wrist Position: \n", EE_pos_FK)
 
             """ orientation FK """
             R_shaft = get_R_shaft(psm_joints)
@@ -126,15 +128,11 @@ class Arion_Law_tool_Kinematics_Solver:
                        desired_EE_pinch_angle = 0.0
 
             else:
-                ###NOTES###
-                ####NOTCHES IN SIMULATION FACING AWAY FROM YOU TO MATCH DH DIAGRAM ORIENTATION####
-                ####SUBTRACT/ADD PI IF NOTCHES ARE FACING YOU FOR THE INITIAL POSITION######
-
-
                 disk_positions = direct_psm_and_disk_joint_positions[3:]
 
                 """ FK calculate wrist pseudojoints of current pose using """ 
-                current_wrist_angles = DiskPositions_To_JointSpace(disk_positions,self.h,self.y_,self.r)
+                q4, q5, q6, current_jaw_angle = self.CableToDiskSpaceSolver.DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r,self.n)
+                current_wrist_angles = [q4,q5,q6]
 
             
             """ IK calculate psm joints to obtain wrist cartesian position """
@@ -150,9 +148,9 @@ class Arion_Law_tool_Kinematics_Solver:
             R_wrist = np.linalg.inv(R_shaft)@R_desired
             wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous)
             q4,q5,q6= self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
-            print('wrist_ik',wrist_ik_sols)
-            print('current_configuration:', current_wrist_angles)
-            print('best_solution', [q4,q5,q6])
+        #     print('wrist_ik',wrist_ik_sols)
+        #     print('current_configuration:', current_wrist_angles)
+        #     print('best_solution', [q4,q5,q6])
 
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll
@@ -163,26 +161,11 @@ class Arion_Law_tool_Kinematics_Solver:
                 joints_list = psm_joints + wrist_joints
                 joints_list.append(desired_EE_pinch_angle)
                 joints_list[2] *=self.scale  #scale up insertion
-            #else:
-
-                # """ convert from pseudojoint values to cable displacements """
-                #     deltaCables = get_deltaCable_at_Notch(self.h, self.y_, self.r, self.w, q5, "0")
-                #     q6 = q4+q6 ###adjust inner roll since not coupled####
-                    
-                #    """ convert cable displacements to dial positions """
-                #    """ [roll (joint space), EE jaw angle (joint space), cable 1 (cable space), cable 2 (cable space), cable 3 (cable space)] """
-                #    DiskAngles = get_Disk_Angles(q4, desired_EE_pinch_angle,
-                #                         deltaCablesTotal[0], deltaCablesTotal[1], deltaCablesTotal[2],
-                #                         disk_positions[1],
-                #                         self.cable_to_disk_map, self.eecable_to_disk_map, self.config_yaml)
-                
-                #    joints_list = psm_joints + DiskAngles
-                   
-                   #print('Direct PSM JOINTS', direct_psm_and_disk_joint_positions)
-                
-                   #print("IK JOINTS", joints_list)
-
-                   #print('desired_pinch', desired_EE_pinch_angle)
+            else:
+                DiskAngles = self.CableToDiskSpaceSolver.get_Disk_Angles(q4,q5,q6,desired_EE_pinch_angle,
+                                                                         current_jaw_angle,self.h,self.y_,
+                                                                         self.r,self.w,self.n)
+                joints_list = psm_joints + DiskAngles
       
             return joints_list
 

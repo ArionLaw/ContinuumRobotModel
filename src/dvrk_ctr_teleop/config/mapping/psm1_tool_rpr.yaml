@@ -5,5 +5,5 @@ small_capstan_diameter: 5.08 #mm
 max_EE_pinch_angle_deg: 45 #deg (jaw to midline)
 min_EE_pinch_angle_deg: -30 #deg (jaw to midline)
 gripper_scissor_linkage_length: 1.4 #mm
-simulation: True
+simulation: False
 scale: 10 #scaling factor for insertion ambf

@@ -8,7 +8,7 @@ import numpy as np
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def get_NotchPitchAngle_from_CableDeltaPerNotch(h, y_, r, n , deltaL_inner)
+def get_NotchPitchAngle_from_CableDeltaPerNotch(h, y_, r, n , deltaL_inner):
     """
     gets notch angle from displacement of innermost cable of notch
     """
