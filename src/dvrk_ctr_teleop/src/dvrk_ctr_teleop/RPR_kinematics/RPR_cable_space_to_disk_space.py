@@ -217,16 +217,16 @@ class CableToDiskSpaceSolver:
         #print("EE_pinch_angle" , EE_pinch_angle)    
         if EE_pinch_angle > self.Max_EE_pinch_angle: EE_pinch_angle = self.Max_EE_pinch_angle #EE pinch angle joint limit, not able to open further
         elif EE_pinch_angle < self.Min_EE_pinch_angle: EE_pinch_angle = self.Min_EE_pinch_angle #EE pinch angle joint limit, cannot clamp further
-        #print("EE_pinch_angle clipped" , EE_pinch_angle) 
+        print("EE_pinch_angle clipped" , EE_pinch_angle) 
         if EE_pinch_angle >= 0: #normal actuation range open to closed
             EECableDelta = self.two_times_ee_R*np.cos(EE_pinch_angle) - self.Min_EE_linkage_length # scissor linkage length - scissor linkage min length
         else: #clamping actuation range <0 deg for gripping
             EECableDelta = self.two_times_ee_R - self.Min_EE_linkage_length + (self.Max_EE_linkage_length - self.two_times_ee_R*np.cos(-EE_pinch_angle)) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
 
         TotalCableDelta = EECableDelta + WristBendingCableDelta * self.compensation_factor
-        # print("EECableDelta: ", EECableDelta)
-        # print("WristComponentCableDelta: ", WristBendingCableDelta)
-        # print("TotalCableDelta: ", TotalCableDelta)
+        print("EECableDelta: ", EECableDelta)
+        #print("WristComponentCableDelta: ", WristBendingCableDelta)
+        print("TotalCableDelta: ", TotalCableDelta)
         return TotalCableDelta
 
     def get_Disk_Angles(self,outer_roll,pitch_angle,inner_roll,EE_pinch_Angle,current_jaw_angle,h,y_,r,w,n):
