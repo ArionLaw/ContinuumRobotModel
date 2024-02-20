@@ -81,7 +81,7 @@ class CableToDiskSpaceSolver:
             y1 = mask_lower['DeltaEECable'].min()
             y2 = mask_upper['DeltaEECable'].max()
         
-        #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
+        #print("dial4[x1,x2,y1,y2]",[x1,x2,y1,y2])
         if np.isnan(x1):
             return 0
         else:
@@ -107,7 +107,7 @@ class CableToDiskSpaceSolver:
             y1 = mask_lower['WristAngle'].min()
             y2 = mask_upper['WristAngle'].max()
         
-        #print("dial3/4[x1,x2,y1,y2]",[x1,x2,y1,y2])
+        #print("dial2[x1,x2,y1,y2]",[x1,x2,y1,y2])
         if np.isnan(x1):
             return 0
         else:
@@ -139,7 +139,7 @@ class CableToDiskSpaceSolver:
         #pitch_angle = get_PitchAngle_from_PitchCableDelta(h, y_, r, n, pitch_cable_delta)
         pitch_angle = self.WristCableDelta_to_WristAngle_from_LookUpTable(pitch_cable_delta)
 
-        EECableWristComponent = pitch_cable_delta #component of pitch compensation in EE cable displacement
+        EECableWristComponent = -pitch_cable_delta #component of pitch compensation in EE cable displacement
         EECableDelta = self.Disk4_to_EECable_from_LookUpTable(DiskPositions[3]) #calc total EE cable displacement (linear interpolation from EE gripper linkage mapping)
         EE_jaw = self.EECable_to_GripperAngle(EECableDelta,EECableWristComponent) #calc component of total EE cable displacement towards EE actuation 
         
@@ -169,7 +169,8 @@ class CableToDiskSpaceSolver:
             y1 = mask_lower['Disk4Angle'].min()
             y2 = mask_upper['Disk4Angle'].max()
 
-        #print("dial2[x1,x2,y1,y2]",[x1,x2,y1,y2])
+        #print("x" , x)
+        #print("dial4[x1,x2,y1,y2]",[x1,x2,y1,y2])
         if np.isnan(x1):
             return 0
         else:
@@ -199,7 +200,9 @@ class CableToDiskSpaceSolver:
             y2 = mask_upper['WristCableDelta'].max()
 
         #print("dial2[x1,x2,y1,y2]",[x1,x2,y1,y2])
-        if np.isnan(x1):
+        # if np.isnan(x1):
+        #     return 0
+        if np.isnan(np.array([x1, x2, y1, y2])).any():
             return 0
         else:
             y = (y1 + (x-x1)*(y2-y1)/(x2-x1))
@@ -210,19 +213,20 @@ class CableToDiskSpaceSolver:
     def GripperAngle_to_EECable(self,EE_pinch_angle,WristBendingCableDelta):
         """
         calculation for relationship between EE gripper angle and EE cable delta 
-        """    
+        """
+        #print("EE_pinch_angle" , EE_pinch_angle)    
         if EE_pinch_angle > self.Max_EE_pinch_angle: EE_pinch_angle = self.Max_EE_pinch_angle #EE pinch angle joint limit, not able to open further
         elif EE_pinch_angle < self.Min_EE_pinch_angle: EE_pinch_angle = self.Min_EE_pinch_angle #EE pinch angle joint limit, cannot clamp further
-
+        #print("EE_pinch_angle clipped" , EE_pinch_angle) 
         if EE_pinch_angle >= 0: #normal actuation range open to closed
             EECableDelta = self.two_times_ee_R*np.cos(EE_pinch_angle) - self.Min_EE_linkage_length # scissor linkage length - scissor linkage min length
         else: #clamping actuation range <0 deg for gripping
-            EECableDelta = self.two_times_ee_R - self.Min_EE_linkage_length - self.two_times_ee_R*np.sin(EE_pinch_angle) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
+            EECableDelta = self.two_times_ee_R - self.Min_EE_linkage_length + (self.Max_EE_linkage_length - self.two_times_ee_R*np.cos(-EE_pinch_angle)) # scissor linkage max length - scissor linkage min length + additional scissor linkage "inverted length"
 
         TotalCableDelta = EECableDelta + WristBendingCableDelta * self.compensation_factor
-        #print("EECableDelta: ", EECableDelta)
-        #print("WristComponentCableDelta: ", WristBendingCableDelta)
-        #print("TotalCableDelta: ", TotalCableDelta)
+        # print("EECableDelta: ", EECableDelta)
+        # print("WristComponentCableDelta: ", WristBendingCableDelta)
+        # print("TotalCableDelta: ", TotalCableDelta)
         return TotalCableDelta
 
     def get_Disk_Angles(self,outer_roll,pitch_angle,inner_roll,EE_pinch_Angle,current_jaw_angle,h,y_,r,w,n):
@@ -235,14 +239,14 @@ class CableToDiskSpaceSolver:
 
         #PitchCableDelta = get_PitchCableDelta_from_PitchAngle(h,y_,r,w,n,pitch_angle)
         PitchCableDelta = self.WristAngle_to_WristCableDelta_from_LookUpTable(pitch_angle)
-        
+        #print("PitchCableDelta", PitchCableDelta)
         disk_angles_rad[1] = PitchCableDelta/self.SmallCapstanRadius
         
-        EECableWristComponent = PitchCableDelta
+        EECableWristComponent = -PitchCableDelta
         if EE_pinch_Angle is None:
             disk_angles_rad[3] = current_jaw_angle
         else:
             EECableDelta = self.GripperAngle_to_EECable(EE_pinch_Angle,EECableWristComponent)
             disk_angles_rad[3] = self.EECable_to_Disk4_from_LookUpTable(EECableDelta) #linear interpolation from EE gripper linkage mapping
         disk_angles_rad = np.clip(disk_angles_rad, self.dial_lower_limits, self.dial_upper_limits)
-        return disk_angles_rad
+        return disk_angles_rad.tolist()

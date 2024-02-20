@@ -67,15 +67,21 @@ def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
     returns 2 possible IK solutions 
     """
 
-    # q5 = math.acos(R_wrist_desired[2,2])
-    # min_deg_limit = 5
-    # rotation_add_deg = 10
-    # print(q5)
-    # print(min_deg_limit*np.pi/180)
-    # if abs(q5) < min_deg_limit*np.pi/180:
-    #      R_wrist_desired = R_wrist_desired@RotMtx('x',rotation_add_deg*np.pi/180)@RotMtx('y',rotation_add_deg*np.pi/180)
-    #      print("SINGULARITY")
+    #R_change = R_current@np.
 
+
+
+    q5 = math.acos(R_wrist_desired[2,2])
+    min_deg_limit = 3
+    rotation_add_deg = 10
+
+    if abs(q5) < min_deg_limit*np.pi/180:
+        #R_wrist_desired = R_wrist_desired@RotMtx('x',rotation_add_deg*np.pi/180)@RotMtx('y',rotation_add_deg*np.pi/180)
+        print("current q5", q5)
+        print("min allowed q5", min_deg_limit*np.pi/180)
+        raise Exception('Singularity Reached')
+
+    
     r33 = R_wrist_desired[2,2]
     r31 = R_wrist_desired[2,0]
     r32 = R_wrist_desired[2,1]
@@ -84,6 +90,7 @@ def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
 
 
     if r33 == 1:
+         print("AT SINGULARITY...OFFSETTING")
          r33 = 0.9995 #small offset to avoid singularity
 
     q5_1 = math.acos(r33)

@@ -11,6 +11,7 @@ from dvrk_ctr_teleop.RPR_kinematics.utils import *
 import numpy as np
 import yaml
 import os
+import pdb
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # Notes
@@ -110,19 +111,20 @@ class Arion_Law_tool_Kinematics_Solver:
                     from joint space angles to cable space displacements
                     from cable space displacements to disk space angles
             """
+            # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
             if printout is True: print("------------------------------------------- IK -------------------------------------------")     
-            
+
             ee_position_desired = tf_desired[0:3,3]
             R_desired = tf_desired[0:3, 0:3]
+
+            if not isinstance(desired_EE_pinch_angle,float):
+                desired_EE_pinch_angle = desired_EE_pinch_angle[0]
 
             if self.simulation:
                 q4 = direct_psm_and_disk_joint_positions[3]
                 q5 = direct_psm_and_disk_joint_positions[4]*6 #pitch
                 q6 = direct_psm_and_disk_joint_positions[10] #inner roll
                 current_wrist_angles = [q4,q5,q6]
-
-                if not isinstance(desired_EE_pinch_angle,float):
-                       desired_EE_pinch_angle = desired_EE_pinch_angle[0]
 
                 if desired_EE_pinch_angle <0.0:
                        desired_EE_pinch_angle = 0.0
@@ -166,6 +168,9 @@ class Arion_Law_tool_Kinematics_Solver:
                                                                          current_jaw_angle,self.h,self.y_,
                                                                          self.r,self.w,self.n)
                 joints_list = psm_joints + DiskAngles
+
+                # print("IK SOLUTION:", joints_list)
+                # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
       
             return joints_list
 
@@ -183,11 +188,14 @@ class Arion_Law_tool_Kinematics_Solver:
     def actuator_to_joint(self, actuator_positions):
             tf,jaw_angle = self._compute_all_fk(actuator_positions)
             joint_positions = np.copy(actuator_positions)
-            joint_positions[11] = jaw_angle
+            if self.simulation:
+                joint_positions[11] = jaw_angle
+            else:
+                joint_positions[6] = jaw_angle
             # TODO, put rest of joint values in correct place
             return joint_positions
 
-        
+
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### Test Case Debugging ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
