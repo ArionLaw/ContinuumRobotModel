@@ -114,6 +114,8 @@ class Arion_Law_tool_Kinematics_Solver:
             # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
             if printout is True: print("------------------------------------------- IK -------------------------------------------")     
 
+            print("tf_desired", tf_desired)
+            print("direct_psm_and_disk_joint_positions", direct_psm_and_disk_joint_positions)
             ee_position_desired = tf_desired[0:3,3]
             R_desired = tf_desired[0:3, 0:3]
 
@@ -171,7 +173,8 @@ class Arion_Law_tool_Kinematics_Solver:
 
                 # print("IK SOLUTION:", joints_list)
                 # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
-      
+                print("joints_list", joints_list)
+
             return joints_list
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
