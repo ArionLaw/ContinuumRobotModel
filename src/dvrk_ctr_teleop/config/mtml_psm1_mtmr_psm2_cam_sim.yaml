@@ -39,7 +39,7 @@ cartesian_controllers:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.RPR_kinematics.RPR_fetal_tool_kinematics_solver"
         class_name: "Arion_Law_tool_Kinematics_Solver"
-        config: "../config/mapping/psm1_tool_rpr.yaml"
+        config: "../config/mapping/psm1_tool_rpr_sim.yaml"
   - name: "MTMR-PSM2-PeterFrancis"
     input:
         position_scale: 0.5
@@ -79,7 +79,7 @@ cartesian_controllers:
         robot: "custom"
         module_name: "dvrk_ctr_teleop.RPR_kinematics.RPR_fetal_tool_kinematics_solver"
         class_name: "Arion_Law_tool_Kinematics_Solver"
-        config: "../config/mapping/psm2_tool_rpr.yaml"
+        config: "../config/mapping/psm2_tool_rpr_sim.yaml"
 clutch_topic: "/console/clutch"
 switcher:
   switch_topic: "/console/operator_present"

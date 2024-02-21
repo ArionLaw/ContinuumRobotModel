@@ -1,0 +1,9 @@
+wrist_bending_compensation: 0.2
+wrist_length: 0.0015 #change this 
+wrist_pitch_joint_limits: [0.0, 1.57]
+small_capstan_diameter: 5.08 #mm
+max_EE_pinch_angle_deg: 45 #deg (jaw to midline)
+min_EE_pinch_angle_deg: -40 #deg (jaw to midline)
+gripper_scissor_linkage_length: 1.6 #mm
+simulation: True
+scale: 10 #scaling factor for insertion ambf

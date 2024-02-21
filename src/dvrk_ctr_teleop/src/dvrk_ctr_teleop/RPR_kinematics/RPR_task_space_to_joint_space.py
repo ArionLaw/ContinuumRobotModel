@@ -103,8 +103,13 @@ def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
     q4_2 = math.atan2(-r23, -r13)
     q6_2 = math.atan2(-r31, -r32)
 
+    q4_3 = q6_1
+    q5_3 = q5_1
+    q6_3 = q4_1
+
     wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-                        [q4_2, q5_2, q6_2]])
+                        [q4_2, q5_2, q6_2],
+                        [q4_3,q5_3,q6_3]])
     
     return wrist_ik_sol
 
