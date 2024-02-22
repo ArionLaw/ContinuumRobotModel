@@ -44,7 +44,7 @@ class CableToDiskSpaceSolver:
         file_name = 'EE_Linkage_Mapping.xlsx'
         file_name = os.path.join(os.getcwd(),self.excel_file_dir,file_name)
         self.EEmapping = pd.read_excel( file_name, usecols = ['Disk4Angle','DeltaEECable'])
-        # print(self.EEmapping)
+        print(self.EEmapping)
         return self.EEmapping
 
     def getWristAngletoWristCableDeltaMapping(self):
@@ -55,7 +55,7 @@ class CableToDiskSpaceSolver:
         file_name = 'Wrist_Bending_Mapping.xlsx'
         file_name = os.path.join(os.getcwd(),self.excel_file_dir,file_name)
         self.WristMapping = pd.read_excel(file_name, usecols = ['WristCableDelta','WristAngle'])
-        # print(self.WristMapping)
+        print(self.WristMapping)
         return self.WristMapping
 
     #----------------------------------------------------------------------------------------------------------------------------------------------#

@@ -170,9 +170,8 @@ class Arion_Law_tool_Kinematics_Solver:
                                                                          self.r,self.w,self.n)
                 joints_list = psm_joints + DiskAngles
 
-                # print("IK SOLUTION:", joints_list)
+                print("IK SOLUTION:", joints_list)
                 # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
-                # print("joints_list", joints_list)
 
             return joints_list
 
