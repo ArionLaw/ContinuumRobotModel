@@ -151,9 +151,9 @@ class Arion_Law_tool_Kinematics_Solver:
             R_wrist = np.linalg.inv(R_shaft)@R_desired
             wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous)
             q4,q5,q6= self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
-        #     print('wrist_ik',wrist_ik_sols)
-        #     print('current_configuration:', current_wrist_angles)
-        #     print('best_solution', [q4,q5,q6])
+            print('wrist_ik',wrist_ik_sols)
+            print('current_configuration:', current_wrist_angles)
+            print('best_solution', [q4,q5,q6])
 
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll
