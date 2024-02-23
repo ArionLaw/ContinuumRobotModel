@@ -104,7 +104,7 @@ class Arion_Law_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-    def compute_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle):
+    def compute_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle, is_first_update_after_a_disable):
             """
             compute from task space poses to joint space angles
                     from joint space angles to cable space displacements
@@ -113,10 +113,12 @@ class Arion_Law_tool_Kinematics_Solver:
             # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
             if printout is True: print("------------------------------------------- IK -------------------------------------------")     
 
-        #     print("tf_desired", tf_desired)
+            # print("tf_desired", tf_desired)
         #     print("direct_psm_and_disk_joint_positions", direct_psm_and_disk_joint_positions)
-            ee_position_desired = tf_desired[0:3,3]
-            R_desired = tf_desired[0:3, 0:3]
+            ee_position_desired = np.copy(tf_desired[0:3,3])
+
+            R_desired = np.copy(tf_desired[0:3, 0:3])
+            # print("Rdesired from IK Solver: ", R_desired)
 
             if not isinstance(desired_EE_pinch_angle,float):
                 desired_EE_pinch_angle = desired_EE_pinch_angle[0]
@@ -148,12 +150,13 @@ class Arion_Law_tool_Kinematics_Solver:
             R_wrist_current = get_R_wrist(q4,q5,q6)
 
             """IK calculate wrist joint solutions and select the best solution"""
-            R_wrist = np.linalg.inv(R_shaft)@R_desired
-            wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous)
+            # print("R_shaft", R_shaft)
+            R_wrist = np.matmul(np.transpose(R_shaft), R_desired)
+            wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous,current_wrist_angles, is_first_update_after_a_disable)
             q4,q5,q6= self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist()
-            print('wrist_ik',wrist_ik_sols)
-            print('current_configuration:', current_wrist_angles)
-            print('best_solution', [q4,q5,q6])
+            # print('wrist_ik',wrist_ik_sols)
+            # print('current_configuration:', current_wrist_angles)
+            # print('best_solution', [q4,q5,q6])
 
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll
@@ -170,8 +173,8 @@ class Arion_Law_tool_Kinematics_Solver:
                                                                          self.r,self.w,self.n)
                 joints_list = psm_joints + DiskAngles
 
-                print("IK SOLUTION:", joints_list)
-                # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
+                #print("IK SOLUTION:", joints_list)
+                #print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
 
             return joints_list
 

@@ -61,25 +61,24 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired,wristlength):
     return [psm_yaw,psm_pitch,psm_insertion]
 
 
-def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
+def wrist_analytical_ik(R_wrist_desired, R_current, R_previous,q_current, is_first_update_after_a_disable):
     """
     calculates wrist joint solutions given desired rotation matrix for the wrist
     returns 2 possible IK solutions 
     """
+    #print('R_wrist_desired PASSED TO ik', R_wrist_desired)
 
     #R_change = R_current@np.
-
-
-
+  
     q5 = math.acos(R_wrist_desired[2,2])
     min_deg_limit = 3
     rotation_add_deg = 10
 
-    if abs(q5) < min_deg_limit*np.pi/180:
-        #R_wrist_desired = R_wrist_desired@RotMtx('x',rotation_add_deg*np.pi/180)@RotMtx('y',rotation_add_deg*np.pi/180)
-        print("current q5", q5)
-        print("min allowed q5", min_deg_limit*np.pi/180)
-        raise Exception('Singularity Reached')
+    # if abs(q5) < min_deg_limit*np.pi/180:
+    #     #R_wrist_desired = R_wrist_desired@RotMtx('x',rotation_add_deg*np.pi/180)@RotMtx('y',rotation_add_deg*np.pi/180)
+    #     print("current q5", q5)
+    #     print("min allowed q5", min_deg_limit*np.pi/180)
+    #     raise Exception('Singularity Reached')
 
     
     r33 = R_wrist_desired[2,2]
@@ -87,6 +86,7 @@ def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
     r32 = R_wrist_desired[2,1]
     r13 = R_wrist_desired[0,2]
     r23 = R_wrist_desired[1,2]
+
 
 
     if r33 == 1:
@@ -103,14 +103,48 @@ def wrist_analytical_ik(R_wrist_desired, R_current, R_previous):
     q4_2 = math.atan2(-r23, -r13)
     q6_2 = math.atan2(-r31, -r32)
 
-    q4_3 = q6_1
-    q5_3 = q5_1
-    q6_3 = q4_1
+    # q4_3 = q6_1
+    # q5_3 = q5_1
+    # q6_3 = q4_1
 
-    wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-                        [q4_2, q5_2, q6_2],
-                        [q4_3,q5_3,q6_3]])
+    # first_sol = np.array([q4_1,q5_1,q6_1])
+
+    # diff = np.abs(q_current-first_sol)
+    # tol = 10000
+    # print("q_current", q_current)
+    # print("first_sol", first_sol)
+    # if diff[0] > tol and diff[2] > tol:
+    #     first_sol = np.array([q6_1, q5_1, q4_1])
+    #     print("--------------------------------Flipping_solution-----------------------------------------")
+    # if np.any(np.abs(q_current-first_sol) >= 100):
+    #     print("USING 3rd Solution")
+    #     print("ANGLE DIFF", np.sum(np.abs(first_sol - q_current)))
+
+    #     wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+    #                         [q4_2, q5_2, q6_2],
+    #                         [q4_3,q5_3,q6_3]])
+    # else:
     
+    if(is_first_update_after_a_disable):
+        # print('Clutch Status', is_first_update_after_a_disable)
+        # first_sol = np.array([q4_1,q5_1,q6_1])
+        # second_sol = np.array([q4_2,q5_2,q6_2])
+        # interpolated_sol_1 = q_current + (first_sol - q_current)/2
+        # interpolated_sol_2 = q_current + (second_sol -q_current)/2
+        # wrist_ik_sol = np.array([interpolated_sol_1,
+        #                          interpolated_sol_2])
+        
+        # print('FIRST SOL', first_sol)
+        # print("Second SOl", second_sol)
+        # print("CURRENT SOLUTION", q_current)
+        # print("Wrist IK SOLUTIONS", wrist_ik_sol)
+          
+        wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+                                [q4_2, q5_2, q6_2]])
+    else: 
+        wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+                                [q4_2, q5_2, q6_2]])
+                
     return wrist_ik_sol
 
 class WristIKSolutionSelector:
