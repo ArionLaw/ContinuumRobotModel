@@ -32,10 +32,10 @@ cartesian_controllers:
               feedback_topic: "/PSM1/jaw/measured_js"
         output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
             quaternion:
-              x:  0.8835959663471927
-              y:  0.22187903021433553
-              z:  0.12122535631072467
-              w:  0.39412216024153557
+              x:  0.9008042573901793
+              y:  0.1450935141446035
+              z:  0.11297076884348653
+              w:  0.39336645434989587
 
     kinematics:
         robot: "custom"
@@ -75,10 +75,10 @@ cartesian_controllers:
               feedback_topic: "/PSM2/jaw/measured_js"
         output_2_output_reference_rot: # PSM2 BASE TO ECM CAM TIP
             quaternion:
-              x:  0.8503751621981356
-              y:  -0.34275178455701283
-              z:  -0.13341716122464123
-              w:  0.3762753762741272
+              x:  0.8191537122693338
+              y:  -0.414500410463783
+              z:  -0.14048683109779678
+              w:  0.3707290866506485
 
     kinematics:
         robot: "custom"
