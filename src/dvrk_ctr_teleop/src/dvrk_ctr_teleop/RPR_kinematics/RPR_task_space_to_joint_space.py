@@ -60,6 +60,11 @@ def get_PSMjoints_from_wristPosition(EE_pos_desired,wristlength):
     psm_yaw = np.arcsin(x/np.cos(psm_pitch)/psm_insertion)
     return [psm_yaw,psm_pitch,psm_insertion]
 
+def interpolate_angles(q_desired, q_cur, step_rad = 0.1):
+    step = np.sign(q_desired - q_cur) * step_rad
+    q_stepped = step + q_cur
+    abs_joint_diffs = np.absolute(q_desired - q_cur)
+    return np.where(abs_joint_diffs < np.absolute(step), q_desired, q_stepped)
 
 def wrist_analytical_ik(R_wrist_desired, R_current, R_previous,q_current, is_first_update_after_a_disable):
     """
@@ -125,26 +130,30 @@ def wrist_analytical_ik(R_wrist_desired, R_current, R_previous,q_current, is_fir
     #                         [q4_3,q5_3,q6_3]])
     # else:
     
-    if(is_first_update_after_a_disable):
-        # print('Clutch Status', is_first_update_after_a_disable)
-        # first_sol = np.array([q4_1,q5_1,q6_1])
-        # second_sol = np.array([q4_2,q5_2,q6_2])
-        # interpolated_sol_1 = q_current + (first_sol - q_current)/2
-        # interpolated_sol_2 = q_current + (second_sol -q_current)/2
-        # wrist_ik_sol = np.array([interpolated_sol_1,
-        #                          interpolated_sol_2])
+
+    # if(is_first_update_after_a_disable):
+    #     # print('Clutch Status', is_first_update_after_a_disable)
+    #     # first_sol = np.array([q4_1,q5_1,q6_1])
+    #     # second_sol = np.array([q4_2,q5_2,q6_2])
+    #     # interpolated_sol_1 = q_current + (first_sol - q_current)/2
+    #     # interpolated_sol_2 = q_current + (second_sol -q_current)/2
+    #     # wrist_ik_sol = np.array([interpolated_sol_1,
+    #     #                          interpolated_sol_2])
         
-        # print('FIRST SOL', first_sol)
-        # print("Second SOl", second_sol)
-        # print("CURRENT SOLUTION", q_current)
-        # print("Wrist IK SOLUTIONS", wrist_ik_sol)
+    #     # print('FIRST SOL', first_sol)
+    #     # print("Second SOl", second_sol)
+    #     # print("CURRENT SOLUTION", q_current)
+    #     # print("Wrist IK SOLUTIONS", wrist_ik_sol)
           
-        wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-                                [q4_2, q5_2, q6_2]])
-    else: 
-        wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-                                [q4_2, q5_2, q6_2]])
-                
+    #     wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+    #                             [q4_2, q5_2, q6_2]])
+    # else: 
+    # wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+    #                         [q4_2, q5_2, q6_2]])
+            
+    wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+                            [q4_2, q5_2, q6_2]])
+        
     return wrist_ik_sol
 
 class WristIKSolutionSelector:
