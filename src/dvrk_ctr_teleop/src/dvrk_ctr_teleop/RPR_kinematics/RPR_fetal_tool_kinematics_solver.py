@@ -155,7 +155,10 @@ class Arion_Law_tool_Kinematics_Solver:
             wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous,current_wrist_angles, is_first_update_after_a_disable)
             q4q5q6= np.array(self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist())
             
+        #     print("q4q5q6", q4q5q6)
+        #     print("current_wrist_angles", current_wrist_angles)
             q4q5q6 = interpolate_angles(q4q5q6, np.array(current_wrist_angles))
+        #     print("interpolate_angles", q4q5q6)
             q4 = q4q5q6[0]
             q5 = q4q5q6[1]
             q6 = q4q5q6[2]

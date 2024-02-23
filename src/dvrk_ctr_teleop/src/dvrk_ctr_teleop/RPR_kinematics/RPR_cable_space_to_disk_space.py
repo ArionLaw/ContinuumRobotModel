@@ -132,8 +132,8 @@ class CableToDiskSpaceSolver:
         return EE_pinch_angle
 
     def DiskPosition_To_JointSpace(self,DiskPositions,h,y_,r,n):
-        inner_roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix    
-        outer_roll = DiskPositions[2]/1.56323325 #from dVRK 8mm needle driver coupling matrix
+        outer_roll = DiskPositions[0]/-1.56323325 #from dVRK 8mm needle driver coupling matrix    
+        inner_roll = DiskPositions[2]/1.56323325 #from dVRK 8mm needle driver coupling matrix
         
         pitch_cable_delta = DiskPositions[1]*self.SmallCapstanRadius #calc pitch cable displacement
         #pitch_angle = get_PitchAngle_from_PitchCableDelta(h, y_, r, n, pitch_cable_delta)
