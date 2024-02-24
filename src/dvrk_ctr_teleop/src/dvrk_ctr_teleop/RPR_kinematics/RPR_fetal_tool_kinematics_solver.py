@@ -46,6 +46,8 @@ class Arion_Law_tool_Kinematics_Solver:
             self.wrist_length = config_yaml["wrist_length"]
             self.simulation = config_yaml['simulation']
             self.scale = config_yaml['scale']
+            self.q4_limits = config_yaml["wrist_outer_roll_joint_limits"]
+            self.q6_limits = config_yaml["wrist_inner_roll_joint_limits"]
             self.WristIKSolutionSelector = WristIKSolutionSelector(config_yaml["wrist_pitch_joint_limits"])
             self.CableToDiskSpaceSolver = CableToDiskSpaceSolver(config_yaml)
 
@@ -138,6 +140,7 @@ class Arion_Law_tool_Kinematics_Solver:
                 """ FK calculate wrist pseudojoints of current pose using """ 
                 q4, q5, q6, current_jaw_angle = self.CableToDiskSpaceSolver.DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r,self.n)
                 current_wrist_angles = [q4,q5,q6]
+                # print("current_wrist_angles", current_wrist_angles)
 
             
             """ IK calculate psm joints to obtain wrist cartesian position """
@@ -153,7 +156,7 @@ class Arion_Law_tool_Kinematics_Solver:
             # print("R_shaft", R_shaft)
             R_wrist = np.matmul(np.transpose(R_shaft), R_desired)
             wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous,current_wrist_angles, is_first_update_after_a_disable)
-            q4q5q6= np.array(self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols).tolist())
+            q4q5q6 = self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols)
             
         #     print("q4q5q6", q4q5q6)
         #     print("current_wrist_angles", current_wrist_angles)
@@ -166,6 +169,16 @@ class Arion_Law_tool_Kinematics_Solver:
             # print('wrist_ik',wrist_ik_sols)
             # print('current_configuration:', current_wrist_angles)
             # print('best_solution', [q4,q5,q6])
+        #     print("desired q4", q4)
+        #   print("Desired q6",q6)
+
+        #     # Clip solution to prevent rolling around
+            q4 = np.clip(q4,self.q4_limits[0],self.q4_limits[1])
+            q6 = np.clip(q6,self.q6_limits[0],self.q6_limits[1])
+
+        #     print("desired q4 clipped", q4)
+        #     print("Desired q6 clipped",q6)
+
 
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll
