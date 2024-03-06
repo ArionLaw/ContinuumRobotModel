@@ -4,6 +4,7 @@ from dvrk_ctr_teleop.RPR_kinematics.utils import *
 
 import numpy as np
 import math
+from scipy.spatial.transform import Rotation as R
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
@@ -66,101 +67,17 @@ def interpolate_angles(q_desired, q_cur, step_rad = 0.1):
     abs_joint_diffs = np.absolute(q_desired - q_cur)
     return np.where(abs_joint_diffs < np.absolute(step), q_desired, q_stepped)
 
-def wrist_analytical_ik(R_wrist_desired, R_current, R_previous,q_current, is_first_update_after_a_disable):
-    """
-    calculates wrist joint solutions given desired rotation matrix for the wrist
-    returns 2 possible IK solutions 
-    """
-    #print('R_wrist_desired PASSED TO ik', R_wrist_desired)
-
-    #R_change = R_current@np.
-  
-    q5 = math.acos(R_wrist_desired[2,2])
-    min_deg_limit = 3
-    rotation_add_deg = 10
-
-    # if abs(q5) < min_deg_limit*np.pi/180:
-    #     #R_wrist_desired = R_wrist_desired@RotMtx('x',rotation_add_deg*np.pi/180)@RotMtx('y',rotation_add_deg*np.pi/180)
-    #     print("current q5", q5)
-    #     print("min allowed q5", min_deg_limit*np.pi/180)
-    #     raise Exception('Singularity Reached')
-
-    
-    r33 = R_wrist_desired[2,2]
-    r31 = R_wrist_desired[2,0]
-    r32 = R_wrist_desired[2,1]
-    r13 = R_wrist_desired[0,2]
-    r23 = R_wrist_desired[1,2]
-
-
-
-    if r33 == 1:
-         print("AT SINGULARITY...OFFSETTING")
-         r33 = 0.9995 #small offset to avoid singularity
-
-    q5_1 = math.acos(r33)
-    q5_2 = -math.acos(r33)
-    
-
-    q4_1 = math.atan2(r23, r13)
-    q6_1 = math.atan2(r31, r32)
-
-    q4_2 = math.atan2(-r23, -r13)
-    q6_2 = math.atan2(-r31, -r32)
-
-    # q4_3 = q6_1
-    # q5_3 = q5_1
-    # q6_3 = q4_1
-
-    # first_sol = np.array([q4_1,q5_1,q6_1])
-
-    # diff = np.abs(q_current-first_sol)
-    # tol = 10000
-    # print("q_current", q_current)
-    # print("first_sol", first_sol)
-    # if diff[0] > tol and diff[2] > tol:
-    #     first_sol = np.array([q6_1, q5_1, q4_1])
-    #     print("--------------------------------Flipping_solution-----------------------------------------")
-    # if np.any(np.abs(q_current-first_sol) >= 100):
-    #     print("USING 3rd Solution")
-    #     print("ANGLE DIFF", np.sum(np.abs(first_sol - q_current)))
-
-    #     wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-    #                         [q4_2, q5_2, q6_2],
-    #                         [q4_3,q5_3,q6_3]])
-    # else:
-    
-
-    # if(is_first_update_after_a_disable):
-    #     # print('Clutch Status', is_first_update_after_a_disable)
-    #     # first_sol = np.array([q4_1,q5_1,q6_1])
-    #     # second_sol = np.array([q4_2,q5_2,q6_2])
-    #     # interpolated_sol_1 = q_current + (first_sol - q_current)/2
-    #     # interpolated_sol_2 = q_current + (second_sol -q_current)/2
-    #     # wrist_ik_sol = np.array([interpolated_sol_1,
-    #     #                          interpolated_sol_2])
-        
-    #     # print('FIRST SOL', first_sol)
-    #     # print("Second SOl", second_sol)
-    #     # print("CURRENT SOLUTION", q_current)
-    #     # print("Wrist IK SOLUTIONS", wrist_ik_sol)
-          
-    #     wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-    #                             [q4_2, q5_2, q6_2]])
-    # else: 
-    # wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-    #                         [q4_2, q5_2, q6_2]])
-            
-    wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
-                            [q4_2, q5_2, q6_2]])
-        
-    return wrist_ik_sol
-
-class WristIKSolutionSelector:
+class WristIKSolver:
     '''selects best IK solution based on wrist pitch joint limits and effort'''
 
-    def __init__(self, wrist_pitch_joint_limits):
+    def __init__(self, wrist_pitch_joint_limits, min_deg_limit):
         self.joint_limits = np.array(wrist_pitch_joint_limits)
+        self.min_deg_limit = min_deg_limit
+        self.q_previous = min_deg_limit*np.pi/180
+        self.R_previous = RotMtx('x',0)
+        self.R_singularity = np.array([[0, -1, 0],
+                                    [1, 0, 0],
+                                    [0, 0, 1]])
     
     def normalize_angle(self,angles):
         """ Normalize angles to the range [0, 2*pi] """
@@ -211,6 +128,123 @@ class WristIKSolutionSelector:
 
         efforts = [(self.calculate_effort(q_current, np.array(sol)), sol) for sol in valid_solutions]
         return min(efforts, key=lambda x: x[0])[1]
+    
+    def wrist_analytical_ik(self, R_wrist_desired, R_shaft):
+        """
+        calculates wrist joint solutions given desired rotation matrix for the wrist
+        returns 2 possible IK solutions 
+        """
+
+        q5 = math.acos(R_wrist_desired[2,2])
+
+        #########COMMENT OUT IF PROBLEMS######
+        # if abs(q5) < self.min_deg_limit*np.pi/180:
+        #     print("SINGULARITY")
+        #     q_dif = q5 - self.q_previous
+        #     R_wrist_desired_adjusted = self.avoid_singularity(R_wrist_desired, q_dif, R_shaft, self.min_deg_limit)
+        #     self.R_previous = R_wrist_desired
+        #     self.q_previous = q5
+        #     R_wrist_desired = R_wrist_desired_adjusted
+        # else:
+        #     self.R_previous = R_wrist_desired
+
+        r33 = R_wrist_desired[2,2]
+        r31 = R_wrist_desired[2,0]
+        r32 = R_wrist_desired[2,1]
+        r13 = R_wrist_desired[0,2]
+        r23 = R_wrist_desired[1,2]
+
+
+        if r33 == 1:
+            print("AT SINGULARITY...OFFSETTING")
+            r33 = 0.9995 #small offset to avoid singularity
+
+        q5_1 = math.acos(r33)
+        q5_2 = -math.acos(r33)
+        
+
+        q4_1 = math.atan2(r23, r13)
+        q6_1 = math.atan2(r31, r32)
+
+        q4_2 = math.atan2(-r23, -r13)
+        q6_2 = math.atan2(-r31, -r32)
+
+        wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
+                            [q4_2, q5_2, q6_2]])
+        
+        return wrist_ik_sol
+    
+    def avoid_singularity(self, R_wrist_desired, q_diff,R_shaft, rotation_add_deg = 10):
+
+        def project_vector_on_plane(n,u):  
+            n_norm = np.linalg.norm(n)    
+            proj_of_u_on_n = (np.dot(u, n)/n_norm**2)*n 
+            return u - proj_of_u_on_n
+
+        np.set_printoptions(precision=8)
+        #rotation_add_deg = self.min_deg_limit
+        R_change = np.transpose(self.R_previous)@R_wrist_desired
+        rotation_vec = R.from_matrix(R_change).as_rotvec()
+        rotation_vec = rotation_vec/np.linalg.norm(rotation_vec)
+
+        ###vector from singularity to Rprevious
+        R_change_2 = np.transpose(R_shaft@self.R_singularity)@self.R_previous
+        # R_change_2 = np.transpose(self.R_singularity)@self.R_previous
+        rotation_vec_2 = R.from_matrix(R_change_2).as_rotvec()
+        rotation_vec_2 = rotation_vec_2/np.linalg.norm(rotation_vec_2)
+
+        ###Get Projection Plane####
+        shaft_plane_normal = R_shaft@np.array([0,0,1])
+
+        rot_vec_proj = project_vector_on_plane(shaft_plane_normal,rotation_vec)
+        rot_vec2_proj = project_vector_on_plane(shaft_plane_normal,rotation_vec_2)
+
+        ##calculate angle
+        cross_product = np.cross(rot_vec2_proj,rot_vec_proj)
+        direction = cross_product[2]
+
+        # Calculate current q5 from R_wrist_desired
+        q5 = math.acos(R_wrist_desired[2, 2])
+        # print("CURRENT q5", q5)
+        # print("Qdiff", q_diff)
+        min_deg_limit = self.min_deg_limit* np.pi / 180  
+
+         # Handling Zero Direction
+        if direction == 0:
+            'PRINT HANDLING'
+            # Use the signs of the x and y components of the rotation vectors
+            direction = np.sign(rotation_vec[0] * rotation_vec[1])
+            if direction == 0:
+                # If still zero, default to a positive direction
+                direction = 1
+
+
+        # Refining Angle Calculation
+        if q_diff >= 1e-6:
+            if direction < 0:
+                # Smooth transition for increasing q_diff with negative direction
+                rotation_angle = np.pi / 2 + np.pi / 2 * (q5 / min_deg_limit)
+                # print("FIRST CHECK")
+            else:
+                # Smooth transition for increasing q_diff with positive direction
+                rotation_angle = rotation_angle = np.pi/2 - np.pi / 2 * (q5 / min_deg_limit)
+                # print("SECOND CHECK")
+        else:
+            if direction < 0:
+                # Smooth transition for decreasing q_diff with negative direction
+                rotation_angle = np.pi / 2 * (1 - q5 / min_deg_limit)
+                # print("3rd CHECK")
+            else:
+                # Smooth transition for decreasing q_diff with positive direction
+                rotation_angle = np.pi/2 + np.pi / 2 * (1 - q5 / min_deg_limit)
+                # print("4th CHECK")
+        
+        print("Rotation Angle", rotation_angle)
+        print("direction",direction)
+
+        R_wrist_desired_adjusted = R_wrist_desired @ RotMtx('z', rotation_angle)@RotMtx('x',rotation_add_deg*np.pi/180)
+
+        return R_wrist_desired_adjusted
     
 
 

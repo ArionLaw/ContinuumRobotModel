@@ -48,7 +48,8 @@ class Arion_Law_tool_Kinematics_Solver:
             self.scale = config_yaml['scale']
             self.q4_limits = config_yaml["wrist_outer_roll_joint_limits"]
             self.q6_limits = config_yaml["wrist_inner_roll_joint_limits"]
-            self.WristIKSolutionSelector = WristIKSolutionSelector(config_yaml["wrist_pitch_joint_limits"])
+            self.WristIKSolver = WristIKSolver(config_yaml["wrist_pitch_joint_limits"],
+                                               config_yaml["min_deg_limit"])
             self.CableToDiskSpaceSolver = CableToDiskSpaceSolver(config_yaml)
 
             #self.kinematics_data = PsmKinematicsData(spherical_wrist_tool_params)
@@ -106,7 +107,7 @@ class Arion_Law_tool_Kinematics_Solver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
-    def compute_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle, is_first_update_after_a_disable):
+    def compute_ik(self, tf_desired, direct_psm_and_disk_joint_positions, desired_EE_pinch_angle, is_first_update_after_a_disable = False):
             """
             compute from task space poses to joint space angles
                     from joint space angles to cable space displacements
@@ -155,30 +156,18 @@ class Arion_Law_tool_Kinematics_Solver:
             """IK calculate wrist joint solutions and select the best solution"""
             # print("R_shaft", R_shaft)
             R_wrist = np.matmul(np.transpose(R_shaft), R_desired)
-            wrist_ik_sols = wrist_analytical_ik(R_wrist,R_wrist_current,self.R_wrist_previous,current_wrist_angles, is_first_update_after_a_disable)
-            q4q5q6 = self.WristIKSolutionSelector.select_best_solution(current_wrist_angles, wrist_ik_sols)
-            
-        #     print("q4q5q6", q4q5q6)
-        #     print("current_wrist_angles", current_wrist_angles)
+            wrist_ik_sols = self.WristIKSolver.wrist_analytical_ik(R_wrist,R_shaft)
+            q4q5q6 = self.WristIKSolver.select_best_solution(current_wrist_angles, wrist_ik_sols)
+
             q4q5q6 = interpolate_angles(q4q5q6, np.array(current_wrist_angles))
         #     print("interpolate_angles", q4q5q6)
             q4 = q4q5q6[0]
             q5 = q4q5q6[1]
             q6 = q4q5q6[2]
 
-            # print('wrist_ik',wrist_ik_sols)
-            # print('current_configuration:', current_wrist_angles)
-            # print('best_solution', [q4,q5,q6])
-        #     print("desired q4", q4)
-        #   print("Desired q6",q6)
-
         #     # Clip solution to prevent rolling around
             q4 = np.clip(q4,self.q4_limits[0],self.q4_limits[1])
             q6 = np.clip(q6,self.q6_limits[0],self.q6_limits[1])
-
-        #     print("desired q4 clipped", q4)
-        #     print("Desired q6 clipped",q6)
-
 
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll

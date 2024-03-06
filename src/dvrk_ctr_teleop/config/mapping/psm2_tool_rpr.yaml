@@ -7,5 +7,6 @@ small_capstan_diameter: 5.08 #mm
 max_EE_pinch_angle_deg: 45 #deg (jaw to midline)
 min_EE_pinch_angle_deg: -40 #deg (jaw to midline)
 gripper_scissor_linkage_length: 1.6 #mm
+min_deg_limit: 5 #proximity to singularity
 simulation: False
 scale: 10 #Scaling factor for tool insertion 
