@@ -168,6 +168,10 @@ class PeterFrancisToolKinematicsSolver(KinematicsSolver):
                 """ numerical IK calculate pseudojoint values to achieve desired EE_orientation (comparison Rcurrent vs Rdesired)"""
                 R_wrist_desired = np.linalg.inv(R_shaft)@R_desired
                 #print("R_desired_wrist: \n", R_wrist_desired)
+                
+                
+                
+                
                 joint_angles = [roll,gamma,beta,alpha] #initial orientation of pseudojoints
                 joint_angles = IK_update(R_wrist_desired,joint_angles[0],joint_angles[1],joint_angles[2],joint_angles[3],printout)
                 

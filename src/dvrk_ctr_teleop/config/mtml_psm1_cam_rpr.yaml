@@ -4,12 +4,18 @@ cartesian_controllers:
         position_scale: 0.5
         type: "follow"
         topic: "/MTML/measured_cp"
+        input_2_input_reference_rot:
+            quaternion:
+                x: 0.9659258
+                y: 0
+                z: 0
+                w: -0.258819
         jaw:
             input_topic: "/MTML/gripper/measured_js"
             scale: 1
-            idx: 11
-        hz_divisor: 4
-        is_input_device_hold_home_off: True
+            idx: 6
+        hz_divisor: 5
+        is_input_device_hold_home_off: True # Nillan change this to True to stop MTM homing hold
         servo_cp_topic: "/MTML/servo_cp"
         servo_cf_topic: "/MTML/body/servo_cf"
         input_tf_appended_rotation:
@@ -22,6 +28,15 @@ cartesian_controllers:
         control_interfaces:
             - control_topic: "/PSM1/servo_jp"
               feedback_topic: "/PSM1/measured_js"
+            - control_topic: "/PSM1/jaw/servo_jp"
+              feedback_topic: "/PSM1/jaw/measured_js"
+        output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
+            quaternion:
+              x:  0.9227369876445654
+              y:  0.17858953119523796
+              z:  0.08860286458914572
+              w:  0.3298662810392971
+
         is_debug_output_tf: True
     kinematics:
         robot: "custom"
