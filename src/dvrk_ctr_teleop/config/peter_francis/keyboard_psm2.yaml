@@ -1,0 +1,22 @@
+cartesian_controllers:
+  - name: "Keyboard-PSM2_PeterFrancis"
+    input:
+        type: "increment"
+        topic: "/keyboard/twist"
+        jaw:
+            input_topic: "/keyboard/joint_state"
+            scale: 1
+            idx: 4
+    output:
+        control_interfaces:
+            - control_topic: "/PSM2/servo_jp"
+              feedback_topic: "/PSM2/measured_js"
+            - control_topic: "/PSM2/jaw/servo_jp"
+              feedback_topic: "/PSM2/jaw/measured_js"
+        is_debug_output_tf: True
+    kinematics:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
+        class_name: "PeterFrancisToolKinematicsSolver"
+        config: "../config/mapping/psm2_tool.yaml"
+clutch_topic: "/console/clutch"
