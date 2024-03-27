@@ -1,0 +1,51 @@
+cartesian_controllers:
+  - name: "MTML-PSM1-PeterFrancis"
+    input:
+        position_scale: 0.5
+        type: "follow"
+        topic: "/MTML/measured_cp"
+        input_2_input_reference_rot:
+            quaternion:
+                x: 0.9659258
+                y: 0
+                z: 0
+                w: -0.258819
+        jaw:
+            input_topic: "/MTML/gripper/measured_js"
+            scale: 1
+            idx: 6
+        hz_divisor: 5
+        is_input_device_hold_home_off: True # Nillan change this to True to stop MTM homing hold
+        servo_cp_topic: "/MTML/servo_cp"
+        servo_cf_topic: "/MTML/body/servo_cf"
+        input_tf_appended_rotation:
+            quaternion:
+                x: 0
+                y: 0
+                z: 0.7071068
+                w: -0.7071068
+    output:
+        control_interfaces:
+            - control_topic: "/PSM1/servo_jp"
+              feedback_topic: "/PSM1/measured_js"
+            - control_topic: "/PSM1/jaw/servo_jp"
+              feedback_topic: "/PSM1/jaw/measured_js"
+        output_2_output_reference_rot: # PSM1 BASE TO ECM CAM TIP
+            quaternion:
+              x:  0.9227369876445654
+              y:  0.17858953119523796
+              z:  0.08860286458914572
+              w:  0.3298662810392971
+
+        is_debug_output_tf: True
+    kinematics:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.RPR_kinematics.RPR_fetal_tool_kinematics_solver"
+        class_name: "Arion_Law_tool_Kinematics_Solver"
+        config: "../config/mapping/psm1_tool_rpr.yaml"
+clutch_topic: "/console/clutch"
+switcher:
+  switch_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTML-PSM1-PeterFrancis"]
+enable_at_start: []

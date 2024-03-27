@@ -1,0 +1,39 @@
+cartesian_controllers:
+  - name: "MTMR-PSM2-PeterFrancis"
+    input:
+        position_scale: 0.5
+        type: "follow"
+        topic: "/MTMR/measured_cp"
+        jaw:
+            input_topic: "/MTMR/gripper/measured_js"
+            scale: 1
+            idx: 4
+        hz_divisor: 4
+        is_input_device_hold_home_off: True
+        servo_cp_topic: "/MTMR/servo_cp"
+        servo_cf_topic: "/MTMR/body/servo_cf"
+        input_tf_appended_rotation:
+            quaternion:
+                x: 0
+                y: 0
+                z: 0.7071068
+                w: 0.7071068
+    output:
+        control_interfaces:
+            - control_topic: "/PSM2/servo_jp"
+              feedback_topic: "/PSM2/measured_js"
+            - control_topic: "/PSM2/jaw/servo_jp"
+              feedback_topic: "/PSM2/jaw/measured_js"
+        is_debug_output_tf: True
+    kinematics:
+        robot: "custom"
+        module_name: "dvrk_ctr_teleop.kinematics.fetal_tool_kinematics_solver"
+        class_name: "PeterFrancisToolKinematicsSolver"
+        config: "../config/mapping/psm2_tool.yaml"
+clutch_topic: "/console/clutch"
+enable_at_start: []
+switcher:
+  switch_topic: "/console/operator_present"
+  disable_list: []
+  enable_list: ["MTMR-PSM2-PeterFrancis"]
+enable_at_start: []

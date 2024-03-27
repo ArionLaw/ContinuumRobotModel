@@ -63,16 +63,21 @@ def get_R_shaft(psm_joints):
     calculates rotation matrix of instrument prior to roll joint
     derived from daVinci PSM modified DH convention
     """
-    R = RotMtx('x',np.pi/2)@RotMtx('z',(psm_joints[0]+np.pi/2))@RotMtx('x',-np.pi/2)@RotMtx('z',(psm_joints[1]-np.pi/2))@RotMtx('x',np.pi/2)
+    R1 = RotMtx('x',np.pi/2)@RotMtx('z',(psm_joints[0]+np.pi/2)) # dVRK DH frame 1
+    R2 = RotMtx('x',-np.pi/2)@RotMtx('z',(psm_joints[1]-np.pi/2)) # dVRK DH frame 2
+    R3 = RotMtx('x',np.pi/2)@RotMtx('z',0) # dVRK DH frame 3
+    R = R1@R2@R3
     return R
 
 def get_R_fullwristmodel(roll,gamma,beta,alpha):
     """
     calculates rotation matrix of instrument wrist starting from the roll joint
     """
-    R = RotMtx('z',roll)@RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',np.pi) #frame 5 orientation after frame 4 Outer Roll 
-    R = R@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha) #serial chain of 3 (3 phase, 3 notch segments)
-    R = R@RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',-np.pi/2) #correction to align frame 7 end effector orientation
+    R4 = RotMtx('x',0)@RotMtx('z',roll) # dVRK DH frame 4
+    R5 = RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',np.pi) # dVRK DH frame 5
+    Rnotches = get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha)@get_R_segment3notch(gamma,beta,alpha) #serial chain of 3 (3 phase, 3 notch segments)
+    R7 = RotMtx('x',-np.pi/2)@RotMtx('z',-np.pi/2)@RotMtx('x',-np.pi/2) #correction to align frame 7 end effector orientation
+    R = R4@R5@Rnotches@R7
     return R
 
 def get_R_segment3notch(gamma,beta,alpha):

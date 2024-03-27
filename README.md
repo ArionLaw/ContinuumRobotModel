@@ -66,18 +66,22 @@ Run the teleop in terminal 4:
 ```bash
 source devel/setup.bash
 
-#
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm1_mtmr_psm2_cam.yaml
+# peter francis tool
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/peter_francis/mtml_psm1_mtmr_psm2_cam.yaml
+# rpr tool
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/rpr/mtml_psm1_mtmr_psm2_cam_rpr.yaml
 
 # --below are alternatives for debugging --
 # Keyboard control: 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/keyboard_psm1.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/peter_francis/keyboard_psm1.yaml
 # OR
 # Mtm control: 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm1.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/peter_francis/mtml_psm1.yaml
 # OR
 # Mtm control in camera frame: 
-rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm1_cam.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/peter_francis/mtml_psm1_cam.yaml
+rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/peter_francis/mtml_psm1_cam_rpr.yaml
+
 
 ```
 Now hold the MTMS, and use press the right most footpedal for enabling the controllers. Note that the MTM arms will fall. (Doesn't apply for keyboard)
