@@ -1,7 +1,7 @@
 wrist_bending_compensation: 0.2
 wrist_length: 0.0015 #change this 
 wrist_pitch_joint_limits: [0.0, 1.57]
-wrist_outer_roll_joint_limits: [-1.57,1.57]
+wrist_outer_roll_joint_limits: [-6.28,6.28]
 wrist_inner_roll_joint_limits: [-3.14,3.14]
 small_capstan_diameter: 5.08 #mm
 max_EE_pinch_angle_deg: 45 #deg (jaw to midline)

@@ -1,5 +1,8 @@
 import math
 import numpy as np
+import pyttsx3
+import threading
+import queue
 
 '''
 Holds functions to help compute things.
@@ -188,3 +191,33 @@ def getCircleInFrame(frame, r, numPts):
     points = r * np.tile(frame[0:3, 0], (numPts, 1)) * np.cos(theta) + r * np.tile(frame[0:3, 1], (numPts, 1)) * np.sin(theta)
     points = points + np.tile(frame[0:3, 3], (numPts, 1))
     return points
+
+class SpeechManager:
+    def __init__(self):
+        self.engine = pyttsx3.init()
+        self.messages = queue.Queue()
+        self.lock = threading.Lock()
+        self.thread = threading.Thread(target=self.run)
+        self.thread.daemon = True  # Set as a daemon so it automatically closes when the main program exits
+        self.thread.start()
+
+    def run(self):
+        while True:
+            message = self.messages.get()  # This will block until an item is available
+            if self.lock.acquire(blocking=False):
+                try:
+                    self.engine.say(message)
+                    self.engine.runAndWait()
+                finally:
+                    self.lock.release()
+                self.clear_queue()  # Clear the queue after speaking to avoid redundant messages
+
+    def speak(self, message):
+        if not self.lock.locked():  # Check the lock to avoid flooding the queue
+            self.messages.put(message)
+    
+    def clear_queue(self):
+        while not self.messages.empty():
+            self.messages.get()  # Remove and discard all queued messages
+            self.messages.task_done()
+

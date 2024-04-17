@@ -5,6 +5,8 @@ from dvrk_ctr_teleop.RPR_kinematics.utils import *
 import numpy as np
 import math
 from scipy.spatial.transform import Rotation as R
+import pyttsx3
+import threading
 
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 ### FK ###
@@ -78,7 +80,10 @@ class WristIKSolver:
         self.R_singularity = np.array([[0, -1, 0],
                                     [1, 0, 0],
                                     [0, 0, 1]])
-    
+        
+        self.speech_manager_limits = SpeechManager() #joint limits
+        self.speech_manager_singularity = SpeechManager()
+            
     def normalize_angle(self,angles):
         """ Normalize angles to the range [0, 2*pi] """
         return np.mod(angles, 2 * np.pi)
@@ -137,16 +142,20 @@ class WristIKSolver:
 
         q5 = math.acos(R_wrist_desired[2,2])
 
-        #########COMMENT OUT IF PROBLEMS######
+        ########COMMENT OUT IF PROBLEMS######
         # if abs(q5) < self.min_deg_limit*np.pi/180:
-        #     print("SINGULARITY")
+        #     self.speech_manager_singularity.speak('Avoiding Singularity')
         #     q_dif = q5 - self.q_previous
         #     R_wrist_desired_adjusted = self.avoid_singularity(R_wrist_desired, q_dif, R_shaft, self.min_deg_limit)
         #     self.R_previous = R_wrist_desired
         #     self.q_previous = q5
         #     R_wrist_desired = R_wrist_desired_adjusted
+        #     r31 = R_wrist_desired[2,0]
+        #     r32 = R_wrist_desired[2,1]
+        #     q6_original = math.atan2(r31, r32)
         # else:
         #     self.R_previous = R_wrist_desired
+        #     self.speech_manager_singularity.clear_queue()
 
         r33 = R_wrist_desired[2,2]
         r31 = R_wrist_desired[2,0]
@@ -169,6 +178,14 @@ class WristIKSolver:
         q4_2 = math.atan2(-r23, -r13)
         q6_2 = math.atan2(-r31, -r32)
 
+        if q5_1 > np.pi/2:
+            self.speech_manager_limits.speak("Wrist Bending Joint Limit Reached")
+        else:
+            self.speech_manager_limits.clear_queue()
+
+        # if abs(q5) < self.min_deg_limit*np.pi/180:
+        #     q6_1 = q6_original
+
         wrist_ik_sol = np.array([[q4_1,q5_1,q6_1],
                             [q4_2, q5_2, q6_2]])
         
@@ -188,8 +205,8 @@ class WristIKSolver:
         rotation_vec = rotation_vec/np.linalg.norm(rotation_vec)
 
         ###vector from singularity to Rprevious
-        R_change_2 = np.transpose(R_shaft@self.R_singularity)@self.R_previous
-        # R_change_2 = np.transpose(self.R_singularity)@self.R_previous
+        # R_change_2 = np.transpose(R_shaft@self.R_singularity)@self.R_previous
+        R_change_2 = np.transpose(self.R_singularity)@self.R_previous
         rotation_vec_2 = R.from_matrix(R_change_2).as_rotvec()
         rotation_vec_2 = rotation_vec_2/np.linalg.norm(rotation_vec_2)
 
@@ -200,25 +217,29 @@ class WristIKSolver:
         rot_vec2_proj = project_vector_on_plane(shaft_plane_normal,rotation_vec_2)
 
         ##calculate angle
-        cross_product = np.cross(rot_vec2_proj,rot_vec_proj)
-        direction = cross_product[2]
+        theta = np.dot(rot_vec2_proj,rot_vec_proj)/((np.linalg.norm(rot_vec2_proj)*np.linalg.norm(rot_vec_proj)))
+
+        if rotation_vec_2[0]<0:
+            direction = -np.sign(theta)
+        else:
+            direction = np.sign(theta)
 
         # Calculate current q5 from R_wrist_desired
         q5 = math.acos(R_wrist_desired[2, 2])
-        # print("CURRENT q5", q5)
-        # print("Qdiff", q_diff)
         min_deg_limit = self.min_deg_limit* np.pi / 180  
 
          # Handling Zero Direction
-        if direction == 0:
-            'PRINT HANDLING'
+        if abs(theta) <= 1e-3:
             # Use the signs of the x and y components of the rotation vectors
-            direction = np.sign(rotation_vec[0] * rotation_vec[1])
-            if direction == 0:
-                # If still zero, default to a positive direction
-                direction = 1
+            if abs(rotation_vec[0] * rotation_vec[1]) <= 1e-3:
+                if abs(rotation_vec[0]) >1e-3:
+                    direction = np.sign(rotation_vec[0])
+                else:
+                    direction = np.sign(rotation_vec[1])
+            else: 
+                direction = np.sign(rotation_vec[0] * rotation_vec[1])
 
-
+                       
         # Refining Angle Calculation
         if q_diff >= 1e-6:
             if direction < 0:
@@ -227,7 +248,7 @@ class WristIKSolver:
                 # print("FIRST CHECK")
             else:
                 # Smooth transition for increasing q_diff with positive direction
-                rotation_angle = rotation_angle = np.pi/2 - np.pi / 2 * (q5 / min_deg_limit)
+                rotation_angle = np.pi/2 - np.pi / 2 * (q5 / min_deg_limit)
                 # print("SECOND CHECK")
         else:
             if direction < 0:
@@ -236,16 +257,14 @@ class WristIKSolver:
                 # print("3rd CHECK")
             else:
                 # Smooth transition for decreasing q_diff with positive direction
-                rotation_angle = np.pi/2 + np.pi / 2 * (1 - q5 / min_deg_limit)
+                #rotation_angle = np.pi/2 + np.pi / 2 * (1 - q5 / min_deg_limit)
+                rotation_angle = np.pi/2 + np.pi / 2 * (q5 / min_deg_limit)
                 # print("4th CHECK")
         
-        print("Rotation Angle", rotation_angle)
-        print("direction",direction)
+        # print("Rotation Angle", rotation_angle)
+        # print("direction",direction)
+        # print("theta", theta)
+        # print("rotation_vec", rotation_vec)
 
-        R_wrist_desired_adjusted = R_wrist_desired @ RotMtx('z', rotation_angle)@RotMtx('x',rotation_add_deg*np.pi/180)
-
+        R_wrist_desired_adjusted = R_wrist_desired@RotMtx('z', rotation_angle)@RotMtx('x',rotation_add_deg*np.pi/180)
         return R_wrist_desired_adjusted
-    
-
-
-

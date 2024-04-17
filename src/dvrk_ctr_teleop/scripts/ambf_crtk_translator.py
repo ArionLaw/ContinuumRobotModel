@@ -131,11 +131,20 @@ class PSMTranslator:
         self.base_handle.set_joint_pos('notch_6-notch_7', 0)
 
         if crtk_namespace == '/PSM1':
-            self.base_handle.set_pos(0.75,0,2)
+            self.base_handle.set_pos(0.5,1,2)
+            # self.base_handle.set_rot([-0.9227369876445654,
+            #     -0.17858953119523796,
+            #     -0.08860286458914572,
+            #     0.3298662810392971])
         elif crtk_namespace =='/PSM2':
-            self.base_handle.set_pos(-0.75,0,2)
+            self.base_handle.set_pos(-0.5,1,2)
+            self.base_handle.set_rpy(0.698099, 0.523600, -3.13158)
+            # self.base_handle.set_rot([-0.8491677293967367,
+            #   -0.4200572904600633,
+            #   -0.1001969776665232,
+            #   0.3040174431657418])
         
-        self.base_handle.set_rpy(0,0,3.14)
+        #self.base_handle.set_rpy(0,0,3.14)
         #self.base_handle.set_rpy(0,0,0)
 
         for i in range(0,13):
