@@ -96,7 +96,7 @@ def getTriangleLeg(a, h):
     res = math.sqrt(h**2 - a**2)
     return res
 
-def getArclength(p1, p2, r):
+def get_arc_length(p1, p2, r):
     '''
     Calculates the arclength of a circle with radius r given two points on the circle p1 and p2.
     '''

@@ -69,9 +69,9 @@ class Arion_Law_tool_Kinematics_Solver:
             if self.simulation:
                   q4 = joints[3] 
                   q5 = joints[4]*6
-                  q6 = joints[10] 
+                  q6 = joints[13] 
                   psm_joints[2] = psm_joints[2]/10 #scale down insertion
-                  EE_pinch_angle = joints[11]
+                  EE_pinch_angle = joints[14]
 
             else:      
                   disk_positions = joints[3:]
@@ -129,7 +129,7 @@ class Arion_Law_tool_Kinematics_Solver:
             if self.simulation:
                 q4 = direct_psm_and_disk_joint_positions[3]
                 q5 = direct_psm_and_disk_joint_positions[4]*6 #pitch
-                q6 = direct_psm_and_disk_joint_positions[10] #inner roll
+                q6 = direct_psm_and_disk_joint_positions[13] #inner roll
                 current_wrist_angles = [q4,q5,q6]
 
                 if desired_EE_pinch_angle <0.0:
@@ -159,7 +159,7 @@ class Arion_Law_tool_Kinematics_Solver:
             wrist_ik_sols = self.WristIKSolver.wrist_analytical_ik(R_wrist,R_shaft)
             q4q5q6 = self.WristIKSolver.select_best_solution(current_wrist_angles, wrist_ik_sols)
 
-            q4q5q6 = interpolate_angles(q4q5q6, np.array(current_wrist_angles))
+            # q4q5q6 = interpolate_angles(q4q5q6, np.array(current_wrist_angles))
         #     print("interpolate_angles", q4q5q6)
             q4 = q4q5q6[0]
             q5 = q4q5q6[1]
@@ -172,7 +172,7 @@ class Arion_Law_tool_Kinematics_Solver:
             if self.simulation: 
                 psm_joints.append(q4) #outer_roll
                 wrist_joints = []
-                for _ in range(0,6):
+                for _ in range(0,9):
                     wrist_joints.append(q5/6) #pitch
                 wrist_joints.append(q6) #inner_roll
                 joints_list = psm_joints + wrist_joints

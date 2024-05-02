@@ -18,4 +18,7 @@ python3 src/dvrk_ctr_teleop/scripts/ambf_crtk_translator.py
 
 rosrun dvrk_planning_ros dvrk_teleop_node.py -p dvrk_ctr_teleop -y config/mtml_psm1_mtmr_psm2_cam_sim.yaml
 
+for keyboard
+python3 src/dvrk_planning/dvrk_python_v1/dvrk_planning_ros/scripts/psm_teleop_keyboard.py
+
 """

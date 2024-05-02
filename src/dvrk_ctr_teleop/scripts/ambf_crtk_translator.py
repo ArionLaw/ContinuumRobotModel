@@ -10,6 +10,7 @@ import random
 import pdb
 
 from  sensor_msgs.msg import JointState
+from geometry_msgs.msg import Pose
 
 class JointErrorsModel:
     def __init__(self, num_joints, errors_distribution_deg):
@@ -78,7 +79,10 @@ index_to_correct_name = [
     'notch_4-notch_5',
     'notch_5-notch_6',
     'notch_6-notch_7',
-    'notch_7-gripper_holder',
+    'notch_7-notch_8',
+    'notch_8-notch_9',
+    'notch_9-notch_10',
+    'notch_10-gripper_holder',
     ]
 
 class PSMTranslator:
@@ -89,28 +93,31 @@ class PSMTranslator:
 
         if crtk_namespace == '/PSM1':
             self.base_handle = self._client.get_obj_handle('psm1/baselink')
+            self.ee_body = self._client.get_obj_handle('/ambf/env/psm1/gripper_1')
         elif crtk_namespace =='/PSM2':
             self.base_handle = self._client.get_obj_handle('psm2/baselink')
+            self.ee_body = self._client.get_obj_handle('/ambf/env/psm2/gripper_1')
         else:
             raise(ValueError('Invalid crtk_namespace'))
+        
+        
 
         self.initalize_pos_rpy(crtk_namespace)
         time.sleep(0.2)
         self.measured_js_pub = rospy.Publisher(crtk_namespace + "/measured_js", JointState, queue_size = 10)
+        self.measured_ee_pose_pub = rospy.Publisher(crtk_namespace + "/measured_ee_pose", Pose, queue_size = 1)
 
-        self._num_joints = 12
+        self._num_joints = 15
         self._joint_error_model = JointErrorsModel(self._num_joints, errors_distribution_deg= [0])
         self.joint_names = self.base_handle.get_joint_names() # Might be useful later
 
         self.jaw_pos = 0.0
-        self.joint_dirs = [1,1,1,1,1, 1,1,1, 1, 1]
-
         print(self.joint_names)
 
         gm_js = JointState()
 
         initial_pos = []
-        for i in range(0,12):
+        for i in range(0,15):
             if i == 2:
                 initial_pos.append(1.0)
             else:
@@ -125,10 +132,10 @@ class PSMTranslator:
 
     def initalize_pos_rpy(self,crtk_namespace):
         
-        for i in range(0,13):
+        for i in range(0,16):
             self.base_handle.set_joint_pos(i,0.0)
             time.sleep(0.05)
-        self.base_handle.set_joint_pos('notch_6-notch_7', 0)
+        self.base_handle.set_joint_pos('notch_9-notch_10', 0)
 
         if crtk_namespace == '/PSM1':
             self.base_handle.set_pos(0.5,1,2)
@@ -147,15 +154,15 @@ class PSMTranslator:
         #self.base_handle.set_rpy(0,0,3.14)
         #self.base_handle.set_rpy(0,0,0)
 
-        for i in range(0,13):
+        for i in range(0,16):
             self.base_handle.set_joint_pos(i,0.0)
             time.sleep(0.05)
-        self.base_handle.set_joint_pos('notch_6-notch_7', 0)
-        self.base_handle.set_joint_pos('notch_7-gripper_holder', 0)
+        self.base_handle.set_joint_pos('notch_9-notch_10', 0)
+        time.sleep(0.5)
         
     def update_jaw_links(self, jaw_pos):
-        self.base_handle.set_joint_pos('gripper_1_joint', jaw_pos)
-        self.base_handle.set_joint_pos('gripper_2_joint', -jaw_pos)
+        self.base_handle.set_joint_pos('gripper_holder-gripper_1', -jaw_pos)
+        self.base_handle.set_joint_pos('gripper_holder-gripper_2', jaw_pos)
 
     def update_jaw(self, jaw_pos):
         self.jaw_pos = jaw_pos
@@ -165,43 +172,27 @@ class PSMTranslator:
 
         joint_positions = gm_joint_state.position
 
-        #print("SERVO_JP:")
-        #print(joint_positions)
-
         if len(joint_positions) != self._num_joints:
             rospy.logerr(f"joint positions size must be {self._num_joints} but are {len(joint_positions)}")
             return
 
-        '''self.base_handle.set_joint_pos(index_to_correct_name[0], joint_positions[0])
-        self.base_handle.set_joint_pos(index_to_correct_name[1], joint_positions[1])
-        self.base_handle.set_joint_pos(index_to_correct_name[2], joint_positions[2])
-        self.base_handle.set_joint_pos(index_to_correct_name[3], joint_positions[3])
-        self.base_handle.set_joint_pos(index_to_correct_name[4], joint_positions[4])
-        self.update_tool_yaw(joint_positions[5])'''
-
-        for i in range (0,11):
+        #pdb.set_trace()
+        for i in range (0,14):
             self.base_handle.set_joint_pos(index_to_correct_name[i], joint_positions[i])
-        self.update_jaw(joint_positions[11])
-        self.base_handle.set_joint_pos('notch_7-gripper_holder', joint_positions[10])
-        self.base_handle.set_joint_pos('notch_6-notch_7', joint_positions[9])
+        
+        self.update_jaw(joint_positions[14])
+        self.base_handle.set_joint_pos('notch_10-gripper_holder', joint_positions[13])
+        self.base_handle.set_joint_pos('notch_9-notch_10', joint_positions[12])
 
     def get_jaw_pos(self):
-        j1 = self.base_handle.get_joint_pos('gripper_1_joint')
-        j2 = self.base_handle.get_joint_pos('gripper_2_joint')
+        j1 = self.base_handle.get_joint_pos('gripper_holder-gripper_1')
+        j2 = self.base_handle.get_joint_pos('gripper_holder-gripper_2')
         return j1
 
     def measured_js(self):
-        '''j0 = self.base_handle.get_joint_pos(index_to_correct_name[0])
-        j1 = self.base_handle.get_joint_pos(index_to_correct_name[1])
-        j2 = self.base_handle.get_joint_pos(index_to_correct_name[2])
-        j3 = self.base_handle.get_joint_pos(index_to_correct_name[3])
-        j4 = self.base_handle.get_joint_pos(index_to_correct_name[4])
-        j5 = self.get_yaw_pos()
-
-        q = [j0, j1, j2, j3, j4, j5]'''
 
         q = []
-        for i in range (0,11):
+        for i in range (0,14):
              q.append(self.base_handle.get_joint_pos(index_to_correct_name[i]))
         q.append(self.get_jaw_pos())
 
@@ -210,8 +201,10 @@ class PSMTranslator:
         gm_js.position = q
         self.measured_js_pub.publish(gm_js)
 
-        '''print('Measured_JP:')
-        print(gm_js.position)'''
+        ee_pose = Pose()
+        ee_pose.position = self.ee_body.get_pos()
+        self.measured_ee_pose_pub.publish(ee_pose)
+        
 
     def jaw_measured_js(self):
         gm_js = JointState()
