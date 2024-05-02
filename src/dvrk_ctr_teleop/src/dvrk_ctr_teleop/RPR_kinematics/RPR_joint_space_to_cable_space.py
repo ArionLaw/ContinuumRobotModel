@@ -8,7 +8,7 @@ import numpy as np
 ### FK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def get_NotchPitchAngle_from_CableDeltaPerNotch(h, y_, r, n , deltaL_inner):
+def get_notch_pitch_angle_from_cable_delta_per_notch(h, y_, r, n , deltaL_inner):
     """
     gets notch angle from displacement of innermost cable of notch
     """
@@ -18,12 +18,12 @@ def get_NotchPitchAngle_from_CableDeltaPerNotch(h, y_, r, n , deltaL_inner):
     notch_angle = tube_midline*curvature
     return notch_angle
 
-def get_PitchAngle_from_PitchCableDelta(h, y_, r , n , deltaL):
+def get_pitch_angle_from_pitch_cable_delta(h, y_, r , n , deltaL):
     """
     gets wrist angle from displacement of wrist cable
     """
     deltaL_notch = deltaL/n
-    notch_angle = get_NotchPitchAngle_from_CableDeltaPerNotch(h,y_,r,n,deltaL_notch)
+    notch_angle = get_notch_pitch_angle_from_cable_delta_per_notch(h,y_,r,n,deltaL_notch)
     wrist_angle = notch_angle*n
     return wrist_angle
     
@@ -32,7 +32,7 @@ def get_PitchAngle_from_PitchCableDelta(h, y_, r , n , deltaL):
 ### IK ###
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 
-def get_NotchCableDelta_from_NotchPitchAngle(h, y_, r, w, n, notch_angle):
+def get_notch_cable_delta_from_notch_pitch_angle(h, y_, r, w, n, notch_angle):
     """
     gets cable displacements of all cables given the angle at a notch
     """
@@ -46,12 +46,12 @@ def get_NotchCableDelta_from_NotchPitchAngle(h, y_, r, w, n, notch_angle):
 
     return(delta_pitch_cable)
 
-def get_PitchCableDelta_from_WristPitchAngle(h, y_, r, w, n, pitch_angle):
+def get_pitch_cable_delta_from_wrist_pitch_angle(h, y_, r, w, n, pitch_angle):
     """
     gets wrist cable displacement given the wrist angle
     """
     notch_angle = pitch_angle/n
-    deltaL_notch = get_NotchCableDelta_from_NotchPitchAngle(h,y_,r,w,n,notch_angle)
+    deltaL_notch = get_notch_cable_delta_from_notch_pitch_angle(h,y_,r,w,n,notch_angle)
     total_cable_delta = deltaL_notch*n
     return total_cable_delta
     

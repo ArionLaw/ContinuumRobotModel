@@ -137,17 +137,6 @@ class WristIKSolver:
 
         q5 = math.acos(R_wrist_desired[2,2])
 
-        #########COMMENT OUT IF PROBLEMS######
-        # if abs(q5) < self.min_deg_limit*np.pi/180:
-        #     print("SINGULARITY")
-        #     q_dif = q5 - self.q_previous
-        #     R_wrist_desired_adjusted = self.avoid_singularity(R_wrist_desired, q_dif, R_shaft, self.min_deg_limit)
-        #     self.R_previous = R_wrist_desired
-        #     self.q_previous = q5
-        #     R_wrist_desired = R_wrist_desired_adjusted
-        # else:
-        #     self.R_previous = R_wrist_desired
-
         r33 = R_wrist_desired[2,2]
         r31 = R_wrist_desired[2,0]
         r32 = R_wrist_desired[2,1]
@@ -181,15 +170,13 @@ class WristIKSolver:
             proj_of_u_on_n = (np.dot(u, n)/n_norm**2)*n 
             return u - proj_of_u_on_n
 
-        np.set_printoptions(precision=8)
-        #rotation_add_deg = self.min_deg_limit
+
         R_change = np.transpose(self.R_previous)@R_wrist_desired
         rotation_vec = R.from_matrix(R_change).as_rotvec()
         rotation_vec = rotation_vec/np.linalg.norm(rotation_vec)
 
         ###vector from singularity to Rprevious
         R_change_2 = np.transpose(R_shaft@self.R_singularity)@self.R_previous
-        # R_change_2 = np.transpose(self.R_singularity)@self.R_previous
         rotation_vec_2 = R.from_matrix(R_change_2).as_rotvec()
         rotation_vec_2 = rotation_vec_2/np.linalg.norm(rotation_vec_2)
 
@@ -205,14 +192,10 @@ class WristIKSolver:
 
         # Calculate current q5 from R_wrist_desired
         q5 = math.acos(R_wrist_desired[2, 2])
-        # print("CURRENT q5", q5)
-        # print("Qdiff", q_diff)
         min_deg_limit = self.min_deg_limit* np.pi / 180  
 
          # Handling Zero Direction
         if direction == 0:
-            'PRINT HANDLING'
-            # Use the signs of the x and y components of the rotation vectors
             direction = np.sign(rotation_vec[0] * rotation_vec[1])
             if direction == 0:
                 # If still zero, default to a positive direction
@@ -224,26 +207,18 @@ class WristIKSolver:
             if direction < 0:
                 # Smooth transition for increasing q_diff with negative direction
                 rotation_angle = np.pi / 2 + np.pi / 2 * (q5 / min_deg_limit)
-                # print("FIRST CHECK")
             else:
                 # Smooth transition for increasing q_diff with positive direction
                 rotation_angle = rotation_angle = np.pi/2 - np.pi / 2 * (q5 / min_deg_limit)
-                # print("SECOND CHECK")
         else:
             if direction < 0:
                 # Smooth transition for decreasing q_diff with negative direction
                 rotation_angle = np.pi / 2 * (1 - q5 / min_deg_limit)
-                # print("3rd CHECK")
             else:
                 # Smooth transition for decreasing q_diff with positive direction
                 rotation_angle = np.pi/2 + np.pi / 2 * (1 - q5 / min_deg_limit)
-                # print("4th CHECK")
-        
-        print("Rotation Angle", rotation_angle)
-        print("direction",direction)
 
         R_wrist_desired_adjusted = R_wrist_desired @ RotMtx('z', rotation_angle)@RotMtx('x',rotation_add_deg*np.pi/180)
-
         return R_wrist_desired_adjusted
     
 

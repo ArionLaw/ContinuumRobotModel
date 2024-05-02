@@ -19,10 +19,9 @@ import pdb
 '''
 
 '''
-np.set_printoptions(precision=3)
-printout = False
 
-class Arion_Law_tool_Kinematics_Solver:
+
+class RPRKinematicsSolver:
 #----------------------------------------------------------------------------------------------------------------------------------------------#
 # wrist parameters to be placed in YAML
 #----------------------------------------------------------------------------------------------------------------------------------------------#
@@ -63,7 +62,6 @@ class Arion_Law_tool_Kinematics_Solver:
                     from cable space displacements to joint space angles 
                     from joint space angles to task space poses                 
             """        
-            if printout is True: print("------------------------------------------- FK -------------------------------------------")
             psm_joints = joints[0:3]
 
             if self.simulation:
@@ -77,25 +75,17 @@ class Arion_Law_tool_Kinematics_Solver:
                   disk_positions = joints[3:]
                  
                   """ from disk space angles to joint space angles """
-                  q4, q5, q6, EE_pinch_angle = self.CableToDiskSpaceSolver.DiskPosition_To_JointSpace(disk_positions,self.h,
+                  q4, q5, q6, EE_pinch_angle = self.CableToDiskSpaceSolver.disk_position_to_joint_space(disk_positions,self.h,
                                                                                                       self.y_,self.r,self.n)
-
-
-            if printout is True: print("Wrist Position: \n", EE_pos_FK)
 
             """ orientation FK """
             R_shaft = get_R_shaft(psm_joints)
             R_wrist = get_R_wrist(q4,q5,q6)
             R_currentFK = R_shaft@R_wrist
-            if printout is True: print("Shaft Orientation: \n", R_shaft)
-            if printout is True: print("Wrist Orientation: \n", R_wrist)
-            if printout is True: print("Current EE Orientation: \n", R_currentFK)
 
             """ wrist position FK """
             wrist_pos_FK = get_wristPosition_from_PSMjoints(psm_joints, self.wrist_length)
             EE_pos_FK = wrist_pos_FK + self.wrist_length/2*R_wrist@np.array([0,0,1])
-
-            #print('FK JOINTS:', joints)
 
             return ConvertToTransformMatrix(R_currentFK,EE_pos_FK), EE_pinch_angle
 
@@ -113,15 +103,8 @@ class Arion_Law_tool_Kinematics_Solver:
                     from joint space angles to cable space displacements
                     from cable space displacements to disk space angles
             """
-            # print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
-            if printout is True: print("------------------------------------------- IK -------------------------------------------")     
-
-            # print("tf_desired", tf_desired)
-        #     print("direct_psm_and_disk_joint_positions", direct_psm_and_disk_joint_positions)
             ee_position_desired = np.copy(tf_desired[0:3,3])
-
             R_desired = np.copy(tf_desired[0:3, 0:3])
-            # print("Rdesired from IK Solver: ", R_desired)
 
             if not isinstance(desired_EE_pinch_angle,float):
                 desired_EE_pinch_angle = desired_EE_pinch_angle[0]
@@ -141,26 +124,22 @@ class Arion_Law_tool_Kinematics_Solver:
                 """ FK calculate wrist pseudojoints of current pose using """ 
                 q4, q5, q6, current_jaw_angle = self.CableToDiskSpaceSolver.DiskPosition_To_JointSpace(disk_positions,self.h,self.y_,self.r,self.n)
                 current_wrist_angles = [q4,q5,q6]
-                # print("current_wrist_angles", current_wrist_angles)
 
             
             """ IK calculate psm joints to obtain wrist cartesian position """
             PSM_wrist_pos_desired = ee_position_desired - self.wrist_length/2*R_desired@np.array([0,0,1])
             psm_joints = get_PSMjoints_from_wristPosition(PSM_wrist_pos_desired,self.wrist_length)
-            #if printout is True: print("PSM Joint Values(yaw,pitch,insertion):\n", psm_joints)
 
             """ FK calculate current shaft orientation given wrist cartesian position"""
             R_shaft = get_R_shaft(psm_joints)
             R_wrist_current = get_R_wrist(q4,q5,q6)
 
             """IK calculate wrist joint solutions and select the best solution"""
-            # print("R_shaft", R_shaft)
             R_wrist = np.matmul(np.transpose(R_shaft), R_desired)
             wrist_ik_sols = self.WristIKSolver.wrist_analytical_ik(R_wrist,R_shaft)
             q4q5q6 = self.WristIKSolver.select_best_solution(current_wrist_angles, wrist_ik_sols)
 
             q4q5q6 = interpolate_angles(q4q5q6, np.array(current_wrist_angles))
-        #     print("interpolate_angles", q4q5q6)
             q4 = q4q5q6[0]
             q5 = q4q5q6[1]
             q6 = q4q5q6[2]
@@ -179,13 +158,10 @@ class Arion_Law_tool_Kinematics_Solver:
                 joints_list.append(desired_EE_pinch_angle)
                 joints_list[2] *=self.scale  #scale up insertion
             else:
-                DiskAngles = self.CableToDiskSpaceSolver.get_Disk_Angles(q4,q5,q6,desired_EE_pinch_angle,
+                DiskAngles = self.CableToDiskSpaceSolver.get_disk_angles(q4,q5,q6,desired_EE_pinch_angle,
                                                                          current_jaw_angle,self.h,self.y_,
                                                                          self.r,self.w,self.n)
                 joints_list = psm_joints + DiskAngles
-
-                #print("IK SOLUTION:", joints_list)
-                #print("CURRENT_POSITION:" ,direct_psm_and_disk_joint_positions)
 
             return joints_list
 
@@ -207,58 +183,5 @@ class Arion_Law_tool_Kinematics_Solver:
                 joint_positions[11] = jaw_angle
             else:
                 joint_positions[6] = jaw_angle
-            # TODO, put rest of joint values in correct place
             return joint_positions
-
-
-#----------------------------------------------------------------------------------------------------------------------------------------------#
-### Test Case Debugging ###
-#----------------------------------------------------------------------------------------------------------------------------------------------#
-# configurations for testing FK and IK
-
-# run test cases
-"""
-def run_test_cases():
-        input_filename = "+rot_x.txt"
-        input_current_output_js_list,tf_matrices_list = read_TestCaseFile(input_filename)
-
-        original_stdout = sys.stdout
-        log_filename = input_filename + '_testcaselog.txt'
-        with open(log_filename,'w') as f:
-                sys.stdout = f
-
-                for i in range(len(input_current_output_js_list)):
-                        print("============================================================================================================================")
-                        print("iteration: ", i)
-                        disk_positions = input_current_output_js_list[i]
-                        #print("Disk Positions:\n", disk_positions)
-                        tf_desired = np.matrix(tf_matrices_list[i])
-                        #print("tf Desired:\n",tf_desired)
-
-                        tool1 = Peter_Francis_tool_Kinematics_Solver()
-                        
-                        #Transform, jaw angle and wrist joint angle as calculated from FK given input_current_output_js
-                        Tf, jaw_angle, FK_joint_values = tool1.compute_all_fk(disk_positions)
-
-                        #dial values and wrist joint angle as calculated from IK given log file Tf desired and current joint and dial positions
-                        dialvalues, IKpre_joint_values = tool1.compute_all_ik(tf_desired, disk_positions, 30*np.pi/180) 
-
-                        #Transform, jaw angle and wrist joint angle as calculated from FK given dial values calculated from IK
-                        Tf, jaw_angle, IKpost_joint_values = tool1.compute_all_fk(dialvalues)
-                        
-                        input_joint_values = [FK_joint_values[0],FK_joint_values[2],FK_joint_values[3],FK_joint_values[4]]
-                        IKpost_joint_values = [IKpost_joint_values[0],IKpost_joint_values[2],IKpost_joint_values[3],IKpost_joint_values[4]]
-                        print("____________________________________________________________________________________________________________________________")
-                        print("input current output js wrist joint values (roll,gamma,beta,alpha): \n" , input_joint_values)
-                        print("IK wrist joint values pre-cable allocation (roll,gamma,beta,alpha): \n" , IKpre_joint_values)
-                        print("IK wrist joint values post-cable allocation (roll,gamma,beta,alpha): \n" , IKpost_joint_values)
-
-                        joint_difference = []
-                        for i in range(len(IKpost_joint_values)):
-                                joint_difference.append( IKpost_joint_values[i] - IKpre_joint_values[i])
-                        print("cable allocation error(roll,gamma,beta,alpha): \n" , joint_difference)
-                sys.stdout = original_stdout
-        print("finished")
-"""
-#run_test_cases()
 
