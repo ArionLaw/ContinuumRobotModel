@@ -92,15 +92,22 @@ class PSMTranslator:
         time.sleep(0.2)
 
         if crtk_namespace == '/PSM1':
+            self.namespace = 'ambf/env/psm1'
             self.base_handle = self._client.get_obj_handle('psm1/baselink')
             self.ee_body = self._client.get_obj_handle('/ambf/env/psm1/gripper_1')
         elif crtk_namespace =='/PSM2':
+            self.namespace = 'ambf/env/psm2'
             self.base_handle = self._client.get_obj_handle('psm2/baselink')
-            self.ee_body = self._client.get_obj_handle('/ambf/env/psm2/gripper_1')
+            self.ee_body = self._client.get_obj_handle('/ambf/env/psm2/EEPose')
         else:
             raise(ValueError('Invalid crtk_namespace'))
         
-        
+        self.sensor = self._client.get_obj_handle(self.namespace + '/Sensor0')
+        self.actuators = []
+        self.actuators.append(self._client.get_obj_handle(self.namespace + '/Actuator0'))
+        time.sleep(0.5)
+        self.grasped = [False, False, False]
+        self.graspable_objs_prefix = ["Needle", "Thread", "Puzzle"]
 
         self.initalize_pos_rpy(crtk_namespace)
         time.sleep(0.2)
@@ -145,13 +152,13 @@ class PSMTranslator:
             #     0.3298662810392971])
         elif crtk_namespace =='/PSM2':
             self.base_handle.set_pos(-0.5,1,2)
-            self.base_handle.set_rpy(0.698099, 0.523600, -3.13158)
+            #self.base_handle.set_rpy(0.698099, 0.523600, -3.13158)
             # self.base_handle.set_rot([-0.8491677293967367,
             #   -0.4200572904600633,
             #   -0.1001969776665232,
             #   0.3040174431657418])
         
-        #self.base_handle.set_rpy(0,0,3.14)
+        self.base_handle.set_rpy(0,0,3.14)
         #self.base_handle.set_rpy(0,0,0)
 
         for i in range(0,16):
@@ -159,6 +166,28 @@ class PSMTranslator:
             time.sleep(0.05)
         self.base_handle.set_joint_pos('notch_9-notch_10', 0)
         time.sleep(0.5)
+    
+    def run_grasp_logic(self, jaw_angle):
+        for i in range(len(self.actuators)):
+            if jaw_angle <= 0.2:
+                if self.sensor is not None:
+                    if self.sensor.is_triggered(i):
+                        sensed_obj = self.sensor.get_sensed_object(i)
+                        for s in self.graspable_objs_prefix:
+                            if s in sensed_obj:
+                                print(sensed_obj)
+                                if not self.grasped[i]:
+                                    qualified_name = sensed_obj
+                                    self.actuators[i].actuate(qualified_name)
+                                    self.grasped[i] = True
+                                    print('Grasping Sensed Object Names', sensed_obj)
+            else:
+                if self.actuators[i] is not None:
+                    self.actuators[i].deactuate()
+                    if self.grasped[i] is True:
+                        print('Releasing Grasped Object')
+                    self.grasped[i] = False
+                    # print('Releasing Actuator ', i)
         
     def update_jaw_links(self, jaw_pos):
         self.base_handle.set_joint_pos('gripper_holder-gripper_1', -jaw_pos)
@@ -167,6 +196,7 @@ class PSMTranslator:
     def update_jaw(self, jaw_pos):
         self.jaw_pos = jaw_pos
         self.update_jaw_links(self.jaw_pos)
+        self.run_grasp_logic(jaw_pos)
 
     def servo_jp(self, gm_joint_state):
 

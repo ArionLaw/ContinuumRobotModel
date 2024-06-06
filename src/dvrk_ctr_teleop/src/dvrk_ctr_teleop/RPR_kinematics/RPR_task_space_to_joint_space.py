@@ -81,8 +81,8 @@ class WristIKSolver:
                                     [1, 0, 0],
                                     [0, 0, 1]])
         
-        self.speech_manager_limits = SpeechManager() #joint limits
-        self.speech_manager_singularity = SpeechManager()
+        # self.speech_manager_limits = SpeechManager() #joint limits
+        # self.speech_manager_singularity = SpeechManager()
             
     def normalize_angle(self,angles):
         """ Normalize angles to the range [0, 2*pi] """
@@ -178,10 +178,10 @@ class WristIKSolver:
         q4_2 = math.atan2(-r23, -r13)
         q6_2 = math.atan2(-r31, -r32)
 
-        if q5_1 > np.pi/2:
-            self.speech_manager_limits.speak("Wrist Bending Joint Limit Reached")
-        else:
-            self.speech_manager_limits.clear_queue()
+        # if q5_1 > np.pi/2:
+        #     self.speech_manager_limits.speak("Wrist Bending Joint Limit Reached")
+        # else:
+        #     self.speech_manager_limits.clear_queue()
 
         # if abs(q5) < self.min_deg_limit*np.pi/180:
         #     q6_1 = q6_original

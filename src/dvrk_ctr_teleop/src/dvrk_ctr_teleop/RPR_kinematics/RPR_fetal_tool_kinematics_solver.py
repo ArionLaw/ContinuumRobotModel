@@ -68,7 +68,7 @@ class Arion_Law_tool_Kinematics_Solver:
 
             if self.simulation:
                   q4 = joints[3] 
-                  q5 = joints[4]*6
+                  q5 = joints[4]*9
                   q6 = joints[13] 
                   psm_joints[2] = psm_joints[2]/10 #scale down insertion
                   EE_pinch_angle = joints[14]
@@ -128,7 +128,7 @@ class Arion_Law_tool_Kinematics_Solver:
 
             if self.simulation:
                 q4 = direct_psm_and_disk_joint_positions[3]
-                q5 = direct_psm_and_disk_joint_positions[4]*6 #pitch
+                q5 = direct_psm_and_disk_joint_positions[4]*9 #pitch
                 q6 = direct_psm_and_disk_joint_positions[13] #inner roll
                 current_wrist_angles = [q4,q5,q6]
 
@@ -173,7 +173,7 @@ class Arion_Law_tool_Kinematics_Solver:
                 psm_joints.append(q4) #outer_roll
                 wrist_joints = []
                 for _ in range(0,9):
-                    wrist_joints.append(q5/6) #pitch
+                    wrist_joints.append(q5/9) #pitch
                 wrist_joints.append(q6) #inner_roll
                 joints_list = psm_joints + wrist_joints
                 joints_list.append(desired_EE_pinch_angle)
