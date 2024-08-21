@@ -2,6 +2,7 @@ import rospy
 import PyKDL
 import numpy as np
 import trimesh
+from pykdtree.kdtree import KDTree
 from pysdf import SDF
 from scipy.spatial.transform import Rotation as R
 import matplotlib.pyplot as plt
@@ -9,99 +10,21 @@ from mpl_toolkits.mplot3d import Axes3D
 from geometry_msgs.msg import WrenchStamped
 from geometry_msgs.msg import Vector3
 from ambf_msgs.msg import RigidBodyState
+from ambf_msgs.msg import SoftBodyFtState
 from std_msgs.msg import Header
 from std_msgs.msg import Float32
 from collections import deque
 from cvxopt import matrix, solvers
+import pdb
+import time
 
-# class VFI_Solver:
-#     def __init__(self, eta_d, alpha, k, q_min, q_max):
-#         self.alpha = alpha
-#         self.eta_d = eta_d
-#         self.d_safe_previous = 0.0
-#         self.d_previous = 0.0
-#         self.previous_time = 0.0
-#         self.q_min = q_min
-#         self.q_max = q_max
-#         self.dma_d_dot = DoubleExponentialMovingAverage(0.5)
-#         self.dma_d_dot_safe = DoubleExponentialMovingAverage(0.5)
+#from jacobian import compute_jacobian
 
-
-#     def vfi_optimization_step(self, J_t, q_dot, gradient, distance, speed):
-
-#         current_time = rospy.get_time()
-#         dt = current_time - self.previous_time
-#         normal = -(gradient / np.linalg.norm(gradient))
-#         J_d = np.dot(normal,J_t)
-#         d_safe = np.exp(self.alpha*speed)
-#         d_dot_safe = (d_safe-self.d_safe_previous)/dt
-#         d_error = distance - d_safe
-#         d_dot = (distance - self.d_previous)/dt
-
-#         smoothed_d_dot = self.dma_d_dot.update(d_dot)
-#         smoothed_d_dot_safe = self.dma_d_dot_safe.update(d_dot_safe)
-
-#         zeta = d_dot - J_d@q_dot
-#         zeta_safe = zeta - d_dot_safe
-#         self.previous_time = current_time
-#         self.d_previous = distance
-
-class VFI_Solver:
-    def __init__(self, q_min, q_max, d_safe):
-        self.q_min = [-1.599,-np.pi/3,0,-6.28, 0,-3.14]
-        self.q_max = [1.599,np.pi/3,2.4,6.28, 1,57,3.14]
-        self.d_safe = d_safe
-        self.eta_t = 0.5 #position gain
-        self.eta_r = 0.5 #rotation gain
-        self.damping = 0.3 #qdot damping factor
-        self.eta_d
-        self.dt = 1/25 
-    
-    def update_timestep(self, dt):
-        self.dt = dt
-    
-    def vfi_optimization_step(self, J_t, J_r, gradient, distance, q_current,
-                               p_desired, p_current, r_desired, r_current):
-
-        # Formulate Optimization Problem 
-        v_desired = p_desired - p_current
-        r_diff  = R.from_matrix(r_desired)*R.from_matrix(r_current)
-    
-        # Calculate the error vector
-        omega_desired = r_diff.as_rotvec()
-        Lambda = np.diag([0.75, 0.75, 0.75, 0.25, 0.25, 0.25])
-
-        Q = 2 * (self.eta_t * J_t.T @ J_t + self.eta_r * J_r.T @ J_r + Lambda.T @ Lambda)
-
-        # Calculate p
-        p = -2 * (self.eta_t * J_t.T @ v_desired + self.eta_r * J_r.T @ omega_desired)
-
-        # Convert to CVXOPT format
-        Q_cvx = matrix(Q)
-        p_cvx = matrix(p)
-
-        # Joint angle constraints
-        delta_q_min = (self.q_min - q_current) / self.dt
-        delta_q_max = (self.q_max - q_current) / self.dt
-        G_angle = np.vstack([-np.eye(6), np.eye(6)])
-        h_angle = np.hstack([delta_q_min, delta_q_max])
-
-        #distance constraints
-        normal = -(gradient / np.linalg.norm(gradient))
-        J_d = np.dot(normal,J_t)
-        d_error = distance - self.d_safe
-        G_distance = -J_d  # Jacobian for distance constraint
-        h_distance = self.eta_d * d_error
-
-        # Combine all constraints
-        G = matrix(np.vstack([G_angle, G_distance]))
-        h = matrix(np.hstack([h_angle, h_distance]))
-
-        # Solve the QP problem
-        sol = solvers.qp(Q_cvx, p_cvx, G, h)
-        q_optimal = np.array(sol['x']).flatten()
-
-        return q_optimal
+# def vfi_optimization_step(J_t, q_current, gradient, distance, speed, eta_d, d_safe, alpha, k, q_min, q_max):
+#     normal = -(gradient / np.linalg.norm(gradient))
+#     J_d = np.dot(normal,J_t)
+#     d_error = distance - d_safe
+#     d_dot_safe = k*np.exp(alpha*()
 
 
 def compute_sdf_gradient(sdf, point, epsilon=1e-5):
@@ -132,17 +55,42 @@ def transform_mesh(position, quaternion):
     transformation_matrix[:3, 3] = position
     return transformation_matrix
 
-def generate_haptic_force(gradient, distance, velocity, alpha=3, kappa = 25, F_max=4.0, d_min = 0.10):
+def generate_haptic_force(gradient, distance, velocity, 
+                          alpha=15, 
+                          kappa = 25, 
+                          F_max=1.2, 
+                          d_min = 0.10, 
+                          ramping=10):
 
-    if (np.linalg.norm(velocity) <= 1e-5) or (distance > d_min):
-        return np.zeros(3), 0.0
-    
-    norm_velocity = velocity / np.linalg.norm(velocity)
+    # if (np.linalg.norm(velocity) <= 1e-5) or (distance > d_min):
+    #     return np.zeros(3), 0.0
+
+    ###for dmin = 0.10, kappa = 25, alpha = 15 
+
+    ###COMMENT OUT
+    #if distance < 0.005:
+    #    F_max = 1.2
+    #elif distance < 0.3:
+    #     F_max = 0.75
+    # if distance > d_min:
+    #     F_max = 0.75
+
+
+    distance = np.clip(distance,0,10)
+    #alpha = 100*100
+    #alpha = 2000
+    alpha = 1.5e20
+    norm_velocity = velocity / np.linalg.norm(velocity+np.finfo(float).eps)
     normal = -(gradient / np.linalg.norm(gradient))
     dot_product = np.dot(norm_velocity, normal)
-    beta = alpha * np.sqrt((1 - dot_product)*(np.tanh(kappa*(d_min-distance))) /2)
-    force_magnitude = min(beta * np.linalg.norm(velocity), F_max)
-
+    dot_product = -1
+    # beta = alpha * np.sqrt((1 - dot_product)*(np.tanh(kappa*(d_min-distance))) /2)
+    distance2 = d_min - distance
+    #beta = alpha * np.sqrt((1 - dot_product)/2)*(distance2**2)*np.log(1+distance2**2)
+    beta = alpha * np.sqrt(1 - dot_product) * (distance2**ramping)*np.log(1+distance2**ramping)
+    #force_magnitude = min(beta * np.linalg.norm(velocity), F_max)
+    force_magnitude = min(beta, F_max)
+    
     if dot_product < 0:
         force_direction = normal
     else:
@@ -153,11 +101,7 @@ def generate_haptic_force(gradient, distance, velocity, alpha=3, kappa = 25, F_m
         # Rotate the velocity vector around the axis n by angle theta
         force_direction = rotate_vector(norm_velocity, theta, n)
         #print(f"distance:{distance}, force_dir: {force_direction}, beta: {beta}")
-    
-    if force_magnitude>F_max:
-        force_magnitude = F_max 
-
-    
+  
     return force_direction, force_magnitude
 
 def rotate_vector(v, theta, n):
@@ -188,6 +132,74 @@ class DoubleExponentialMovingAverage:
 
         return self.dema
 
+class SDFGen():
+    def __init__(self, fetal_mesh):
+        self.initalize = True
+        self.vertex_array = None
+        self.previous_vertex_array = None
+        self.face_array = []
+        self.sdf = None
+        self.epsilon = 1e-3
+        self.k_neighbours = 4
+        self.kd_tree = KDTree(fetal_mesh.vertices)
+        self.softbody_sub = rospy.Subscriber(f'/ambf/env/deformable_fixed_final_001/State', SoftBodyFtState, self._sb_callback)
+        self._generate_sdf(fetal_mesh)
+    
+    def _sb_callback(self, msg):
+        self.previous_vertex_array = self.vertex_array
+        self.vertex_array = np.array([[vertex.vertex[0], vertex.vertex[1], vertex.vertex[2]] for vertex in msg.vertices])
+
+        if self.initalize:
+            self.face_array = np.zeros([np.size(msg.faces),3], dtype = float)
+            for j, face in enumerate(msg.faces):
+                self.face_array[j][0] = face.vertices[0]
+                self.face_array[j][1] = face.vertices[1]
+                self.face_array[j][2] = face.vertices[2]
+            self.initalize = False
+    
+    def _generate_sdf(self, mesh):
+        self.sdf = SDF(mesh.faces, mesh.vertices)
+
+    def update_sdf(self):
+        # Calculate the movement of each vertex
+        movement = np.linalg.norm(self.vertex_array - self.previous_vertex_array, axis=1)
+        
+        # Identify vertices that have moved beyond the epsilon threshold
+        moved_vertices = movement > self.epsilon
+        if np.any(moved_vertices):
+            print('UPDATING SDF...')
+
+            # Extract the moved vertices
+            moved_vertex_array = self.vertex_array[moved_vertices]
+            distances, k_nearest_indices= self.kd_tree.query(moved_vertex_array, k=self.k_neighbours) 
+            
+             
+            weights = 1 / (distances + 1e-6)
+
+            # Normalize weights for each vertex (sum of weights for each row = 1)
+            weights /= np.sum(weights, axis=1)[:, np.newaxis]
+
+            # Calculate the weighted displacements for all k-nearest neighbors
+            displacements = (moved_vertex_array[:, np.newaxis, :] - self.sdf.vertices_mutable[k_nearest_indices]) * weights[:, :, np.newaxis]
+
+            # Apply the displacements to the corresponding k-nearest vertices
+            np.add.at(self.sdf.vertices_mutable, k_nearest_indices, displacements)
+
+            # Step 2: Weighted update of the nearest vertices
+            for i, indices in enumerate(k_nearest_indices):
+                deformed_vertex = moved_vertex_array[i]
+                nearest_vertices = self.sdf.vertices_mutable[indices]
+
+                weights = 1 / (distances[i] + 1e-6)  # Inverse distance weighting (add small value to avoid division by zero)
+                weights /= np.sum(weights)  # Normalize weights
+
+                # Move each of the k-nearest vertices slightly towards the deformed vertex
+                for j, index in enumerate(indices):
+                    self.sdf.vertices_mutable[index] += weights[j] * (deformed_vertex - self.sdf.vertices_mutable[index])
+
+            self.sdf.update()
+
+
 class PSMForceHandler:
     def __init__(self, gripper_1_mesh, gripper_2_mesh, psm_id, sdf, alpha = 0.05):
         self.psm_id = psm_id
@@ -196,21 +208,22 @@ class PSMForceHandler:
         self.pose_gripper_2 = None
         self.velocity = np.zeros(3)
         self.prev_position = None
-        self.dt = 0.0
+        self.MTM_transform = PyKDL.Rotation.Quaternion(0.5,-0.5,0.5,0.5).Inverse()
 
-        self.force_pub = rospy.Publisher(f'/ambf/env/{psm_id}/servo_cp', WrenchStamped, queue_size=10)
+        self.force_pub = rospy.Publisher(f'/ambf/env/{psm_id}/servo_cf', WrenchStamped, queue_size=10)
+        #self.force_pub = rospy.Publisher(f'/{MTM}/body/servo_cf', WrenchStamped, queue_size=10)
         rospy.Subscriber(f'/ambf/env/{psm_id}/gripper_1/State', RigidBodyState, self.pose_callback_gripper_1)
         rospy.Subscriber(f'/ambf/env/{psm_id}/gripper_2/State', RigidBodyState, self.pose_callback_gripper_2)
         rospy.Subscriber(f'/ambf/env/{psm_id}/gripper_holder/State', RigidBodyState, self.velocity_callback)
         self.force_magnitude_pub = rospy.Publisher(f'/ambf/env/{psm_id}/force_magnitude', Float32, queue_size=10)
         self.distance_pub = rospy.Publisher(f'/ambf/env/{psm_id}/distance', Float32, queue_size=10)
+        self.speed_pub = rospy.Publisher(f'/ambf/env/{psm_id}/velocity_magnitude', Float32, queue_size=10)
         self.gradient_pub = rospy.Publisher(f'/ambf/env/{psm_id}/gradient', Vector3, queue_size=10)
-
         self.last_time = rospy.Time.now()
         self.gripper_1 = gripper_1_mesh
         self.gripper_2 = gripper_2_mesh
         self.dema_calculator = DoubleExponentialMovingAverage(alpha)
-        self.dema_calculator_speed= DoubleExponentialMovingAverage(0.3)
+        self.dema_calculator_speed= DoubleExponentialMovingAverage(0.9)
 
 
     def pose_callback_gripper_1(self, msg):
@@ -227,14 +240,14 @@ class PSMForceHandler:
                              msg.pose.position.z])
 
         if self.prev_position is not None:
-            self.dt = (current_time - self.last_time).to_sec()
-            if self.dt > 0:
-                self.velocity = (position - self.prev_position) / self.dt
+            dt = (current_time - self.last_time).to_sec()
+            if dt > 0:
+                self.velocity = (position - self.prev_position) / dt
         
         self.prev_position = position
         self.last_time = current_time
 
-    def compute_and_publish_force(self):
+    def compute_and_publish_force(self, sdf):
         if self.pose_gripper_1 is None or self.pose_gripper_2 is None:
             return
 
@@ -272,19 +285,20 @@ class PSMForceHandler:
 
         gradient = compute_sdf_gradient(self.sdf, min_distance_vertex)
         force_direction, force_magnitude = generate_haptic_force(gradient, min_distance, self.velocity)
-        #smoothed_speed = self.dema_calculator_speed(np.linalg.norm(self.velocity))
-
-
+        smoothed_speed = self.dema_calculator_speed.update(np.linalg.norm(self.velocity))
 
         smoothed_force_magnitude = self.dema_calculator.update(force_magnitude)
-        #smoothed_force_magnitude = force_magnitude
+        smoothed_force_magnitude = force_magnitude
         force = smoothed_force_magnitude * force_direction
+
+        force = self.MTM_transform*PyKDL.Vector(force[0], force[1], force[2])
 
         wrench_msg = WrenchStamped()
         wrench_msg.header.stamp = rospy.Time.now()
         wrench_msg.wrench.force.x = force[0]
         wrench_msg.wrench.force.y = force[1]
         wrench_msg.wrench.force.z = force[2]
+        
 
         self.force_pub.publish(wrench_msg)
 
@@ -296,6 +310,10 @@ class PSMForceHandler:
         distance_msg = Float32()
         distance_msg.data = min_distance
         self.distance_pub.publish(distance_msg)
+
+        speed_msg = Float32()
+        speed_msg.data = smoothed_speed
+        self.speed_pub.publish(speed_msg)
 
         gradient_vec = Vector3()
         gradient_vec.x = gradient[0]
@@ -320,16 +338,19 @@ def main():
 
     # transformation_matrix = transform_mesh(position, quaternion)
     # fetal_mesh.apply_transform(transformation_matrix)
+
     sdf = SDF(fetal_mesh.vertices, fetal_mesh.faces)
 
     # Create PSM handlers
     psm1_handler = PSMForceHandler(gripper_1, gripper_2, 'psm1', sdf)
     psm2_handler = PSMForceHandler(gripper_1, gripper_2, 'psm2', sdf)
+    sdf_generator = SDFGen(fetal_mesh)
 
     rate = rospy.Rate(100) 
     while not rospy.is_shutdown():
-        psm1_handler.compute_and_publish_force()
-        psm2_handler.compute_and_publish_force()
+        sdf_generator.update_sdf()
+        psm1_handler.compute_and_publish_force(sdf_generator.sdf)
+        psm2_handler.compute_and_publish_force(sdf_generator.sdf)
         rate.sleep()
 
 if __name__ == '__main__':
