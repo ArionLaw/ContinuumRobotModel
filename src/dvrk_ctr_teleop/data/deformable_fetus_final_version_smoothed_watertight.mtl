@@ -1,0 +1,12 @@
+# Blender 3.6.0 MTL File: 'newfetalmodelling.blend'
+# www.blender.org
+
+newmtl material_0.019
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.266667 0.364706
+Ks 1.000000 1.000000 1.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
